@@ -1,0 +1,5 @@
+C:\Users\harry\Documents\GitHub\NCode\NCodeLibrary\NCode\bin\Release\NCode.dll
+C:\Users\harry\Documents\GitHub\NCode\NCodeLibrary\NCode\bin\Release\NCode.pdb
+C:\Users\harry\Documents\GitHub\NCode\NCodeLibrary\NCode\obj\Release\NCode.dll
+C:\Users\harry\Documents\GitHub\NCode\NCodeLibrary\NCode\obj\Release\NCode.pdb
+C:\Users\harry\Documents\GitHub\NCode\NCodeLibrary\NCode\obj\Release\NCode.csprojResolveAssemblyReference.cache
