@@ -19,6 +19,22 @@ namespace NCode
         {
             if (StartListening(port))
             {
+                foreach(KeyValuePair<Guid, NetworkObject> i in NetworkObjects)
+                {
+                    if(i.Value.LastChannelID > 0)
+                    {
+                        if (ActiveChannels.ContainsKey(i.Value.LastChannelID))
+                        {
+                            ActiveChannels[i.Value.LastChannelID].AddObject(i.Value);
+                        }
+                        else
+                        {
+                            
+                        }
+                    }
+
+                }
+
                 MainThread = new Thread(MainThreadLoop);
                 MainThread.Start();
             }

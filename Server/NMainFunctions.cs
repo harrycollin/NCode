@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace NCode
 {
-    public class NMainFunctions 
+    public class NMainFunctions
     {
         /// <summary>
         /// Main Tcp protocol for the server
@@ -73,9 +73,9 @@ namespace NCode
         /// <returns></returns>
         public bool AddPlayer(Socket client)
         {
-            if(client != null)
+            if (client != null)
             {
-                NTcpPlayer player = new NTcpPlayer();            
+                NTcpPlayer player = new NTcpPlayer();
                 player.thisSocket = client;
                 player.BeginListening();
                 player.State = NTcpProtocol.ConnectionState.verifying;
@@ -85,7 +85,7 @@ namespace NCode
                 player = null;
                 client = null;
                 return true;
-            }           
+            }
             return false;
         }
 
@@ -98,7 +98,7 @@ namespace NCode
         {
             if (client != null)
             {
-                client.Disconnect();                
+                client.Disconnect();
                 MainPlayers.Remove(client);
                 return true;
             }
@@ -128,7 +128,7 @@ namespace NCode
                 if (!ActiveChannels[ID].IsPlayerConnected(player))
                 {
                     //Make sure the player limit hasn't been reached
-                    if(ActiveChannels[ID].PlayerLimit > ActiveChannels[ID].Players.Count)
+                    if (ActiveChannels[ID].PlayerLimit > ActiveChannels[ID].Players.Count)
                     {
                         //Add player
                         ActiveChannels[ID].AddPlayer(player);
@@ -141,7 +141,7 @@ namespace NCode
                 }
             }
             //Create the channel
-            else 
+            else
             {
                 //Make a new channel
                 NChannel channel = new NChannel();
@@ -149,7 +149,7 @@ namespace NCode
                 channel.ID = ID;
                 //Add the player
                 channel.AddPlayer(player);
-                
+
                 //Add channel to active channels
                 ActiveChannels.Add(ID, channel);
                 //Add the channel to the player's list of connected channels
@@ -177,7 +177,7 @@ namespace NCode
             //Remove from player's list of connected channels
             player.ConnectedChannels.Remove(ActiveChannels[ID]);
             //Close channel if it's empty
-            if (ActiveChannels[ID].Players.Count == 0)
+            if (ActiveChannels[ID].channelObjects.Count == 0 && ActiveChannels[ID].Players.Count == 0)
             {
                 ActiveChannels.Remove(ID);
                 Tools.Print("Channel " + ID + " has been removed");
@@ -185,6 +185,26 @@ namespace NCode
             return true;
         }
 
+        /// <summary>
+        /// Creates a new channel. Used by server on startup
+        /// </summary>
+        /// <param name="ID"></param>
+        /// <returns></returns>
+        public bool CreateChannel(int ID)
+        {
+            if (ActiveChannels.ContainsKey(ID)) return false;
+            NChannel newChannel = new NChannel();
+            newChannel.ID = ID;
+            ActiveChannels.Add(ID, newChannel);
+            return true;
+        }
+
+        /// <summary>
+        /// Processes the request for Network Object creation, returns with a Update to the clients if accepted
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="player"></param>
+        /// <returns></returns>
         public bool ClientRequestCreateObject(NetworkObject obj, NTcpPlayer player)
         {
             if (obj == null || obj.LastChannelID == 0) return false;
