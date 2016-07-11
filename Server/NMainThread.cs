@@ -253,6 +253,7 @@ namespace NCode
                     case Packet.TextChat:
                         {
                             string text = reader.ReadString();
+                            Tools.Print(player.thisSocket.RemoteEndPoint.ToString() + ": " + text);
                             for (int i = 0; i < player.ConnectedChannels.size; i++)
                             {
                                 NChannel channel = player.ConnectedChannels[i];

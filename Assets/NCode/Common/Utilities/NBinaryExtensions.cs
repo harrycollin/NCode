@@ -44,7 +44,7 @@ namespace NCode
             int len = reader.ReadInt32();
             if (len < 0) return null;
             List<object> objsList = new List<object>();
-            for(int i = 0; i < len;)
+            for(int i = 0; i < len; i++)
             {
                objsList.Add(reader.ReadObject());
             }
@@ -64,10 +64,10 @@ namespace NCode
                 int len = b.Length;
                 writer.Write(len);
                 if (len < 0) return;
-                for(int i = 0; i < len;)
+                for(int i = 0; i < len; i++)
                 {
                     writer.WriteObject(b[i]);
-                    i++;
+                    
                 }
             }
 
