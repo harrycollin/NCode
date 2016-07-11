@@ -14,48 +14,94 @@ namespace NCode
 {
     public class NMainThread : NMainFunctions
     {
-
-        public void Start(int port)
+        /// <summary>
+        /// Starts the server. 
+        /// </summary>
+        public void Start(string name, int tcpport, int udpport, string password)
         {
-            if (StartListening(port))
+            //Checks to see if the Tcp listener started without error. 
+            if (StartListening(tcpport))
             {
-                foreach(KeyValuePair<Guid, NetworkObject> i in NetworkObjects)
+                //Tries to load all objects from the database.
+                try
                 {
-                    if(i.Value.LastChannelID > 0)
+                    //Grabs the objects from database class. 
+                    HashSet<NetworkObject> objects = DatabaseRequest.LoadObjects();
+                    //Adds each one to the NetworkObjects dictionary for quick access
+                    foreach (NetworkObject i in objects) NetworkObjects.Add(i.GUID, i);
+                    Tools.Print("Loaded " + objects.Count + " objects from the database", Tools.MessageType.notification);
+                }
+                catch (Exception e)
+                {
+                    Tools.Print("Failed to load objects from the database.", Tools.MessageType.error, e);
+                    //Add a stop to the server.
+                    return;
+                }
+
+                //Creates and preloads channels with their objects. Accesses them from the NetworkObjects dictionary.
+                foreach (KeyValuePair<Guid, NetworkObject> i in NetworkObjects)
+                {
+                    if (i.Value.LastChannelID > 0)
                     {
+                        //Check if channel exists.
                         if (ActiveChannels.ContainsKey(i.Value.LastChannelID))
                         {
                             ActiveChannels[i.Value.LastChannelID].AddObject(i.Value);
                         }
-                        else
+                        else //Make new channel
                         {
-                            
+                            Tools.Print("Created new channel " + i.Value.LastChannelID);
+                            NChannel newChannel = new NChannel();
+                            newChannel.ID = i.Value.LastChannelID;
+                            newChannel.AddObject(i.Value);
+                            ActiveChannels.Add(i.Value.LastChannelID, newChannel);
                         }
                     }
 
                 }
 
+               
+
+                //Start the main thread.
                 MainThread = new Thread(MainThreadLoop);
                 MainThread.Start();
             }
         }
 
+        void AddNewObject()
+        {
+            Random r = new Random();
+            
+            for(int i = 0; i < 100; i++)
+            {
+                NetworkObject o = new NetworkObject();
+                o.LastChannelID = r.Next(20);
+                o.GUID = Generate.GenerateGUID();
+                DatabaseRequest.SaveNewObject(o);
+            }
+        }
+
+        //Starts listening for tcp connections on the specified port.
         public bool StartListening(int TcpPort)
         {
+            //Lock the state. Stops anything else using these resources.
             lock (Lock)
             {
+                //Stops the Main TcpProtocol if its already running.
                 if (MainTcp != null)
                 {
                     MainTcp.Stop();
                     MainTcp = null;
                 }
 
+                //Assign the Tcp port in the MainFunctions
                 TcpListenPort = TcpPort;
 
                 if (TcpPort != 0)
                 {
                     try
-                    {
+                    {   
+                        //Start a new TcpListener on the specifed port with a max number of backlogged connections. 
                         MainTcp = new TcpListener(IPAddress.Any, TcpPort);
                         MainTcp.Start(50);
                         Tools.Print("Game Server started on port: " + TcpPort);
@@ -70,30 +116,42 @@ namespace NCode
             return false;
         }
 
+        /// <summary>
+        /// The main thread on the server. Cycles through pending connections, queued packets etc.
+        /// </summary>
         void MainThreadLoop()
         {
             Tools.Print("Starting main thread.");
+
+            //Loop forever until server is stopped.
             for (;;)
             {
 
                 lock (Lock)
                 {
+                    //Will be used when UDP is inplemented
                     IPEndPoint IP;
+
+                    //The tick time divided by 10000 as a counter (used to calculate ping etc.)
                     TickTime = DateTime.UtcNow.Ticks / 10000;
 
                     //Add pending connections
                     while (MainTcp != null && MainTcp.Pending())
                     {
+                        //Accept a new connection and assign it a socket.
                         Socket socket = MainTcp.AcceptSocket();
                         try
-                        {
+                        {   
+                            //The clients ip address.
                             IPEndPoint remoteClient = (IPEndPoint)socket.RemoteEndPoint;
                             if (remoteClient == null)
                             {
+                                //Close the socket if the ip is null. 
                                 socket.Close(); socket = null; 
                             }
                             else
                             {
+                                //Add the connection as a new player(not yet verified)
                                 AddPlayer(socket);
                             }
                         }
@@ -103,124 +161,123 @@ namespace NCode
                         }                                             
                     }
 
-                    for(int i = 0; i < MainPlayers.Count;)
+                    //Loops through each player in the player list.
+                    for(int i = 0; i < MainPlayers.Count; i++)
                     {
+                        //Access a player by index
                         NTcpPlayer player = MainPlayers[i];
 
-                        // Remove disconnected players
+                        // Remove disconnected players (Checks the player's TcpProtocol to see if the socket is still connected)
                         if (!player.isSocketConnected)
+                        {
+                            RemovePlayer(player);
+
+                            //Breaks the current iterartion instead of break; which breaks the whole 'for' statement.
+                            continue;
+                        }
+
+                        // If the player doesn't send any packets in a while, disconnect him
+                        if (player.Timeout > 0 && player.LastReceiveTime + player.Timeout < TickTime)
                         {
                             RemovePlayer(player);
                             continue;
                         }
 
-                        // Process up to 100 packets from this player's InQueue at a time.
-                        for(int e = 0; e < 100 && player.NextPacket(out packet); e++)
+                        // Process up to 100 packets from this player's InQueue at a time. (This is processed after checking for disconnected sockets. 
+                        for (int e = 0; e < 100 && player.NextPacket(out packet); e++)
                         {
-                            ProcessPlayerPacket(player, packet);
-                            continue;
-                        }
-                       
-                        // If the player doesn't send any packets in a while, disconnect him
-                        if (player.Timeout > 0 && player.LastReceiveTime + player.Timeout < TickTime)
-                        {
-                             RemovePlayer(player);
-                             continue;
-                        }                                              
-                        i++;
+                            ProcessPlayerPacket(player, packet);                            
+                        }                                                                                               
                     }
                 }
             }
         }
 
+        /// <summary>
+        /// Processes a single packet.
+        /// </summary>
         void ProcessPlayerPacket(NTcpPlayer player, NPacketContainer packet)
         {
+            //Begin reading the packet. Returns the BinaryReader loaded with the memorystream to be read. 
             BinaryReader reader = packet.BeginReading();
             
-            Packet p = packet.packet;
+            //Identifies the packet.
+            if(packet.packetid != 0) { 
+            Packet p = packet.packetid;
 
-            switch (p)
-            {
-                case Packet.Empty:
-                    {
-                        break;
-                    }
-                case Packet.RequestPing:
-                    {
-                        break;
-                    }
-                case Packet.RequestJoinChannel:
-                    {
-                        JoinChannel(reader.ReadInt32(), player);
-                        break;
-                    }
-                case Packet.RequestLeaveChannel:
-                    {
-                        LeaveChannel(reader.ReadInt32(), player);
-                        break;
-                    }
-                case Packet.RequestClientInfo:
-                    {
-                        BinaryWriter writer = player.BeginSend(Packet.ResponseClientInfo);
-
-                        if (player.ProtocolVersion == reader.ReadInt32())
+                //Put higher priority cases at the top.
+                switch (p)
+                {
+                    case Packet.RFC:
                         {
-                            player.State = NTcpProtocol.ConnectionState.connected;
-                            writer.Write(true);
-                            player.EndSend();
+                            ReceiveRFC(player, reader, packet);
+                            break;
                         }
-                        else
+                    case Packet.Empty:
                         {
-                            writer.Write(false);
-                            player.EndSend();
-                            RemovePlayer(player);
+                            break;
                         }
-
-                        break;
-                    }
-                case Packet.Broadcast:
-                    {
-                        for (int i = 0; i < player.ConnectedChannels.size; i++)
+                    case Packet.RequestPing:
                         {
-                            NChannel channel = player.ConnectedChannels[i];
+                            break;
+                        }
+                    case Packet.RequestJoinChannel:
+                        {
+                            JoinChannel(reader.ReadInt32(), player);
+                            break;
+                        }
+                    case Packet.RequestLeaveChannel:
+                        {
+                            LeaveChannel(reader.ReadInt32(), player);
+                            break;
+                        }
+                    case Packet.RequestClientInfo:
+                        {
+                            BinaryWriter writer = player.BeginSend(Packet.ResponseClientInfo);
 
-                            for (int e = 0; e < channel.Players.size; e++)
+                            if (player.ProtocolVersion == reader.ReadInt32())
                             {
-                                NTcpPlayer NextPlayer = channel.Players[e];
-                                Tools.Print("Sending Broadcast");
-                                BinaryWriter writer = NextPlayer.BeginSend(Packet.Broadcast);
-                                writer.Write(reader.ReadString());
-                                NextPlayer.EndSend();
+                                player.State = NTcpProtocol.ConnectionState.connected;
+                                writer.Write(true);
+                                player.EndSend();
                             }
-                        }
-                        break;
-                    }
-                case Packet.TextChat:
-                    {
-                        string text = reader.ReadString();
-                        for (int i = 0; i < player.ConnectedChannels.size; i++)
-                        {
-                            NChannel channel = player.ConnectedChannels[i];
-
-                            for (int e = 0; e < channel.Players.size; e++)
+                            else
                             {
-                                NTcpPlayer NextPlayer = channel.Players[e];
-                                if (NextPlayer != player)
+                                writer.Write(false);
+                                player.EndSend();
+                                RemovePlayer(player);
+                            }
+
+                            break;
+                        }
+                    case Packet.TextChat:
+                        {
+                            string text = reader.ReadString();
+                            for (int i = 0; i < player.ConnectedChannels.size; i++)
+                            {
+                                NChannel channel = player.ConnectedChannels[i];
+
+                                for (int e = 0; e < channel.Players.size; e++)
                                 {
-                                    BinaryWriter writer = NextPlayer.BeginSend(Packet.TextChat);
-                                    writer.Write(text);
-                                    NextPlayer.EndSend();
+                                    NTcpPlayer NextPlayer = channel.Players[e];
+                                    if (NextPlayer != player)
+                                    {
+                                        BinaryWriter writer = NextPlayer.BeginSend(Packet.TextChat);
+                                        writer.Write(text);
+                                        NextPlayer.EndSend();
+                                    }
                                 }
                             }
+                            break;
                         }
-                        break;
-                    }
-                case Packet.RequestCreateObject:
-                    {
-                        NetworkObject obj = (NetworkObject)Converters.ConvertByteArrayToObject(reader.ReadByteArrayEx());
-                        ClientRequestCreateObject(obj, player);
-                        break;
-                    }
+                    
+                    case Packet.RequestCreateObject:
+                        {
+                            NetworkObject obj = (NetworkObject)Converters.ConvertByteArrayToObject(reader.ReadByteArrayEx());
+                            ClientRequestCreateObject(obj, player);
+                            break;
+                        }
+                }
             }           
         }
     }

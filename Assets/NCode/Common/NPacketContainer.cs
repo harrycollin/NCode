@@ -9,17 +9,37 @@ using System.Collections.Generic;
 
 namespace NCode
 {
+    [System.Serializable]
     public class NPacketContainer
     {
         volatile MemoryStream ms;
         volatile BinaryReader reader;
         volatile BinaryWriter writer;
 
-        public Packet packet;
+        public Packet packetid;
+        public byte[] packet;
         public int length;
         public byte[] packetData;
+        public int Start;
 
         
+        public void RestartStream()
+        {
+            position = 0;
+            GetPacketInfo();
+        }
+
+        public int position
+        {
+            get
+            {
+                return (int)ms.Position;
+            }
+            set
+            {
+                ms.Seek(value, SeekOrigin.Begin);
+            }
+        }
 
         public void Flush()
         {
@@ -49,6 +69,7 @@ namespace NCode
         /// <param name="bytes"></param>
         public void Create(byte[] bytes)
         {
+            packet = bytes;
             Flush();
             ms = new MemoryStream(bytes);
             reader = new BinaryReader(ms);
@@ -74,6 +95,10 @@ namespace NCode
             return writer;
         }
 
+        /// <summary>
+        /// Ends the writing process and returns a byte[]  of the memory stream. Use when writing to this container.
+        /// </summary>
+        /// <returns></returns>
         public byte[] EndWriting()
         {
             writer.Seek(0, SeekOrigin.Begin);
@@ -82,10 +107,19 @@ namespace NCode
             return ms.ToArray();
         }
 
+        /// <summary>
+        /// Simply retuns the memory stream as a byte[]. Used when no writing is needed and you are simply aiming to forward the packet.
+        /// </summary>
+        /// <returns></returns>
+        public byte[] End()
+        {
+            return packet;
+        }
+
         public void GetPacketInfo()
         {
             length = reader.ReadInt32();
-            packet = (Packet)reader.ReadByte();
+            packetid = (Packet)reader.ReadByte();
             packetData = reader.ReadBytes(length);
          
             Tools.Print(length.ToString());

@@ -52,6 +52,7 @@
     </StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="MySql.Data, Version=6.9.8.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL" />
     <Reference Include="NCode">
       <HintPath>NCodeLibrary\NCode\bin\Release\NCode.dll</HintPath>
     </Reference>
@@ -78,6 +79,8 @@
     <Compile Include="Assets\NCode\Common\Utilities\NBinaryExtensions.cs" />
     <Compile Include="Assets\NCode\Common\Utilities\NList.cs" />
     <Compile Include="Assets\NCode\Common\Utilities\NTools.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="Server\DatabaseManager.cs" />
     <Compile Include="Server\NChannel.cs" />
     <Compile Include="Server\NMainFunctions.cs" />
     <Compile Include="Assets\NCode\Common\NTcpProtocol.cs" />

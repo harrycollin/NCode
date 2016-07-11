@@ -15,11 +15,16 @@ namespace NCode
     /// </summary>
     public sealed class NClientManager : MonoBehaviour
     {
-        public GameObject test;
         /// <summary>
         /// The instance of the MainClient. This is the core of the networking. 
         /// </summary>
         static NMainClient instance = new NMainClient();
+
+        void SetDelegates()
+        {
+            instance.onRFC = OnRFC;
+
+        }
 
         /// <summary>
         /// Attempts to connect the client to the given server.
@@ -45,6 +50,11 @@ namespace NCode
             }
         }
 
+        void Awake()
+        {
+            SetDelegates();
+        }
+
         /// <summary>
         /// Updates every frame. Meaning clients will get network updates processed at the rate of their framerate. 
         /// </summary>
@@ -61,6 +71,13 @@ namespace NCode
             }
         }
 
+        void OnRFC(int channelID, Guid guid, int RFCID, params object[] parameters)
+        {
+            Tools.Print("OnRFC");
+            NetworkBehaviour.FindAndExecute(guid, RFCID, parameters);
+
+        }
+
         static void SpawnQueuedObject(NetworkObject obj)
         {
             Vector3 pos = Converters.StringToVector3(obj.position);
@@ -75,6 +92,7 @@ namespace NCode
                 go.GetComponent<NetworkBehaviour>().networkObject = obj;
                 go.GetComponent<NetworkBehaviour>().SetValues();
                 instance.SpawnedNetworkedObjects.Add(obj.GUID, obj);
+                NetworkBehaviour.NetworkObjects.Add(obj.GUID, go.GetComponent<NetworkBehaviour>());
             }
             else { Tools.Print("@SpawnQueuedObject - Object is null", Tools.MessageType.error); }
         }
@@ -149,7 +167,7 @@ namespace NCode
         /// <param name="PrefabID"></param>
         /// <param name="position"></param>
         /// <param name="rotation"></param>
-        public static void SpawnNetworkObject(int channelID, int PrefabID, Vector3 position, Quaternion rotation)
+        public static void CreateNewObject(int channelID, int PrefabID, Vector3 position, Quaternion rotation)
         {            
             BinaryWriter writer = BeginSend(Packet.RequestCreateObject, true);
 
@@ -164,6 +182,15 @@ namespace NCode
             writer.WriteByteArrayEx(Converters.ConvertObjectToByteArray(TempObject));
             EndSend();
             
+        }
+
+        /// <summary>
+        /// Returns the local player
+        /// </summary>
+        /// <returns></returns>
+        public static NPlayer LocalPlayer()
+        {
+            return instance.TcpClient;
         }
 
         /// <summary>
@@ -192,6 +219,8 @@ namespace NCode
             return false;
         }
 
+        
+
         /// <summary>
         /// Config for the client. Will add functionality for custom config to be loaded. 
         /// </summary>
@@ -205,8 +234,7 @@ namespace NCode
                 {
                     case 1:
                         {
-                            Tools.Print("Spaaaan");
-                            return (GameObject)Resources.Load("Shapes", typeof(GameObject)); 
+                            return (GameObject)Resources.Load("Player", typeof(GameObject)); 
                         }
                 }
 

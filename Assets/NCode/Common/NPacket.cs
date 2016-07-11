@@ -1,37 +1,83 @@
 ﻿namespace NCode
 {
+    /// <summary>
+    /// Contains all the posible packet definitions that can be sent/received. 
+    /// </summary>
     public enum Packet
     {
+        /// <summary>
+        /// A simple empty packet. Can simply be used to keep the connection alive. 
+        /// </summary>
         Empty, 
         
+        /// <summary>
+        /// Used to let the other half that a critical error has occured. This will lead to a immediate disconnect. 
+        /// </summary>
         Error, 
         
+        /// <summary>
+        /// A safe way of letting the server know that you're going to disconnect. 
+        /// </summary>
         Disconnect,       
 
+        /// <summary>
+        /// Requests to join a channel. 
+        /// </summary>
         RequestJoinChannel,
 
+        /// <summary>
+        /// Responds to the join channel request.
+        /// </summary>
         ResponseJoinChannel,
 
+        /// <summary>
+        /// Request to leave channel.
+        /// </summary>
         RequestLeaveChannel,
 
+        /// <summary>
+        /// Response to request leave channel.
+        /// </summary>
         ResponseLeaveChannel,
-
-        TestString,
-
+        
+        /// <summary>
+        /// Request the server to calculate your ping.
+        /// </summary>
         RequestPing,
 
+        /// <summary>
+        /// A response with your ping.
+        /// </summary>
         ResponsePing,
 
+        /// <summary>
+        /// First packet that should be sent to the server. Otherwise you'll get disconnected. Contains version, steam info etc. 
+        /// </summary>
         RequestClientInfo,
 
+        /// <summary>
+        /// Response to RequestClientInfo. Sends back some infomation about you or disconnects you depending on your information. 
+        /// </summary>
         ResponseClientInfo,
 
+        /// <summary>
+        /// Request to create an NetworkObject. 
+        /// </summary>
         RequestCreateObject,
 
+        /// <summary>
+        /// Response to RequestCreateObject. Either declines or sends back your object data to be spawned. 
+        /// </summary>
         ResponseCreateObject,
 
+        /// <summary>
+        /// Requests to delete an object. 
+        /// </summary>
         RequestDestroyObject,
 
+        /// <summary>
+        /// Response to RequestDestroyObject. 
+        /// </summary>
         ResponseDestroyObject,
 
         /// <summary>
@@ -39,12 +85,23 @@
         /// </summary>
         ClientObjectUpdate,
 
+        /// <summary>
+        /// Client to server packet for updating network objects. 
+        /// </summary>
         ServerObjectUpdate,
 
-        Broadcast,
-
+        [System.Obsolete]
+        /// <summary>
+        /// Used as a simple text chat packet. Will be upgraded with an improved system. 
+        /// </summary>
         TextChat,
 
+        /// <summary>
+        /// Global packet for Remote Function Calls. Set as first priority on all switch cases. 
+        /// </summary>
+        RFC,
+
+        TestData,
         
     }
 }

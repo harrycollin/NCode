@@ -55,7 +55,7 @@ public class NMainClient : NMainFunctionsClient
     bool ProcessPacket(NPacketContainer packet)
     {
         BinaryReader reader = packet.BeginReading();
-        Packet p = packet.packet;
+        Packet p = packet.packetid;
 
         //Filters out any packets that have custom handlers. 
         OnPacket callback;
@@ -66,7 +66,19 @@ public class NMainClient : NMainFunctionsClient
         }
 
         switch (p)
-        {         
+        {
+            case Packet.RFC:
+                {
+                    Tools.Print("Packet.RFC");
+
+                    int channelID = reader.ReadInt32();
+                    Guid guid = ((Guid)Converters.ConvertByteArrayToObject(reader.ReadByteArrayEx()));
+                    int RFCID = reader.ReadInt32(); 
+                    object[] parameters = reader.ReadObjectArrayEx();
+
+                    onRFC(channelID, guid, RFCID, parameters);
+                    break;
+                }
             case Packet.ResponsePing:
                 {
                     TcpClient.LastReceiveTime = ClientTime;            
@@ -80,11 +92,6 @@ public class NMainClient : NMainFunctionsClient
                         TcpClient.Disconnect();
                         Tools.Print("Server - Client version mismatch");
                     }
-                    break;
-                }
-            case Packet.Broadcast:
-                {
-                    Tools.Print(reader.ReadString());
                     break;
                 }
             case Packet.ClientObjectUpdate:
@@ -114,6 +121,7 @@ public class NMainClient : NMainFunctionsClient
         else
         {
             NetworkedObjects.Add(obj.GUID, obj);
+            Tools.Print(obj.GUID.ToString());
         }
 
         WaitingForSpawn.Enqueue(obj);

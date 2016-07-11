@@ -49,6 +49,9 @@ namespace NCode
         public Dictionary<Packet, OnPacket> packetHandlers = new Dictionary<Packet, OnPacket>();
         public delegate void OnPacket(Packet response, BinaryReader reader);
 
+        public OnRFC onRFC;
+        public delegate void OnRFC(int channelID, Guid guid, int RFCID, params object[] parameters);
+
         /// <summary>
         /// The last time this client sent a ping.
         /// </summary>
@@ -69,6 +72,9 @@ namespace NCode
         /// </summary>
         public Queue<NetworkObject> WaitingForSpawn = new Queue<NetworkObject>();
 
-        
+        /// <summary>
+        /// Dictionary of cached RFCs for quick access.
+        /// </summary>
+        public Dictionary<int, CachedFunc> CachedRFCs = new Dictionary<int, CachedFunc>();
     }
 }

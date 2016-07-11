@@ -339,6 +339,11 @@ namespace NCode
             return tempPacket.BeginWriting(packet);
         }
 
+        public void SendPacketContainer(NPacketContainer packet)
+        {
+            Send(packet.End());         
+        }
+
         /// <summary>
         /// End the sending process
         /// </summary>

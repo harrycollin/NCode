@@ -14,17 +14,16 @@ public class RollerBallScene : MonoBehaviour {
     {
         yield return new WaitForSeconds(1);
         NClientManager.JoinChannel(10);
+        Tools.Print("Joining 10", Tools.MessageType.warning);
+        yield return new WaitForSeconds(1);
+        Spawn();
 
     }
 
-    // Update is called once per frame
-    void Update ()
-    {
-	    
-	}
+
     public void Spawn()
     {
-        NClientManager.SpawnNetworkObject(10, 1,  new Vector3(1, 1, 1), new Quaternion(0, 0, 0, 0));
+        NClientManager.CreateNewObject(10, 1,  new Vector3(1, 1, 1), new Quaternion(0, 0, 0, 0));
        
     }
 }

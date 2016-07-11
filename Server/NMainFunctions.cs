@@ -12,6 +12,9 @@ using System.Threading.Tasks;
 
 namespace NCode
 {
+    /// <summary>
+    /// A parent of the MainThread. Contains all nessecary methods and properties to prevent clutter in the MainThread.
+    /// </summary>
     public class NMainFunctions
     {
         /// <summary>
@@ -98,12 +101,45 @@ namespace NCode
         {
             if (client != null)
             {
+
+                for (int i = 0; i < ActiveChannels.Count; i++)
+                {
+                    if (ActiveChannels.ContainsKey(i))
+                     {
+                        if (ActiveChannels[i].IsPlayerConnected(client))
+                        {
+                            ActiveChannels[i].RemovePlayer(client);
+                        }
+                    }
+                }
                 client.Disconnect();
                 MainPlayers.Remove(client);
                 return true;
             }
             return false;
         }
+
+        public void ReceiveRFC(NTcpPlayer player, BinaryReader reader, NPacketContainer packet)
+        {
+            int channel = reader.ReadInt32();          
+
+            packet.position = 0;
+
+            Packet packetid = packet.packetid;
+            byte[] bytes = packet.packetData;
+
+            for (int i = 0; i < ActiveChannels[channel].Players.Count; i++)
+            {
+                if (ActiveChannels[channel].Players[i] != player)
+                {
+                    BinaryWriter writer = ActiveChannels[channel].Players[i].BeginSend(packetid);
+                    writer.Write(bytes);
+                    ActiveChannels[channel].Players[i].EndSend();
+                }
+            }
+        }
+
+       
 
         public void RequestClientInfo(NTcpPlayer player)
         {
@@ -176,12 +212,7 @@ namespace NCode
             ActiveChannels[ID].RemovePlayer(player);
             //Remove from player's list of connected channels
             player.ConnectedChannels.Remove(ActiveChannels[ID]);
-            //Close channel if it's empty
-            if (ActiveChannels[ID].channelObjects.Count == 0 && ActiveChannels[ID].Players.Count == 0)
-            {
-                ActiveChannels.Remove(ID);
-                Tools.Print("Channel " + ID + " has been removed");
-            }
+            
             return true;
         }
 
