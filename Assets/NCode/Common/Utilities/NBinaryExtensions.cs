@@ -9,9 +9,18 @@ using UnityEngine;
 #endif
 namespace NCode
 {
+    /// <summary>
+    /// A useful class for reading & writing extensions for BinaryReader & Writer.
+    /// Aims to completely eliminate all complicated read/writer operations. Read\WriteObject will eventually handle all needed types
+    /// </summary>
     public static class BinaryExtensions
     {
-        static public void WriteByteArrayEx(this BinaryWriter writer, byte[] b)
+        /// <summary>
+        /// Writes a byte array. Has to be used with ReadByteArray
+        /// </summary>
+        /// <param name="writer"></param>
+        /// <param name="b"></param>
+        public static void WriteByteArray(this BinaryWriter writer, byte[] b)
         {
             if (b == null)
             {
@@ -23,12 +32,14 @@ namespace NCode
                 writer.Write(len);
                 if (len > 0) writer.Write(b);
             }
-
         }
 
-       
-
-        static public byte[] ReadByteArrayEx(this BinaryReader reader)
+        /// <summary>
+        /// Reads a byte array. Has to be used with WriteByteArray 
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <returns></returns>
+        public static byte[] ReadByteArray(this BinaryReader reader)
         {
             int len = reader.ReadInt32();
             if (len > 0) return reader.ReadBytes(len);
@@ -36,10 +47,12 @@ namespace NCode
             return new byte[0];
         }
 
-
-
-#if UNITY_EDITOR || UNITY_STANDALONE
-        static public object[] ReadObjectArrayEx(this BinaryReader reader)
+        /// <summary>
+        /// Reads an object array. Use with WriteObjectArray.
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <returns></returns>
+        public static object[] ReadObjectArrayEx(this BinaryReader reader)
         {
             int len = reader.ReadInt32();
             if (len < 0) return null;
@@ -53,7 +66,13 @@ namespace NCode
             return objsList.ToArray();
 
         }
-         static public void WriteObjectArrayEx(this BinaryWriter writer, object[] b)
+
+        /// <summary>
+        /// Writes an object array
+        /// </summary>
+        /// <param name="writer"></param>
+        /// <param name="b"></param>
+        static public void WriteObjectArrayEx(this BinaryWriter writer, object[] b)
         {
             if (b == null)
             {
@@ -73,7 +92,12 @@ namespace NCode
 
         }
 
-        static void WriteObject(this BinaryWriter writer, object obj)
+        /// <summary>
+        /// Writes a single object 
+        /// </summary>
+        /// <param name="writer"></param>
+        /// <param name="obj"></param>
+        public static void WriteObject(this BinaryWriter writer, object obj)
         {
             Type type = obj.GetType();
             int prefix = GetPrefix(type);
@@ -81,48 +105,83 @@ namespace NCode
             writer.Write(prefix);
             switch (prefix)
             {
-                case 1: writer.Write((Vector3)obj); break;
+                case 0: writer.Write((NetworkObject)obj); break;
+                case 1: writer.Write((Guid)obj); break;
+#if UNITY_EDITOR || UNITY_STANDALONE
                 case 2: writer.Write((Vector2)obj); break;
-                case 3: writer.Write((Quaternion)obj); break;
-                    
+                case 3: writer.Write((Vector3)obj); break;
+                case 4: writer.Write((Vector4)obj); break;
+                case 5: writer.Write((Quaternion)obj); break;
+#endif                  
             }
         }
 
-        static object ReadObject(this BinaryReader reader)
+        /// <summary>
+        /// Reads a single object
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <returns></returns>
+        public static object ReadObject(this BinaryReader reader)
         {
             Type type = GetType(reader.ReadInt32());
             int prefix = GetPrefix(type);
             if (prefix == 0) return null;
             switch (prefix)
-            {          
-                case 1: return reader.ReadVector3(); 
-                case 2: return reader.ReadVector2();
-                case 3: return reader.ReadQuaternion();
-
+            {
+                case 0: return reader.ReadNetworkObject();
+                case 1: return reader.ReadGUID();
+#if UNITY_EDITOR || UNITY_STANDALONE
+                case 2: return reader.ReadVector2(); 
+                case 3: return reader.ReadVector3();
+                case 4: return reader.ReadVector4();
+                case 5: return reader.ReadQuaternion();
+#endif
             }
             return null;
         }
 
+        /// <summary>
+        /// Gets the prefix depending on the types
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         static int GetPrefix(Type type)
         {
-            if (type == typeof(Vector3)) return 1;
+            if (type == typeof(NetworkObject)) return 0;
+            if (type == typeof(Guid)) return 1;
+#if UNITY_EDITOR || UNITY_STANDALONE
             if (type == typeof(Vector2)) return 2;
-            if (type == typeof(Quaternion)) return 3;
+            if (type == typeof(Vector3)) return 3;
+            if (type == typeof(Vector4)) return 4;
+            if (type == typeof(Quaternion)) return 5;
+            
+#endif
             return 0;
         }
 
+        /// <summary>
+        /// Gets the type depending on the prefix
+        /// </summary>
+        /// <param name="prefix"></param>
+        /// <returns></returns>
         static Type GetType(int prefix)
         {
             switch (prefix)
             {
-                case 1: return typeof(Vector3);
+                case 0: return typeof(NetworkObject);
+                case 1: return typeof(Guid);
+#if UNITY_EDITOR || UNITY_STANDALONE
                 case 2: return typeof(Vector2);
-                case 3: return typeof(Quaternion);
+                case 3: return typeof(Vector3);
+                case 4: return typeof(Vector4);
+                case 5: return typeof(Quaternion);
+#endif
             }
             return null;
         }
 
         //--------------------------- Write extensions ---------------------------// 
+#if UNITY_EDITOR || UNITY_STANDALONE
 
         public static void Write(this BinaryWriter writer, Vector2 v)
         {
@@ -142,9 +201,7 @@ namespace NCode
                 writer.Write(v.z);
             }
         }
-        
-    
-        static void Write(this BinaryWriter writer, Quaternion v)
+        public static void Write(this BinaryWriter writer, Vector4 v)
         {
             if (v != null)
             {
@@ -155,8 +212,40 @@ namespace NCode
             }
         }
 
-        //--------------------------- Read extensions ---------------------------// 
+
+        public static void Write(this BinaryWriter writer, Quaternion v)
+        {
+            if (v != null)
+            {
+                writer.Write(v.x);
+                writer.Write(v.y);
+                writer.Write(v.z);
+                writer.Write(v.w);
+            }
+
+        }
         
+
+#endif  // -------- Unity Dependant Above ------// 
+        public static void Write(this BinaryWriter writer, NetworkObject o)
+        {
+            if (o != null)
+            {
+                writer.WriteByteArray(Converters.ConvertObjectToByteArray(o));
+            }
+        }
+        public static void Write(this BinaryWriter writer, Guid v)
+        {
+            if (v != null)
+            {
+                writer.Write(v.ToString());
+            }
+        }
+
+        //--------------------------- Read extensions ---------------------------// 
+
+#if UNITY_EDITOR || UNITY_STANDALONE
+
         public static Vector2 ReadVector2(this BinaryReader reader)
         {
             float x = reader.ReadSingle();
@@ -177,6 +266,19 @@ namespace NCode
             return new Vector3(x, y, z);
         }
 
+        public static Vector4 ReadVector4(this BinaryReader reader)
+        {
+            float x = reader.ReadSingle();
+            float y = reader.ReadSingle();
+            float z = reader.ReadSingle();
+            float w = reader.ReadSingle();
+            if (float.IsNaN(x)) x = 0f;
+            if (float.IsNaN(y)) y = 0f;
+            if (float.IsNaN(z)) z = 0f;
+            if (float.IsNaN(w)) w = 0f;
+            return new Vector4(x, y, z, w);
+        }
+
         public static Quaternion ReadQuaternion(this BinaryReader reader)
         {
             float x = reader.ReadSingle();
@@ -190,6 +292,19 @@ namespace NCode
             return new Quaternion(x, y, z, w);
         }
 #endif
+        public static NetworkObject ReadNetworkObject(this BinaryReader reader)
+        {
+            NetworkObject o = (NetworkObject)Converters.ConvertByteArrayToObject(reader.ReadByteArray());
+            if (o == null) return null;
+            return o;
+        }
+        public static Guid ReadGUID(this BinaryReader reader)
+        {
+            Guid guid = new Guid(reader.ReadString());
+            if (guid != null) return guid;
+            Guid empty = Guid.Empty;
+            return empty;
+        }
     }
 }
 

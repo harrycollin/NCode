@@ -179,7 +179,7 @@ namespace NCode
             TempObject.rotation = Converters.QuaternionToString(rotation);
             TempObject.owner = instance.TcpClient.SteamID;
 
-            writer.WriteByteArrayEx(Converters.ConvertObjectToByteArray(TempObject));
+            writer.WriteByteArray(Converters.ConvertObjectToByteArray(TempObject));
             EndSend();
             
         }
@@ -203,7 +203,7 @@ namespace NCode
             if(guid != null && DoesObjectExist(guid))
             {
                 BinaryWriter writer = BeginSend(Packet.RequestDestroyObject, true);
-                writer.WriteByteArrayEx(Converters.ConvertObjectToByteArray(guid));
+                writer.WriteByteArray(Converters.ConvertObjectToByteArray(guid));
                 EndSend();
             }
         }

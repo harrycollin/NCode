@@ -19,7 +19,7 @@ public class TextChat : MonoBehaviour
     void Awake()
     {
         NClientManager.SetPacketHandler(Packet.TextChat, PacketHandler);
-        NClientManager.SetPacketHandler(Packet.TestData, PacketHandler);
+
 
     }
 
@@ -34,20 +34,10 @@ public class TextChat : MonoBehaviour
             ele.GetComponent<Text>().color = Color.green;
 
         }
-        if(packet == Packet.TestData)
-        {
-            Tools.Print(reader.ReadVector3().ToString());
-
-            
-        }
+        
     }
 
-    public void SendV3()
-    {
-        BinaryWriter writer = NClientManager.BeginSend(Packet.TestData, true);
-        writer.Write(new Vector3(1, 43, 4));
-        NClientManager.EndSend();
-    }
+    
 
     public void Send()
     {

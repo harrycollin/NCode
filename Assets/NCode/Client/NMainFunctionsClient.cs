@@ -76,5 +76,29 @@ namespace NCode
         /// Dictionary of cached RFCs for quick access.
         /// </summary>
         public Dictionary<int, CachedFunc> CachedRFCs = new Dictionary<int, CachedFunc>();
+
+        /// <summary>
+        /// Handles the arrival of an NetworkObject
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public bool ReceiveObject(NetworkObject obj)
+        {
+            if (obj == null) return false;
+            if (obj.GUID == null) return false;
+            if (obj.LastChannelID == 0) return false;
+            if (NetworkedObjects.ContainsKey(obj.GUID))
+            {
+                NetworkedObjects[obj.GUID] = obj;
+            }
+            else
+            {
+                NetworkedObjects.Add(obj.GUID, obj);
+                Tools.Print(obj.GUID.ToString());
+            }
+
+            WaitingForSpawn.Enqueue(obj);
+            return true;
+        }
     }
 }

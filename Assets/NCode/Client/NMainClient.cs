@@ -43,8 +43,6 @@ public class NMainClient : NMainFunctionsClient
             writer.Write(ClientTime);
             TcpClient.EndSend();
         }
-        Thread.Sleep(1);
-
     }
 
     /// <summary>
@@ -69,19 +67,16 @@ public class NMainClient : NMainFunctionsClient
         {
             case Packet.RFC:
                 {
-                    Tools.Print("Packet.RFC");
-
                     int channelID = reader.ReadInt32();
-                    Guid guid = ((Guid)Converters.ConvertByteArrayToObject(reader.ReadByteArrayEx()));
-                    int RFCID = reader.ReadInt32(); 
+                    Guid guid = reader.ReadGUID();
+                    int RFCID = reader.ReadInt32();
                     object[] parameters = reader.ReadObjectArrayEx();
-
                     onRFC(channelID, guid, RFCID, parameters);
                     break;
                 }
             case Packet.ResponsePing:
                 {
-                    TcpClient.LastReceiveTime = ClientTime;            
+                    TcpClient.LastReceiveTime = ClientTime;
                     TcpClient.Ping = reader.ReadInt32();
                     break;
                 }
@@ -96,10 +91,10 @@ public class NMainClient : NMainFunctionsClient
                 }
             case Packet.ClientObjectUpdate:
                 {
-                    ReceiveObject((NetworkObject)Converters.ConvertByteArrayToObject(reader.ReadByteArrayEx()));
+                    ReceiveObject(reader.ReadNetworkObject());
                     break;
                 }
-            
+
             default:
                 {
                     Tools.Print("No defined Packet");
@@ -107,40 +102,5 @@ public class NMainClient : NMainFunctionsClient
                 }
         }
         return false;
-    }
-
-    public bool ReceiveObject(NetworkObject obj)
-    {
-        if (obj == null) return false;
-        if (obj.GUID == null) return false;
-        if (obj.LastChannelID == 0) return false;
-        if (NetworkedObjects.ContainsKey(obj.GUID))
-        {
-            NetworkedObjects[obj.GUID] = obj;
-        }
-        else
-        {
-            NetworkedObjects.Add(obj.GUID, obj);
-            Tools.Print(obj.GUID.ToString());
-        }
-
-        WaitingForSpawn.Enqueue(obj);
-        return true;
-    }
-
-    void ProcessRFC(NPacketContainer container)
-    {
-        if (container == null) return;
-        CachedFunc cachedFnc;
-        Guid ObjectGuid;
-        int RFCID;
-
-        BinaryReader reader = container.BeginReading();
-
-        //ObjectGuid = reader.ReadGUID();
-        RFCID = reader.ReadInt32();
-
-        
-        
     }
 }

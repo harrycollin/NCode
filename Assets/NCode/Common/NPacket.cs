@@ -101,7 +101,10 @@
         /// </summary>
         RFC,
 
-        TestData,
+        /// <summary>
+        /// Server to client packet notifying of a newly connected player
+        /// </summary>
+        PlayerUpdate
         
     }
 }

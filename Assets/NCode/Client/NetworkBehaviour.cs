@@ -28,6 +28,7 @@ namespace NCode
         public NetworkObject networkObject;
         [System.NonSerialized]
         public List<int> channels = new List<int>();
+        public int MainChannel = 0;
 
               
         /// <summary>
@@ -68,8 +69,8 @@ namespace NCode
         public void SendRFC(int rfcID, Packet target, bool reliable, params object[] objs)
         {
             BinaryWriter writer = NClientManager.BeginSend(target, reliable);
-            writer.Write(10); //Channel ID
-            writer.WriteByteArrayEx(Converters.ConvertObjectToByteArray(guid)); //Network Behaviour Guid
+            writer.Write(MainChannel); //Channel ID
+            writer.Write(guid); //Network Behaviour Guid
             writer.Write(rfcID); //RFC id
             writer.WriteObjectArrayEx(objs); //Parameters
             NClientManager.EndSend();

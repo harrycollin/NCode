@@ -119,13 +119,17 @@ namespace NCode
             return false;
         }
 
+        /// <summary>
+        /// Handles a RFC 
+        /// </summary>
+        /// <param name="player"></param>
+        /// <param name="reader"></param>
+        /// <param name="packet"></param>
         public void ReceiveRFC(NTcpPlayer player, BinaryReader reader, NPacketContainer packet)
         {
-            int channel = reader.ReadInt32();          
-
-            packet.position = 0;
-
             Packet packetid = packet.packetid;
+            int channel = reader.ReadInt32();          
+            packet.position = 0;
             byte[] bytes = packet.packetData;
 
             for (int i = 0; i < ActiveChannels[channel].Players.Count; i++)
@@ -139,13 +143,6 @@ namespace NCode
             }
         }
 
-       
-
-        public void RequestClientInfo(NTcpPlayer player)
-        {
-            BinaryWriter writer = player.BeginSend(Packet.RequestClientInfo);
-            player.EndSend();
-        }
 
         /// <summary>
         /// Handles the creation/joining of a channel. Creates a new channel if specified channel doesn't exist.s
@@ -248,7 +245,7 @@ namespace NCode
                         for(int i = 0; i < ActiveChannels[obj.LastChannelID].Players.size;)
                         {
                             BinaryWriter writer = ActiveChannels[obj.LastChannelID].Players[i].BeginSend(Packet.ClientObjectUpdate);
-                            writer.WriteByteArrayEx(Converters.ConvertObjectToByteArray(obj));
+                            writer.WriteByteArray(Converters.ConvertObjectToByteArray(obj));
                             ActiveChannels[obj.LastChannelID].Players[i].EndSend();
                             i++;
                         }

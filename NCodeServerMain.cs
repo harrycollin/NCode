@@ -153,10 +153,8 @@ namespace NCode
                             info.password = null;
                             Tools.Print("Failed to read the 'server_password' parameter in 'server.cfg'. Defaulting server server password to null.", Tools.MessageType.error);
                         }
-
                     }
                     continue;
-
                 }
 
                 //Tcp Port
@@ -175,11 +173,8 @@ namespace NCode
                             info.tcpport = 5127;
                             Tools.Print("Failed to read the 'server_tcpport' parameter in 'server.cfg'. Defaulting TCP port to 5127.", Tools.MessageType.error);
                         }
-
-
                     }
                     continue;
-
                 }
 
                 //Udp Port
@@ -198,10 +193,8 @@ namespace NCode
                             info.udpport = 5128;
                             Tools.Print("Failed to read the 'server_udpport' parameter in 'server.cfg'. Defaulting UDP port to 5128.", Tools.MessageType.error);
                         }
-
                     }
                     continue;
-
                 }
 
                 //Database ip
