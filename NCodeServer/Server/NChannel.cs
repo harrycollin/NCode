@@ -35,6 +35,7 @@ namespace NCode
         {
             if (IsPlayerConnected(player))
             {
+                
                 Players.Remove(player);
                 return true;
             }

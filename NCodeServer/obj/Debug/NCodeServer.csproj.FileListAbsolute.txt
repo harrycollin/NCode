@@ -14,5 +14,4 @@ C:\Users\harry\Documents\GitHub\NCode\NCodeServer\obj\Debug\NCodeServer.csprojRe
 C:\Users\harry\Documents\GitHub\NCode\NCodeServer\bin\Debug\NCodeServer.exe
 C:\Users\harry\Documents\GitHub\NCode\NCodeServer\bin\Debug\NCodeServer.pdb
 C:\Users\harry\Documents\GitHub\NCode\NCodeServer\bin\Debug\MySql.Data.dll
-C:\Users\harry\Documents\GitHub\NCode\NCodeServer\bin\Debug\NCode.dll
 C:\Users\harry\Documents\GitHub\NCode\NCodeServer\bin\Debug\NCode.pdb

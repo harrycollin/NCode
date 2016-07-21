@@ -137,6 +137,11 @@ namespace NCode
             }
         }
 
+        public void RequestClientInfo()
+        {
+           
+        }
+
         /// <summary>
         /// The connect callback
         /// </summary>
@@ -155,15 +160,19 @@ namespace NCode
                 // Let the client know (Only available in the editor
                 Tools.Print("Connected to game server: " + thisSocket.RemoteEndPoint.ToString());
 
+                //Set the state to verifying
                 State = ConnectionState.verifying;
 
-                isTryingToConnect = false;
-
-                BeginListening();
-
-                BinaryWriter writer = BeginSend(Packet.RequestClientInfo);
+                //Send a verification packet
+                BinaryWriter writer = BeginSend(Packet.RequestVersionValidation);
                 writer.Write(ProtocolVersion);
                 EndSend();
+           
+                isTryingToConnect = false;
+
+                //Begin listening for incoming packets
+                BeginListening();
+                
             }
             catch (Exception e)
             {
@@ -196,7 +205,6 @@ namespace NCode
 
         public void ReceiveCallback(IAsyncResult result)
         {
-
             if (State == ConnectionState.disconnected) return;
             int bytes = 0;
             Socket socket = (Socket)result.AsyncState;
@@ -252,7 +260,6 @@ namespace NCode
                             NPacketContainer packet = new NPacketContainer();
 
                             packet.Create(buffer);
-
                             InQueue.Enqueue(packet);
                         }
                     }

@@ -16,11 +16,26 @@ namespace NCode
         /// <summary>
         /// Starts the server. 
         /// </summary>
-        public void Start(string name, int tcpport, int udpport, string password)
+        public void Start(string name, int tcpport, int udpport, int rconport, string password, string rconpassword)
         {
-            //Checks to see if the Tcp listener started without error. 
-            if (StartListening(tcpport))
+            //Set the password
+            RConPassword = rconpassword;
+            ////Checks to see if the TCP RCon listener can be started on the specified port.
+            if (StartListeningRCon(rconport))
             {
+                RConActive = true;
+                Tools.Print("RCon Server started on port: " + rconport);
+
+            }
+
+            //Checks to see if the Tcp listener started without error. 
+            if (StartListeningGameServer(tcpport))
+            {
+                Tools.Print("Game Server started on port: " + tcpport);
+
+                //Assign the Tcp port in the MainFunctions
+                TcpListenPort = tcpport;
+
                 //Tries to load all objects from the database.
                 try
                 {
@@ -58,20 +73,22 @@ namespace NCode
                     }
 
                 }
-
-               
-
+                //Start the RCon thread.
+                RConThread = new Thread(RConThreadLoop);
+                RConThread.Start();
                 //Start the main thread.
                 MainThread = new Thread(MainThreadLoop);
                 MainThread.Start();
+
             }
+
         }
 
         void AddNewObject()
         {
             Random r = new Random();
-            
-            for(int i = 0; i < 100; i++)
+
+            for (int i = 0; i < 100; i++)
             {
                 NetworkObject o = new NetworkObject();
                 o.LastChannelID = r.Next(20);
@@ -81,10 +98,41 @@ namespace NCode
         }
 
         //Starts listening for tcp connections on the specified port.
-        public bool StartListening(int TcpPort)
+        public bool StartListeningRCon(int TcpPort)
         {
             //Lock the state. Stops anything else using these resources.
-            lock (Lock)
+            lock (RConServerThreadLock)
+            {
+                //Stops the Main TcpProtocol if its already running.
+                if (RConTcp != null)
+                {
+                    RConTcp.Stop();
+                    RConTcp = null;
+                }
+
+                if (TcpPort != 0)
+                {
+                    try
+                    {
+                        //Start a new TcpListener on the specifed port with a max number of backlogged connections. 
+                        RConTcp = new TcpListener(IPAddress.Any, TcpPort);
+                        RConTcp.Start(50);
+                        return true;
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Tools.Print("@NMainThread.StartListening", Tools.MessageType.error, ex);
+                    }
+                }
+            }
+            return false;
+        }
+
+        //Starts listening for tcp connections on the specified port.
+        public bool StartListeningGameServer(int TcpPort)
+        {
+            //Lock the state. Stops anything else using these resources.
+            lock (GameServerThreadLock)
             {
                 //Stops the Main TcpProtocol if its already running.
                 if (MainTcp != null)
@@ -92,18 +140,13 @@ namespace NCode
                     MainTcp.Stop();
                     MainTcp = null;
                 }
-
-                //Assign the Tcp port in the MainFunctions
-                TcpListenPort = TcpPort;
-
                 if (TcpPort != 0)
                 {
                     try
-                    {   
+                    {
                         //Start a new TcpListener on the specifed port with a max number of backlogged connections. 
                         MainTcp = new TcpListener(IPAddress.Any, TcpPort);
                         MainTcp.Start(50);
-                        Tools.Print("Game Server started on port: " + TcpPort);
                         return true;
                     }
                     catch (System.Exception ex)
@@ -126,7 +169,7 @@ namespace NCode
             for (;;)
             {
 
-                lock (Lock)
+                lock (GameServerThreadLock)
                 {
                     //Will be used when UDP is inplemented
                     IPEndPoint IP;
@@ -134,19 +177,19 @@ namespace NCode
                     //The tick time divided by 10000 as a counter (used to calculate ping etc.)
                     TickTime = DateTime.UtcNow.Ticks / 10000;
 
-                    //Add pending connections
+                    //Add game server pending connections
                     while (MainTcp != null && MainTcp.Pending())
                     {
                         //Accept a new connection and assign it a socket.
                         Socket socket = MainTcp.AcceptSocket();
                         try
-                        {   
+                        {
                             //The clients ip address.
                             IPEndPoint remoteClient = (IPEndPoint)socket.RemoteEndPoint;
                             if (remoteClient == null)
                             {
                                 //Close the socket if the ip is null. 
-                                socket.Close(); socket = null; 
+                                socket.Close(); socket = null;
                             }
                             else
                             {
@@ -156,12 +199,14 @@ namespace NCode
                         }
                         catch (Exception e)
                         {
-                            Tools.Print("@MainThreadLoop - add pending connection", Tools.MessageType.error, e);
-                        }                                             
+                            Tools.Print("@MainThreadLoop - add game server pending connection", Tools.MessageType.error, e);
+                        }
                     }
 
+
+
                     //Loops through each player in the player list.
-                    for(int i = 0; i < MainPlayers.Count; i++)
+                    for (int i = 0; i < MainPlayers.Count; i++)
                     {
                         //Access a player by index
                         NTcpPlayer player = MainPlayers[i];
@@ -186,8 +231,83 @@ namespace NCode
                         // Process up to 100 packets from this player's InQueue at a time. (This is processed after checking for disconnected sockets. 
                         for (int e = 0; e < 100 && player.NextPacket(out packet); e++)
                         {
-                            ProcessPlayerPacket(player, packet);                            
-                        }                                                                                               
+                            ProcessPlayerPacket(player, packet);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Processes RCon client packets. Separated from the player packets to reduces lag and latency.
+        /// </summary>
+        void RConThreadLoop()
+        {
+            Tools.Print("Starting RCon thread.");
+
+            //Loop forever until server is stopped.
+            for (;;)
+            {
+                lock (RConServerThreadLock)
+                {
+                    //The tick time divided by 10000 as a counter (used to calculate ping etc.)
+                    TickTime = DateTime.UtcNow.Ticks / 10000;
+
+                    //Add rcon server pending connections
+                    while (RConTcp != null && RConTcp.Pending())
+                    {
+                        //Accept a new connection and assign it a socket.
+                        Socket socket = RConTcp.AcceptSocket();
+                        try
+                        {
+                            //The clients ip address.
+                            IPEndPoint remoteClient = (IPEndPoint)socket.RemoteEndPoint;
+                            if (remoteClient == null)
+                            {
+                                //Close the socket if the ip is null. 
+                                socket.Close(); socket = null;
+                            }
+                            else
+                            {
+                                //Add the connection as a new client(not yet verified)
+                                AddRConClient(socket);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Tools.Print("@RConThreadLoop - add rcon client pending connection", Tools.MessageType.error, e);
+                        }
+                    }
+
+
+
+                    //Loops through each client in the client list.
+                    for (int i = 0; i < RConClients.Count; i++)
+                    {
+                        //Access a player by index
+                        NRConClient client = RConClients[i];
+
+                        // Remove disconnected players (Checks the player's TcpProtocol to see if the socket is still connected)
+                        if (!client.isSocketConnected)
+                        {
+
+                            RConClients.Remove(client);
+                            //Breaks the current iterartion instead of break; which breaks the whole 'for' statement.
+                            continue;
+                        }
+                        // If the player doesn't send any packets in a while, disconnect him
+                        if (client.Timeout > 0 && client.LastReceiveTime + client.Timeout < TickTime)
+                        {
+
+                            RConClients.Remove(client);
+                            continue;
+                        }
+
+                        // Process up to 100 packets from this player's InQueue at a time. (This is processed after checking for disconnected sockets. 
+                        for (int e = 0; e < 100 && client.NextPacket(out packet); e++)
+                        {
+                            ProcessRConPacket(client, packet);
+                        }
                     }
                 }
             }
@@ -200,10 +320,13 @@ namespace NCode
         {
             //Begin reading the packet. Returns the BinaryReader loaded with the memorystream to be read. 
             BinaryReader reader = packet.BeginReading();
-            
+
             //Identifies the packet.
-            if(packet.packetid != 0) { 
-            Packet p = packet.packetid;
+            if (packet.packetid != 0)
+            {
+                Packet p = packet.packetid;
+                if (player.State != NTcpProtocol.ConnectionState.connected && p != Packet.RequestVersionValidation) { RemovePlayer(player); }
+
 
                 //Put higher priority cases at the top.
                 switch (p)
@@ -231,18 +354,19 @@ namespace NCode
                             LeaveChannel(reader.ReadInt32(), player);
                             break;
                         }
-                    case Packet.RequestClientInfo:
+                    case Packet.RequestVersionValidation:
                         {
-                            BinaryWriter writer = player.BeginSend(Packet.ResponseClientInfo);
+                            BinaryWriter writer = player.BeginSend(Packet.ResponseVersionValidation);
 
                             if (player.ProtocolVersion == reader.ReadInt32())
                             {
                                 Guid guid = Guid.NewGuid();
                                 player.ClientGUID = guid;
                                 player.State = NTcpProtocol.ConnectionState.connected;
+                                Tools.Print(player.thisSocket.RemoteEndPoint.ToString() + " connected.");
                                 writer.Write(true);
                                 writer.Write(guid);
-                                player.EndSend();                               
+                                player.EndSend();
                                 SendClientPlayerUpdate(player); //Sends this player a list of all currently connected players
                                 SendPlayerConnected(player); //Sends other clients this player as a newly connected player.
                             }
@@ -255,6 +379,7 @@ namespace NCode
 
                             break;
                         }
+
                     case Packet.TextChat:
                         {
                             string text = reader.ReadString();
@@ -276,15 +401,65 @@ namespace NCode
                             }
                             break;
                         }
-                    
+
                     case Packet.RequestCreateObject:
                         {
-                            NetworkObject obj = (NetworkObject)Converters.ConvertByteArrayToObject(reader.ReadByteArray());
+                            NetworkObject obj = (NetworkObject)reader.ReadObject();
                             ClientRequestCreateObject(obj, player);
                             break;
                         }
                 }
-            }           
+            }
+        }
+
+        /// <summary>
+        /// Processes RCon client packets.
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="packet"></param>
+        void ProcessRConPacket(NRConClient client, NPacketContainer packet)
+        {
+            BinaryReader reader = packet.BeginReading();
+            Packet p = packet.packetid;
+            if (client.State != NTcpProtocol.ConnectionState.connected && p != Packet.RequestVersionValidation) { RemoveRConClient(client); }
+            switch (p)
+            {
+                case Packet.RequestVersionValidation:
+                    {
+                        BinaryWriter writer = client.BeginSend(Packet.ResponseVersionValidation);
+
+                        if (client.ProtocolVersion == reader.ReadInt32())
+                        {
+                            writer.Write(true);
+                            client.EndSend();
+                            client.State = NTcpProtocol.ConnectionState.connected;
+                        }
+                        else
+                        {
+                            writer.Write(false);
+                            client.EndSend();
+                            RemoveRConClient(client);
+                        }
+                        break;
+                    }
+
+                case Packet.RConRequestAuthenticate:
+                    {
+                        BinaryWriter writer = client.BeginSend(Packet.RConResponseAuthenticate);
+                        if (RConPassword == reader.ReadString())
+                        {
+                            Tools.Print("RCon client [" + client.thisSocket.RemoteEndPoint.ToString() + "] connected.");
+                            writer.Write(true);
+                        }
+                        else
+                        {
+                            writer.Write(false);
+                        }
+                        client.EndSend();
+                        break;
+                    }
+            }
         }
     }
+
 }

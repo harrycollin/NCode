@@ -30,12 +30,17 @@ namespace NCode
         /// </summary>
         /// <param name="ip"></param>
         /// <param name="port"></param>
-        public static void Connect(string ip, int port)
+        public static bool Connect(string ip, int port)
         {
             if(instance != null && !instance.isTryingToConnect && !instance.isConnected)
             {
-                instance.Start(new IPEndPoint(IPAddress.Parse(ip), port));
+                if(instance.Start(new IPEndPoint(IPAddress.Parse(ip), port)))
+                {
+
+                    return true;
+                }
             }
+            return false;
         }
 
         /// <summary>
@@ -69,6 +74,8 @@ namespace NCode
                 }
             }
         }
+
+        
 
         void OnRFC(int channelID, Guid guid, int RFCID, params object[] parameters)
         {
@@ -167,13 +174,14 @@ namespace NCode
         /// <param name="PrefabID"></param>
         /// <param name="position"></param>
         /// <param name="rotation"></param>
-        public static void CreateNewObject(int channelID, int PrefabID, Vector3 position, Quaternion rotation)
+        public static void CreateNewObject(int channelID, int PrefabID, bool Persistant, Vector3 position, Quaternion rotation)
         {            
             BinaryWriter writer = BeginSend(Packet.RequestCreateObject, true);
 
             NetworkObject TempObject = new NetworkObject();
             TempObject.LastChannelID = channelID;
             TempObject.prefabid = PrefabID;
+            TempObject.Persistant = Persistant;
             TempObject.GUID = Generate.GenerateGUID();
             TempObject.position = Converters.Vector3ToString(position);
             TempObject.rotation = Converters.QuaternionToString(rotation);

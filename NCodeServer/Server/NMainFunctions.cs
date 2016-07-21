@@ -22,6 +22,11 @@ namespace NCode
         public TcpListener MainTcp;
 
         /// <summary>
+        /// Main Tcp protocol for the server
+        /// </summary>
+        public TcpListener RConTcp;
+
+        /// <summary>
         /// The main Tcp port for the server. This is used when connecting
         /// </summary>
         public int TcpListenPort;
@@ -37,9 +42,14 @@ namespace NCode
         public int UdpPort;
 
         /// <summary>
-        /// Lock for this threads
+        /// Lock for GameServer threads
         /// </summary>
-        public object Lock = 0;
+        public object GameServerThreadLock = 0;
+
+        /// <summary>
+        /// Lock for RconServer threads
+        /// </summary>
+        public object RConServerThreadLock = 0;
 
         /// <summary>
         /// The main thread for processing data.
@@ -47,9 +57,29 @@ namespace NCode
         public Thread MainThread;
 
         /// <summary>
+        /// The main thread for processing data.
+        /// </summary>
+        public Thread RConThread;
+
+        /// <summary>
         /// Time in ticks 
         /// </summary>
         public long TickTime = 0;
+
+        /// <summary>
+        /// Whether the server will be using RCon.
+        /// </summary>
+        public bool RConActive;
+
+        /// <summary>
+        /// The RCon password
+        /// </summary>
+        public string RConPassword;
+
+        /// <summary>
+        /// List of any RCon Clients
+        /// </summary>
+        public List<NRConClient> RConClients = new List<NRConClient>();
 
         /// <summary>
         /// Contains all the players currently connected to the server
@@ -66,7 +96,31 @@ namespace NCode
         /// </summary>
         public Dictionary<int, NChannel> ActiveChannels = new Dictionary<int, NChannel>();
 
+        /// <summary>
+        /// A dictionary of all network objects
+        /// </summary>
         public Dictionary<Guid, NetworkObject> NetworkObjects = new Dictionary<Guid, NetworkObject>();
+
+        public OnPacket onPacket;
+        public delegate void OnPacket(NTcpPlayer player, NPacketContainer packet);
+
+        public OnPlayerConnect onPlayerConnect;
+        public delegate void OnPlayerConnect(NTcpPlayer player);
+
+        public OnPlayerDisconnect onPlayerDisconnect;
+        public delegate void OnPlayerDisconnect(NTcpPlayer player);
+
+        public OnCreateChannel onCreateChannel;
+        public delegate void OnCreateChannel(NChannel channel);
+
+        public OnCloseChannel onCloseChannel;
+        public delegate void OnCloseChannel(NChannel channel);
+
+        public OnPlayerJoinChannel onPlayerJoinChannel;
+        public delegate void OnPlayerJoinChannel(NTcpPlayer player, NChannel channel, bool result);
+
+        public OnPlayerLeaveChannel onPlayerLeaveChannel;
+        public delegate void OnPlayerLeaveChannel(NTcpPlayer player, NChannel channel, bool result);
 
         /// <summary>
         /// Adds the player to the MainPlayers list.
@@ -82,9 +136,29 @@ namespace NCode
                 player.BeginListening();
                 player.State = NTcpProtocol.ConnectionState.verifying;
                 MainPlayers.Add(player);
-
-                Tools.Print(client.RemoteEndPoint.ToString() + " connected.");
+                //onPlayerConnect(player);
                 player = null;
+                client = null;
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Adds the rconclient to the RConClients list.
+        /// </summary>
+        /// <param name="client"></param>
+        /// <returns></returns>
+        public bool AddRConClient(Socket client)
+        {
+            if (client != null)
+            {
+                NRConClient rconclient = new NRConClient();
+                rconclient.thisSocket = client;
+                rconclient.BeginListening();
+                rconclient.State = NTcpProtocol.ConnectionState.verifying;
+                RConClients.Add(rconclient);
+                rconclient = null;
                 client = null;
                 return true;
             }
@@ -111,8 +185,24 @@ namespace NCode
                         }
                     }
                 }
+                //onPlayerDisconnect(client);
                 client.Disconnect();
                 MainPlayers.Remove(client);
+                return true;
+            }
+            return false;
+        }
+        /// <summary>
+        /// Removes the player from the MainPlayers list.
+        /// </summary>
+        /// <param name="client"></param>
+        /// <returns></returns>
+        public bool RemoveRConClient(NRConClient client)
+        {
+            if (client != null)
+            {             
+                client.Disconnect();
+                RConClients.Remove(client);
                 return true;
             }
             return false;
@@ -130,12 +220,8 @@ namespace NCode
             int channel = reader.ReadInt32();          
             packet.position = 0;
             byte[] bytes = packet.packetData;
-
-            
-
             for (int i = 0; i < ActiveChannels[channel].Players.Count; i++)
-            {
-                
+            {            
                 if (ActiveChannels[channel].Players[i] != player)
                 {
                     BinaryWriter writer = ActiveChannels[channel].Players[i].BeginSend(packetid);
@@ -296,6 +382,7 @@ namespace NCode
                 }
             }
         }
+
         public void SendPlayerConnected(NTcpPlayer player)
         {
             NPlayer p = player.thisPlayer();
@@ -343,6 +430,8 @@ namespace NCode
             }
             return false;
         }
+
+        
 
 
     }

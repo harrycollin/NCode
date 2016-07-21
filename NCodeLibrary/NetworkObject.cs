@@ -13,14 +13,21 @@ namespace NCode
     [Serializable]
     public class NetworkObject
     {
+        /// <summary>
+        /// The Permanent GUID of this object.
+        /// </summary>
         public Guid GUID { get; set; }
+        /// <summary>
+        /// The current network owner's GUID.
+        /// </summary>
+        public Guid NetworkOwnerGUID { get; set; }
+        public bool Persistant { get; set; }
+        public int MainChannelID { get; set; }
+
         public int prefabid { get; set; }
-        public int thumbnailid { get; set; }
         public string position { get; set; }
         public string rotation { get; set; }
         public string name { get; set; }
         public string owner { get; set; }
-        public string displayName { get; set; }
-        public int LastChannelID { get; set; }
     }
 }

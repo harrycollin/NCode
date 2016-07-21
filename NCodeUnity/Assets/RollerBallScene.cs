@@ -7,7 +7,10 @@ public class RollerBallScene : MonoBehaviour {
 	// Use this for initialization
 	void Start ()
     {
-        NClientManager.Connect("127.0.0.1", 5127);
+        if(NClientManager.Connect("127.0.0.1", 5127))
+        {
+            
+        }
         StartCoroutine(i());
 	}
     IEnumerator i()
@@ -23,6 +26,6 @@ public class RollerBallScene : MonoBehaviour {
     public void Spawn()
     {
         Tools.Print("Spa");
-        NClientManager.CreateNewObject(10, 1, new Vector3(1, 1, 1), new Quaternion(0, 0, 0, 0));   
+        NClientManager.CreateNewObject(10, 1, false, new Vector3(1, 1, 1), new Quaternion(0, 0, 0, 0));   
     }
 }

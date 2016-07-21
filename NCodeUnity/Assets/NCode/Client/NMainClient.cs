@@ -15,12 +15,13 @@ public class NMainClient : NMainFunctionsClient
     /// Starts the connection process 
     /// </summary>
     /// <param name="ip"></param>
-    public void Start(IPEndPoint ip)
+    public bool Start(IPEndPoint ip)
     {
         if (TcpClient.Connect(ip))
         {
-            
+            return true;
         }
+        return false;
     }
 
     /// <summary>
@@ -36,7 +37,7 @@ public class NMainClient : NMainFunctionsClient
         {
             ProcessPacket(tempPacket);
         }
-        if (LastPingTime + 3000 < ClientTime)
+        if (LastPingTime + 3000 < ClientTime && TcpClient.State == NTcpProtocol.ConnectionState.connected)
         {
             LastPingTime = ClientTime;
             BinaryWriter writer = TcpClient.BeginSend(Packet.RequestPing);
@@ -92,7 +93,7 @@ public class NMainClient : NMainFunctionsClient
                     TcpClient.Ping = reader.ReadInt32();
                     break;
                 }
-            case Packet.ResponseClientInfo:
+            case Packet.ResponseVersionValidation:
                 {
                     if (!reader.ReadBoolean())
                     {
@@ -101,6 +102,7 @@ public class NMainClient : NMainFunctionsClient
                     }
                     else
                     {
+                        TcpClient.State = NTcpProtocol.ConnectionState.connected;
                         TcpClient.ClientGUID = reader.ReadGUID();
                     }
                     break;

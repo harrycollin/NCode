@@ -103,7 +103,7 @@ namespace NCode
         {
             writer.Seek(0, SeekOrigin.Begin);
             writer.Write((int)ms.Length - 4);
-            Tools.Print((ms.Length - 4).ToString());      
+            //Tools.Print((ms.Length - 4).ToString());      
             return ms.ToArray();
         }
 
@@ -123,7 +123,7 @@ namespace NCode
             packetData = reader.ReadBytes(length);
          
             //Tools.Print(length.ToString());
-            //Tools.Print(packet.ToString());
+            //Tools.Print(packetid.ToString());
             Create(packetData);
         }
     }

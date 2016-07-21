@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace NCode
 {
-    class NCodeServerMain : NMainThread
+    class NCodeServerMain 
     {
         /// <summary>
         /// Server Entry point.
@@ -34,19 +34,12 @@ namespace NCode
             if (!DatabaseConnection.ConnectionTester()) { Tools.Print("Failed to establish a connection to the database. Please check settings in 'server.cfg' and make sure all ports are forwarded", Tools.MessageType.error);  }
             
             //Makes a new instance of the server. 
-            NCodeServerMain app = new NCodeServerMain();
-            app.Start(info);
+            NMainThread app = new NMainThread();
+            app.Start(info.servername, info.tcpport, info.udpport, info.rconport, info.password, info.rconpassword);
+
         }
 
-        /// <summary>
-        /// Starts the server
-        /// </summary>
-        /// <returns></returns>
-        public bool Start(ConfigInfo info)
-        {
-            base.Start(info.servername, info.tcpport, info.udpport, info.password);
-            return false;
-        }
+        
 
         /// <summary>
         /// Checks the default server and file paths. Creates them if not present.
@@ -82,11 +75,15 @@ namespace NCode
             builder.Append(System.Environment.NewLine);
             builder.Append("server_name = \"kleos server\";");
             builder.Append(System.Environment.NewLine);
-            builder.Append("server_password = \"\";");
+            builder.Append("server_password = \"changeme\";");
+            builder.Append(System.Environment.NewLine);
+            builder.Append("server_rconpassword = \"changeme\";");
             builder.Append(System.Environment.NewLine);
             builder.Append("server_tcpport = \"5127\";");
             builder.Append(System.Environment.NewLine);
             builder.Append("server_udpport = \"5128\";");
+            builder.Append(System.Environment.NewLine);
+            builder.Append("server_rconport = \"5129\";");
             builder.Append(System.Environment.NewLine);
             builder.Append(System.Environment.NewLine);
             builder.Append("--Database Configuration--");
@@ -155,6 +152,25 @@ namespace NCode
                     }
                     continue;
                 }
+                //Server password
+                if (i.StartsWith("server_rconpassword"))
+                {
+                    var reg = new Regex("\".*?\"");
+                    var matches = reg.Matches(i);
+                    foreach (var item in matches)
+                    {
+                        try
+                        {
+                            info.rconpassword = item.ToString().Replace("\"", "");
+                        }
+                        catch (Exception e)
+                        {
+                            info.rconpassword = null;
+                            Tools.Print("Failed to read the 'server_rconpassword' parameter in 'server.cfg'. Defaulting rcon server password to 'changeme'.", Tools.MessageType.error);
+                        }
+                    }
+                    continue;
+                }
 
                 //Tcp Port
                 if (i.StartsWith("server_tcpport"))
@@ -191,6 +207,26 @@ namespace NCode
                         {
                             info.udpport = 5128;
                             Tools.Print("Failed to read the 'server_udpport' parameter in 'server.cfg'. Defaulting UDP port to 5128.", Tools.MessageType.error);
+                        }
+                    }
+                    continue;
+                }
+
+                //RCon Port
+                if (i.StartsWith("server_rconport"))
+                {
+                    var reg = new Regex("\".*?\"");
+                    var matches = reg.Matches(i);
+                    foreach (var item in matches)
+                    {
+                        try
+                        {
+                            info.rconport = int.Parse(item.ToString().Replace("\"", ""));
+                        }
+                        catch (Exception e)
+                        {
+                            info.rconport = 5129;
+                            Tools.Print("Failed to read the 'server_rconport' parameter in 'server.cfg'. Defaulting RCon port to 5129.", Tools.MessageType.error);
                         }
                     }
                     continue;
@@ -317,8 +353,10 @@ namespace NCode
     {
         public string servername { get; set; }
         public string password { get; set; }
+        public string rconpassword { get; set; }
         public int tcpport { get; set; }
         public int udpport { get; set; }
+        public int rconport { get; set; }
         public string databaseip { get; set; }
         public int databaseport { get; set; }
         public string databasename { get; set; }

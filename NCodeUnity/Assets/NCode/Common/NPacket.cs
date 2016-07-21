@@ -53,12 +53,12 @@
         /// <summary>
         /// First packet that should be sent to the server. Otherwise you'll get disconnected. Contains version, steam info etc. 
         /// </summary>
-        RequestClientInfo,
+        RequestVersionValidation,
 
         /// <summary>
-        /// Response to RequestClientInfo. Sends back some infomation about you or disconnects you depending on your information. 
+        /// Response to RequestVersionValidation. Sends back some infomation about you or disconnects you depending on your information. 
         /// </summary>
-        ResponseClientInfo,
+        ResponseVersionValidation,
 
         /// <summary>
         /// Request to create an NetworkObject. 
@@ -104,7 +104,19 @@
         /// <summary>
         /// Server to client packet notifying of a newly connected player
         /// </summary>
-        PlayerUpdate
+        PlayerUpdate,
+
+
+        //---Rcon Packets---//
         
+        RConRequestAuthenticate,
+
+        RConResponseAuthenticate,
+
+        RConPlayerConnect, 
+
+        RConPlayerDisconnect,
+
+
     }
 }
