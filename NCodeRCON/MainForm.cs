@@ -17,6 +17,7 @@ namespace NCodeRCON
     {
         public ServerInstance SelectedServer;
         public List<ServerInstance> servers = new List<ServerInstance>();
+        public AddServerForm addServerForm;
 
         public MainForm()
         {
@@ -41,33 +42,75 @@ namespace NCodeRCON
                 }
             }
         }
-             
+        
+        public void AddServer(ServerInstance instance)
+        {
+            Color darkGrey = Color.FromArgb(44, 44, 44);
+
+            servers.Add(instance);
+            Panel p = new Panel();
+            p.Click += new EventHandler(this.SelectServer);
+            p.Name = "server:" + instance.Name;
+            p.Height = 90;
+            p.Width = 375;
+            p.BackColor = darkGrey;         
+            flowLayoutPanel1.Controls.Add(p);
+
+            FlowLayoutPanel flp = new FlowLayoutPanel();
+            flp.Height = 90;
+            flp.Width = 375;
+            
+            p.Controls.Add(flp);
+
+            Label namelabel = new Label();
+            namelabel.Text = instance.Name;
+            namelabel.TextAlign = ContentAlignment.MiddleLeft;
+            namelabel.Font = new Font("Arial", 10, FontStyle.Bold);
+            namelabel.ForeColor = Color.White;
+
+            Label iplabel = new Label();
+            iplabel.Text = "IP:" + instance.IP.ToString();
+            iplabel.TextAlign = ContentAlignment.MiddleLeft;
+            iplabel.Font = new Font("Arial", 10, FontStyle.Bold);
+            iplabel.ForeColor = Color.White;
+
+            Label portlabel = new Label();
+            portlabel.Text = "Port:" + instance.Port.ToString();
+            portlabel.TextAlign = ContentAlignment.MiddleLeft;
+            portlabel.Font = new Font("Arial", 10, FontStyle.Bold);
+            portlabel.ForeColor = Color.White;
+
+            Button start = new Button();
+            start.Text = "Start";
+
+            Button stop = new Button();
+            stop.Text = "Stop";
+
+            flp.Controls.Add(namelabel);
+            flp.Controls.Add(iplabel);
+            flp.Controls.Add(portlabel);
+            flp.Controls.Add(start);
+            flp.Controls.Add(stop);
+
+        }
+
         private void button1_Click(object sender, EventArgs e)
         {
-            for(int i = 0; i < 2; i++)
-            {
-                ServerInstance s = new ServerInstance();
-                s.Name = "server" + i;
-                servers.Add(s);
-                Panel p = new Panel();
-                p.Click += new EventHandler(this.SelectServer);
-                p.Name = "server" + i;
-                p.Height = 90;
-                p.Width = 375;
-                p.BackColor = Color.DarkGray;
-                flowLayoutPanel1.Controls.Add(p);
-
-                Button settings = new Button();
-                settings.Text = "Setting";
-                
-                p.Controls.Add(settings);
-            }
+                                       
         }
+      
 
         private void addServerButton_Click(object sender, EventArgs e)
         {
-            AddServerForm a = new AddServerForm();
-            a.Show();
+            addServerForm = new AddServerForm(this);
+            addServerForm.Show();
+        }
+
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            ServerInstance s = new ServerInstance();
+            s.Name = "Kleos Server";
+            AddServer(s);
         }
     }
 }

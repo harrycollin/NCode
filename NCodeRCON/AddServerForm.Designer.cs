@@ -46,6 +46,7 @@
             this.addServerNameBox.Name = "addServerNameBox";
             this.addServerNameBox.Size = new System.Drawing.Size(280, 23);
             this.addServerNameBox.TabIndex = 0;
+            this.addServerNameBox.Text = "bruh";
             this.addServerNameBox.Theme = MetroFramework.MetroThemeStyle.Dark;
             // 
             // addServerIPBox
@@ -56,6 +57,7 @@
             this.addServerIPBox.Name = "addServerIPBox";
             this.addServerIPBox.Size = new System.Drawing.Size(280, 23);
             this.addServerIPBox.TabIndex = 1;
+            this.addServerIPBox.Text = "127.0.0.1";
             this.addServerIPBox.Theme = MetroFramework.MetroThemeStyle.Dark;
             // 
             // addServerPortBox
@@ -64,6 +66,7 @@
             this.addServerPortBox.Name = "addServerPortBox";
             this.addServerPortBox.Size = new System.Drawing.Size(280, 23);
             this.addServerPortBox.TabIndex = 2;
+            this.addServerPortBox.Text = "5129";
             this.addServerPortBox.Theme = MetroFramework.MetroThemeStyle.Dark;
             // 
             // addServerPasswordBox
@@ -72,6 +75,7 @@
             this.addServerPasswordBox.Name = "addServerPasswordBox";
             this.addServerPasswordBox.Size = new System.Drawing.Size(280, 23);
             this.addServerPasswordBox.TabIndex = 3;
+            this.addServerPasswordBox.Text = "changeme";
             this.addServerPasswordBox.Theme = MetroFramework.MetroThemeStyle.Dark;
             // 
             // addNewServerNameLabel
@@ -140,6 +144,7 @@
             this.addServerButton.TabIndex = 9;
             this.addServerButton.Text = "Add Server";
             this.addServerButton.Theme = MetroFramework.MetroThemeStyle.Dark;
+            this.addServerButton.Click += new System.EventHandler(this.addServerButton_Click);
             // 
             // AddServerForm
             // 

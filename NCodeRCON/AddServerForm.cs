@@ -18,12 +18,15 @@ namespace NCodeRCON
 {
     public partial class AddServerForm : MetroFramework.Forms.MetroForm
     {
+        private MainForm mainForm = null;
+
         ServerInstance instance = new ServerInstance();
         bool valueNull = false;
         bool Validated = false;
 
-        public AddServerForm()
+        public AddServerForm(Form callingForm)
         {
+            mainForm = callingForm as MainForm;
             InitializeComponent();
             addServerNameBox.TextChanged += new EventHandler(OnValuesChanged);
             addServerIPBox.TextChanged += new EventHandler(ValidateIP);
@@ -35,7 +38,7 @@ namespace NCodeRCON
             addServerPasswordBox.TextChanged += new EventHandler(ImportantInfoChanged);
 
         }
-
+      
         private void AddServerForm_Load(object sender, EventArgs e)
         {
 
@@ -61,6 +64,9 @@ namespace NCodeRCON
             }
             else
             {
+                instance.Name = addServerNameBox.Text;
+                instance.Password = addServerPasswordBox.Text;
+                instance.Port = int.Parse(addServerPortBox.Text);
                 valueNull = false;
                 testConnectionButton.Enabled = true;
             }
@@ -125,6 +131,12 @@ namespace NCodeRCON
                 MessageBox.Show("Authentication failed!");
                 Validated = false;
             }
+        }
+
+        private void addServerButton_Click(object sender, EventArgs e)
+        {
+            mainForm.AddServer(instance);
+            this.Close();
         }
     }
 }

@@ -30,12 +30,13 @@
         {
             this.TabControl1 = new MetroFramework.Controls.MetroTabControl();
             this.MainPanelTab = new MetroFramework.Controls.MetroTabPage();
-            this.metroPanel2 = new MetroFramework.Controls.MetroPanel();
             this.metroPanel1 = new MetroFramework.Controls.MetroPanel();
-            this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
-            this.serverSettingsButton = new MetroFramework.Controls.MetroButton();
-            this.addServerButton = new MetroFramework.Controls.MetroButton();
+            this.metroPanel2 = new MetroFramework.Controls.MetroPanel();
             this.removeServerButton = new MetroFramework.Controls.MetroButton();
+            this.addServerButton = new MetroFramework.Controls.MetroButton();
+            this.serverSettingsButton = new MetroFramework.Controls.MetroButton();
+            this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
+            this.button1 = new System.Windows.Forms.Button();
             this.TabControl1.SuspendLayout();
             this.MainPanelTab.SuspendLayout();
             this.metroPanel2.SuspendLayout();
@@ -65,8 +66,23 @@
             this.MainPanelTab.Theme = MetroFramework.MetroThemeStyle.Dark;
             this.MainPanelTab.VerticalScrollbarBarColor = true;
             // 
+            // metroPanel1
+            // 
+            this.metroPanel1.HorizontalScrollbarBarColor = true;
+            this.metroPanel1.HorizontalScrollbarHighlightOnWheel = false;
+            this.metroPanel1.HorizontalScrollbarSize = 10;
+            this.metroPanel1.Location = new System.Drawing.Point(409, 3);
+            this.metroPanel1.Name = "metroPanel1";
+            this.metroPanel1.Size = new System.Drawing.Size(169, 339);
+            this.metroPanel1.TabIndex = 6;
+            this.metroPanel1.Theme = MetroFramework.MetroThemeStyle.Dark;
+            this.metroPanel1.VerticalScrollbarBarColor = true;
+            this.metroPanel1.VerticalScrollbarHighlightOnWheel = false;
+            this.metroPanel1.VerticalScrollbarSize = 10;
+            // 
             // metroPanel2
             // 
+            this.metroPanel2.Controls.Add(this.button1);
             this.metroPanel2.Controls.Add(this.removeServerButton);
             this.metroPanel2.Controls.Add(this.addServerButton);
             this.metroPanel2.Controls.Add(this.serverSettingsButton);
@@ -83,37 +99,14 @@
             this.metroPanel2.VerticalScrollbarHighlightOnWheel = false;
             this.metroPanel2.VerticalScrollbarSize = 10;
             // 
-            // metroPanel1
+            // removeServerButton
             // 
-            this.metroPanel1.HorizontalScrollbarBarColor = true;
-            this.metroPanel1.HorizontalScrollbarHighlightOnWheel = false;
-            this.metroPanel1.HorizontalScrollbarSize = 10;
-            this.metroPanel1.Location = new System.Drawing.Point(409, 3);
-            this.metroPanel1.Name = "metroPanel1";
-            this.metroPanel1.Size = new System.Drawing.Size(169, 339);
-            this.metroPanel1.TabIndex = 6;
-            this.metroPanel1.Theme = MetroFramework.MetroThemeStyle.Dark;
-            this.metroPanel1.VerticalScrollbarBarColor = true;
-            this.metroPanel1.VerticalScrollbarHighlightOnWheel = false;
-            this.metroPanel1.VerticalScrollbarSize = 10;
-            // 
-            // flowLayoutPanel1
-            // 
-            this.flowLayoutPanel1.AutoScroll = true;
-            this.flowLayoutPanel1.BackColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.flowLayoutPanel1.Location = new System.Drawing.Point(3, 3);
-            this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(400, 300);
-            this.flowLayoutPanel1.TabIndex = 2;
-            // 
-            // serverSettingsButton
-            // 
-            this.serverSettingsButton.Location = new System.Drawing.Point(300, 309);
-            this.serverSettingsButton.Name = "serverSettingsButton";
-            this.serverSettingsButton.Size = new System.Drawing.Size(103, 23);
-            this.serverSettingsButton.TabIndex = 3;
-            this.serverSettingsButton.Text = "Settings";
-            this.serverSettingsButton.Theme = MetroFramework.MetroThemeStyle.Dark;
+            this.removeServerButton.Location = new System.Drawing.Point(112, 309);
+            this.removeServerButton.Name = "removeServerButton";
+            this.removeServerButton.Size = new System.Drawing.Size(103, 23);
+            this.removeServerButton.TabIndex = 5;
+            this.removeServerButton.Text = "Remove";
+            this.removeServerButton.Theme = MetroFramework.MetroThemeStyle.Dark;
             // 
             // addServerButton
             // 
@@ -125,14 +118,33 @@
             this.addServerButton.Theme = MetroFramework.MetroThemeStyle.Dark;
             this.addServerButton.Click += new System.EventHandler(this.addServerButton_Click);
             // 
-            // removeServerButton
+            // serverSettingsButton
             // 
-            this.removeServerButton.Location = new System.Drawing.Point(112, 309);
-            this.removeServerButton.Name = "removeServerButton";
-            this.removeServerButton.Size = new System.Drawing.Size(103, 23);
-            this.removeServerButton.TabIndex = 5;
-            this.removeServerButton.Text = "Remove";
-            this.removeServerButton.Theme = MetroFramework.MetroThemeStyle.Dark;
+            this.serverSettingsButton.Location = new System.Drawing.Point(300, 309);
+            this.serverSettingsButton.Name = "serverSettingsButton";
+            this.serverSettingsButton.Size = new System.Drawing.Size(103, 23);
+            this.serverSettingsButton.TabIndex = 3;
+            this.serverSettingsButton.Text = "Settings";
+            this.serverSettingsButton.Theme = MetroFramework.MetroThemeStyle.Dark;
+            // 
+            // flowLayoutPanel1
+            // 
+            this.flowLayoutPanel1.AutoScroll = true;
+            this.flowLayoutPanel1.BackColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.flowLayoutPanel1.Location = new System.Drawing.Point(3, 3);
+            this.flowLayoutPanel1.Name = "flowLayoutPanel1";
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(400, 300);
+            this.flowLayoutPanel1.TabIndex = 2;
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(222, 310);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 6;
+            this.button1.Text = "button1";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click_1);
             // 
             // MainForm
             // 
@@ -160,6 +172,7 @@
         private MetroFramework.Controls.MetroButton removeServerButton;
         private MetroFramework.Controls.MetroButton addServerButton;
         private MetroFramework.Controls.MetroButton serverSettingsButton;
+        private System.Windows.Forms.Button button1;
     }
 }
 
