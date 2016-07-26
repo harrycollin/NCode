@@ -40,7 +40,7 @@ public class NMainClient : NMainFunctionsClient
         if (LastPingTime + 3000 < ClientTime && TcpClient.State == NTcpProtocol.ConnectionState.connected)
         {
             LastPingTime = ClientTime;
-            BinaryWriter writer = TcpClient.BeginSend(Packet.RequestPing);
+            BinaryWriter writer = TcpClient.BeginSend(Packet.Ping);
             writer.Write(ClientTime);
             TcpClient.EndSend();
         }
@@ -87,10 +87,10 @@ public class NMainClient : NMainFunctionsClient
                     }
                     break;
                 }
-            case Packet.ResponsePing:
+            case Packet.Ping:
                 {
                     TcpClient.LastReceiveTime = ClientTime;
-                    TcpClient.Ping = reader.ReadInt32();
+                    TcpClient.PingInMs = reader.ReadInt32();
                     break;
                 }
             case Packet.ResponseVersionValidation:

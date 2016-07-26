@@ -13,3 +13,6 @@ C:\Users\harry\Documents\GitHub\NCode\NCodeRCON\obj\Debug\NCodeRCON.exe
 C:\Users\harry\Documents\GitHub\NCode\NCodeRCON\obj\Debug\NCodeRCON.pdb
 C:\Users\harry\Documents\GitHub\NCode\NCodeRCON\obj\Debug\NCodeRCON.AddServerForm.resources
 C:\Users\harry\Documents\GitHub\NCode\NCodeRCON\obj\Debug\NCodeRCON.MainForm.resources
+C:\Users\harry\Documents\GitHub\NCode\NCodeRCON\bin\Debug\System.Data.SQLite.dll
+C:\Users\harry\Documents\GitHub\NCode\NCodeRCON\bin\Debug\System.Data.SQLite.xml
+C:\Users\harry\Documents\GitHub\NCode\NCodeRCON\obj\Debug\NCodeRCON.SettingsForm.resources

@@ -60,7 +60,7 @@ namespace NCode
         /// <summary>
         /// The current ping of the remote client.
         /// </summary>
-        public int Ping;
+        public int PingInMs;
         
         /// <summary>
         /// Whether the socket is currently connected. 
@@ -394,6 +394,15 @@ namespace NCode
                 Console.WriteLine(e.ToString());
             }
         }    
+
+        public void Ping()
+        {
+            if(thisSocket != null && thisSocket.Connected)
+            {
+                BinaryWriter writer = BeginSend(Packet.Ping);
+                EndSend();
+            }
+        }
          
     }
 }

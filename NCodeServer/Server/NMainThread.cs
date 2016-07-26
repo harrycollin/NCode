@@ -14,74 +14,80 @@ namespace NCode
     public class NMainThread : NMainFunctions
     {
         /// <summary>
-        /// Starts the server. 
+        /// Starts the main processes
         /// </summary>
-        public void Start(string name, int tcpport, int udpport, int rconport, string password, string rconpassword)
+        public void Start(string name, int tcpport, int udpport, int rconport, string password, string rconpassword, bool AutoStart)
         {
+            //Start the main thread.
+            MainThread = new Thread(MainThreadLoop);
+            MainThread.Start();
+
+            //Start the RCon thread.
+            RConThread = new Thread(RConThreadLoop);
+            RConThread.Start();
+
             //Set the password
             RConPassword = rconpassword;
-            ////Checks to see if the TCP RCon listener can be started on the specified port.
+
+            //Checks to see if the TCP RCon listener can be started on the specified port.
             if (StartListeningRCon(rconport))
             {
-                RConActive = true;
+                //Start the RCon server
+                RunRConServer = true;
                 Tools.Print("RCon Server started on port: " + rconport);
-
             }
 
-            //Checks to see if the Tcp listener started without error. 
-            if (StartListeningGameServer(tcpport))
+            //Won't start the game server unless specified to in the config. (Default is true)
+            if (AutoStart)
             {
-                Tools.Print("Game Server started on port: " + tcpport);
-
-                //Assign the Tcp port in the MainFunctions
-                TcpListenPort = tcpport;
-
-                //Tries to load all objects from the database.
-                try
+                //Checks to see if the Tcp listener started without error. 
+                if (StartListeningGameServer(tcpport))
                 {
-                    //Grabs the objects from database class. 
-                    HashSet<NetworkObject> objects = DatabaseRequest.LoadObjects();
-                    //Adds each one to the NetworkObjects dictionary for quick access
-                    foreach (NetworkObject i in objects) NetworkObjects.Add(i.GUID, i);
-                    Tools.Print("Loaded " + objects.Count + " objects from the database", Tools.MessageType.notification);
-                }
-                catch (Exception e)
-                {
-                    Tools.Print("Failed to load objects from the database.", Tools.MessageType.error, e);
-                    //Add a stop to the server.
-                    return;
-                }
+                    Tools.Print("Game Server started on port: " + tcpport);
 
-                //Creates and preloads channels with their objects. Accesses them from the NetworkObjects dictionary.
-                foreach (KeyValuePair<Guid, NetworkObject> i in NetworkObjects)
-                {
-                    if (i.Value.LastChannelID > 0)
+                    //Assign the Tcp port in the MainFunctions
+                    TcpListenPort = tcpport;
+
+                    //Tries to load all objects from the database.
+                    try
                     {
-                        //Check if channel exists.
-                        if (ActiveChannels.ContainsKey(i.Value.LastChannelID))
-                        {
-                            ActiveChannels[i.Value.LastChannelID].AddObject(i.Value);
-                        }
-                        else //Make new channel
-                        {
-                            Tools.Print("Created new channel " + i.Value.LastChannelID);
-                            NChannel newChannel = new NChannel();
-                            newChannel.ID = i.Value.LastChannelID;
-                            newChannel.AddObject(i.Value);
-                            ActiveChannels.Add(i.Value.LastChannelID, newChannel);
-                        }
+                        //Grabs the objects from database class. 
+                        HashSet<NetworkObject> objects = DatabaseRequest.LoadObjects();
+                        //Adds each one to the NetworkObjects dictionary for quick access
+                        foreach (NetworkObject i in objects) NetworkObjects.Add(i.GUID, i);
+                        Tools.Print("Loaded " + objects.Count + " objects from the database", Tools.MessageType.notification);
+                    }
+                    catch (Exception e)
+                    {
+                        Tools.Print("Failed to load objects from the database.", Tools.MessageType.error, e);
+                        //Add a stop to the server.
+                        return;
                     }
 
-                }
-                //Start the RCon thread.
-                RConThread = new Thread(RConThreadLoop);
-                RConThread.Start();
-                //Start the main thread.
-                MainThread = new Thread(MainThreadLoop);
-                MainThread.Start();
-
-            }
-
+                    //Creates and preloads channels with their objects. Accesses them from the NetworkObjects dictionary.
+                    foreach (KeyValuePair<Guid, NetworkObject> i in NetworkObjects)
+                    {
+                        if (i.Value.LastChannelID > 0)
+                        {
+                            //Check if channel exists.
+                            if (ActiveChannels.ContainsKey(i.Value.LastChannelID))
+                            {
+                                ActiveChannels[i.Value.LastChannelID].AddObject(i.Value);
+                            }
+                            else //Make new channel
+                            {
+                                Tools.Print("Created new channel " + i.Value.LastChannelID);
+                                NChannel newChannel = new NChannel();
+                                newChannel.ID = i.Value.LastChannelID;
+                                newChannel.AddObject(i.Value);
+                                ActiveChannels.Add(i.Value.LastChannelID, newChannel);
+                            }
+                        }
+                    }
+                    //Start the game server
+                    RunGameServer = true;
+                }                             
+            }         
         }
 
         void AddNewObject()
@@ -166,7 +172,7 @@ namespace NCode
             Tools.Print("Starting main thread.");
 
             //Loop forever until server is stopped.
-            for (;;)
+            while(RunGameServer)
             {
 
                 lock (GameServerThreadLock)
@@ -202,8 +208,6 @@ namespace NCode
                             Tools.Print("@MainThreadLoop - add game server pending connection", Tools.MessageType.error, e);
                         }
                     }
-
-
 
                     //Loops through each player in the player list.
                     for (int i = 0; i < MainPlayers.Count; i++)
@@ -246,7 +250,7 @@ namespace NCode
             Tools.Print("Starting RCon thread.");
 
             //Loop forever until server is stopped.
-            for (;;)
+            while(RunRConServer)
             {
                 lock (RConServerThreadLock)
                 {
@@ -340,8 +344,10 @@ namespace NCode
                         {
                             break;
                         }
-                    case Packet.RequestPing:
+                    case Packet.Ping:
                         {
+                            int playerTime = reader.ReadInt32();
+                            
                             break;
                         }
                     case Packet.RequestJoinChannel:
@@ -421,9 +427,12 @@ namespace NCode
         {
             BinaryReader reader = packet.BeginReading();
             Packet p = packet.packetid;
+            Tools.Print("Received from rcon client");
+
             if (client.State != NTcpProtocol.ConnectionState.connected && p != Packet.RequestVersionValidation) { RemoveRConClient(client); }
             switch (p)
             {
+                
                 case Packet.RequestVersionValidation:
                     {
                         BinaryWriter writer = client.BeginSend(Packet.ResponseVersionValidation);
@@ -458,8 +467,13 @@ namespace NCode
                         client.EndSend();
                         break;
                     }
+                case Packet.RConStopGameServer:
+                    {
+                        Tools.Print("Stopping");
+                        if (MainTcp != null && RunGameServer) StopGameServer();
+                        break;
+                    }
             }
         }
     }
-
 }

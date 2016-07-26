@@ -110,17 +110,18 @@ namespace NCodeRCON
         {
             instance.Port = int.Parse(addServerPortBox.Text);
             instance.Password = addServerPasswordBox.Text;
-            if(instance.client.Connect(instance.IP, instance.Port))
+            if(instance.Connect(instance.IP, instance.Port))
             {
-                Thread.Sleep(2000);
-                BinaryWriter writer = instance.client.TcpProtocol.BeginSend(NCode.Packet.RConRequestAuthenticate);
+                Thread.Sleep(1000);
+
+                BinaryWriter writer = instance.TcpProtocol.BeginSend(NCode.Packet.RConRequestAuthenticate);
                 writer.Write(instance.Password);
-                instance.client.TcpProtocol.EndSend();
+                instance.TcpProtocol.EndSend();
             }
 
-            Thread.Sleep(5000);  
+            Thread.Sleep(1000);  
                      
-            if (instance.client.Authenticated)
+            if (instance.Authenticated)
             {
                 addServerButton.Enabled = true;
                 MessageBox.Show("Authenticated");

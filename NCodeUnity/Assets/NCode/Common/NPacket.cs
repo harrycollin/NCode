@@ -18,7 +18,12 @@
         /// <summary>
         /// A safe way of letting the server know that you're going to disconnect. 
         /// </summary>
-        Disconnect,       
+        Disconnect,   
+        
+        /// <summary>
+        /// Lets clients know that the server shut down.
+        /// </summary>
+        ServerShutDown, 
 
         /// <summary>
         /// Requests to join a channel. 
@@ -41,14 +46,9 @@
         ResponseLeaveChannel,
         
         /// <summary>
-        /// Request the server to calculate your ping.
+        /// Sends and Receives Pings between server and client.
         /// </summary>
-        RequestPing,
-
-        /// <summary>
-        /// A response with your ping.
-        /// </summary>
-        ResponsePing,
+        Ping,
 
         /// <summary>
         /// First packet that should be sent to the server. Otherwise you'll get disconnected. Contains version, steam info etc. 
@@ -109,6 +109,9 @@
 
         //---Rcon Packets---//
         
+        /// <summary>
+        /// 
+        /// </summary>
         RConRequestAuthenticate,
 
         RConResponseAuthenticate,
@@ -117,6 +120,11 @@
 
         RConPlayerDisconnect,
 
+        RConStartGameServer,
+
+        RConStopGameServer,
+
+        RConShutdownServer,
 
     }
 }

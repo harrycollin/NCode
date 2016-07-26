@@ -62,6 +62,16 @@ namespace NCode
         public Thread RConThread;
 
         /// <summary>
+        /// Can be used to stop the processing on the game server.
+        /// </summary>
+        public bool RunGameServer;
+
+        /// <summary>
+        /// Can be used to stop the processing on the game server.
+        /// </summary>
+        public bool RunRConServer;
+
+        /// <summary>
         /// Time in ticks 
         /// </summary>
         public long TickTime = 0;
@@ -431,8 +441,40 @@ namespace NCode
             return false;
         }
 
-        
+        public void DisconnectAllPlayers()
+        {
+            for (int i = 0; i < MainPlayers.Count; i++)
+            {
+                BinaryWriter writer = MainPlayers[i].BeginSend(Packet.ServerShutDown);
+                MainPlayers[i].EndSend();
+                MainPlayers[i].Disconnect();
+            }
+        }
 
+        public void CloseAllChannels()
+        {
+            for(int i = 0; i < ActiveChannels.Count; i++)
+            {
+                ActiveChannels.Remove(ActiveChannels[i].ID);
+            }
+        }
 
+        /// <summary>
+        /// Safely stops the game server.
+        /// </summary>
+        /// <returns></returns>
+        public bool StopGameServer()
+        {
+            if(MainTcp != null)
+            {
+                DisconnectAllPlayers();
+                CloseAllChannels();
+                MainTcp.Stop();
+                RunGameServer = false;
+                Tools.Print("Game Server shut down.");
+                return true;
+            }
+            return false;
+        }       
     }
 }

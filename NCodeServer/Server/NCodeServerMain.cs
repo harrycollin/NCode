@@ -35,7 +35,7 @@ namespace NCode
             
             //Makes a new instance of the server. 
             NMainThread app = new NMainThread();
-            app.Start(info.servername, info.tcpport, info.udpport, info.rconport, info.password, info.rconpassword);
+            app.Start(info.servername, info.tcpport, info.udpport, info.rconport, info.password, info.rconpassword, info.autostart);
 
         }
 
@@ -84,6 +84,8 @@ namespace NCode
             builder.Append("server_udpport = \"5128\";");
             builder.Append(System.Environment.NewLine);
             builder.Append("server_rconport = \"5129\";");
+            builder.Append(System.Environment.NewLine);
+            builder.Append("server_autostart = \"true\";");
             builder.Append(System.Environment.NewLine);
             builder.Append(System.Environment.NewLine);
             builder.Append("--Database Configuration--");
@@ -231,6 +233,25 @@ namespace NCode
                     }
                     continue;
                 }
+                //RCon Port
+                if (i.StartsWith("server_autostart"))
+                {
+                    var reg = new Regex("\".*?\"");
+                    var matches = reg.Matches(i);
+                    foreach (var item in matches)
+                    {
+                        try
+                        {
+                            info.autostart = bool.Parse(item.ToString().Replace("\"", ""));
+                        }
+                        catch (Exception e)
+                        {
+                            info.autostart = true;
+                            Tools.Print("Failed to read the 'server_autostart' parameter in 'server.cfg'. Defaulting to true.", Tools.MessageType.error);
+                        }
+                    }
+                    continue;
+                }
 
                 //Database ip
                 if (i.StartsWith("database_ip"))
@@ -357,6 +378,7 @@ namespace NCode
         public int tcpport { get; set; }
         public int udpport { get; set; }
         public int rconport { get; set; }
+        public bool autostart { get; set; }
         public string databaseip { get; set; }
         public int databaseport { get; set; }
         public string databasename { get; set; }

@@ -12,6 +12,10 @@ namespace NCode
     public class NChannel
     {
         public Dictionary<Guid, NetworkObject> channelObjects = new Dictionary<Guid, NetworkObject>();
+        /// <summary>
+        /// Acts as a slave to all objects that need owners and will act as a slave to sync them until a reliable owner can be found.
+        /// </summary>
+        public NTcpPlayer ChannelSlave;
         public List<NTcpPlayer> Players = new List<NTcpPlayer>();
         public int ID = 0;
         public int PlayerLimit = 300;

@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using MetroFramework;
 using MetroFramework.Forms;
 using NCodeRCON.RConClient;
+using MetroFramework.Controls;
 
 namespace NCodeRCON
 {
@@ -18,26 +19,28 @@ namespace NCodeRCON
         public ServerInstance SelectedServer;
         public List<ServerInstance> servers = new List<ServerInstance>();
         public AddServerForm addServerForm;
+        public SettingsForm settingsForm;
 
         public MainForm()
         {
             InitializeComponent();
         }
 
-        private void metroButton2_Click(object sender, EventArgs e)
-        {
-
-        }
-
+       
         public void SelectServer(object sender, EventArgs e)
         {
-            Panel panel = (Panel)sender;
+            Control control = (Control)sender;
             for(int i = 0; i < servers.Count; i++)
             {
-                if (servers[i].Name == panel.Name)
+                if (servers[i].Name == control.Name)
                 {
                     SelectedServer = servers[i];
-                    MessageBox.Show(SelectedServer.Name);
+                    
+                    StartServerButton.Enabled = true;
+                    StopServerButton.Enabled = true;
+                    SettingsButton.Enabled = true;
+                    ShutdownServerButton.Enabled = true;
+                    RemoveServerButton.Enabled = true;
                     break;
                 }
             }
@@ -48,20 +51,15 @@ namespace NCodeRCON
             Color darkGrey = Color.FromArgb(44, 44, 44);
 
             servers.Add(instance);
-            Panel p = new Panel();
-            p.Click += new EventHandler(this.SelectServer);
-            p.Name = "server:" + instance.Name;
-            p.Height = 90;
-            p.Width = 375;
-            p.BackColor = darkGrey;         
-            flowLayoutPanel1.Controls.Add(p);
-
+           
             FlowLayoutPanel flp = new FlowLayoutPanel();
             flp.Height = 90;
-            flp.Width = 375;
-            
-            p.Controls.Add(flp);
-
+            flp.Width = 390;
+            flp.BackColor = darkGrey;
+            flp.Click += new EventHandler(this.SelectServer);
+            flp.Name = instance.Name;
+            flowLayoutPanel1.Controls.Add(flp);
+         
             Label namelabel = new Label();
             namelabel.Text = instance.Name;
             namelabel.TextAlign = ContentAlignment.MiddleLeft;
@@ -69,48 +67,65 @@ namespace NCodeRCON
             namelabel.ForeColor = Color.White;
 
             Label iplabel = new Label();
-            iplabel.Text = "IP:" + instance.IP.ToString();
+            iplabel.Text = "IP: " + instance.IP.ToString();
             iplabel.TextAlign = ContentAlignment.MiddleLeft;
             iplabel.Font = new Font("Arial", 10, FontStyle.Bold);
             iplabel.ForeColor = Color.White;
 
             Label portlabel = new Label();
-            portlabel.Text = "Port:" + instance.Port.ToString();
+            portlabel.Text = "Port: " + instance.Port.ToString();
             portlabel.TextAlign = ContentAlignment.MiddleLeft;
             portlabel.Font = new Font("Arial", 10, FontStyle.Bold);
             portlabel.ForeColor = Color.White;
-
-            Button start = new Button();
-            start.Text = "Start";
-
-            Button stop = new Button();
-            stop.Text = "Stop";
-
+                   
             flp.Controls.Add(namelabel);
             flp.Controls.Add(iplabel);
-            flp.Controls.Add(portlabel);
-            flp.Controls.Add(start);
-            flp.Controls.Add(stop);
-
+            flp.Controls.Add(portlabel); 
         }
-
-        private void button1_Click(object sender, EventArgs e)
+           
+        void OpenServerSettings(object o, EventArgs e)
         {
-                                       
+            SelectServer(o, e);
+            settingsForm = new SettingsForm(this);
+            settingsForm.Show();
         }
-      
 
-        private void addServerButton_Click(object sender, EventArgs e)
+        private void NewServerButton_Click(object sender, EventArgs e)
         {
             addServerForm = new AddServerForm(this);
             addServerForm.Show();
         }
 
-        private void button1_Click_1(object sender, EventArgs e)
+        private void StartServerButton_Click(object sender, EventArgs e)
         {
-            ServerInstance s = new ServerInstance();
-            s.Name = "Kleos Server";
-            AddServer(s);
+            SelectedServer.Start();
+        }
+
+        private void StopServerButton_Click(object sender, EventArgs e)
+        {
+            SelectedServer.Stop();
+        }
+
+        private void ShutdownServerButton_Click(object sender, EventArgs e)
+        {
+            SelectedServer.Shutdown();
+        }
+
+        private void RemoveServerButton_Click(object sender, EventArgs e)
+        {
+            DialogResult result = MessageBox.Show("Remove selected server?", "Remove Server", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if(result == DialogResult.Yes)
+            {
+                foreach(Control i in flowLayoutPanel1.Controls)
+                {
+                    if(i.Name == SelectedServer.Name)
+                    {
+                        i.Dispose();
+                    }
+                }
+                servers.Remove(SelectedServer);
+
+            }
         }
     }
 }

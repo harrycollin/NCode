@@ -11,12 +11,37 @@ namespace NCode
 {
     public class NRConClient
     {
-
+        /// <summary>
+        /// The number of players on the remote server
+        /// </summary>
+        public int PlayerCount { get { return Players.Count; } }
+        /// <summary>
+        /// A list of the remote server'
+        /// </summary>
+        public System.Collections.Generic.List<NPlayer> Players = new System.Collections.Generic.List<NPlayer>();
+        /// <summary>
+        /// The RCon server's password
+        /// </summary>
         public string RconPassword;
+        /// <summary>
+        /// Standard TCP Protocol
+        /// </summary>
         public NTcpProtocol TcpProtocol = new NTcpProtocol();
+        /// <summary>
+        /// Whether this RConClient has been authenticated.
+        /// </summary>
         public bool Authenticated;
+        /// <summary>
+        /// The UTC time in ms of this client.
+        /// </summary>
+        public long ClientTime = 0;
+        /// <summary>
+        /// The last time this client sent a ping.
+        /// </summary>
+        public long LastPingTime = 0;
 
         Thread MainThread;
+
         NPacketContainer packet;
 
         public bool Connect(IPAddress ip, int port)
@@ -36,17 +61,26 @@ namespace NCode
             MainThread.Start();
             return true;
         }
-        
-        
-
+              
         void MainThreadLoop()
         {
             for (;;)
             {
-                if(TcpProtocol.NextPacket(out packet))
+                ClientTime = DateTime.UtcNow.Ticks / 10000;
+
+                if (LastPingTime + 3000 < ClientTime && TcpProtocol.State == NTcpProtocol.ConnectionState.connected)
+                {
+                    LastPingTime = ClientTime;
+                    BinaryWriter writer = TcpProtocol.BeginSend(Packet.Ping);
+                    TcpProtocol.EndSend();
+                }
+
+                if (TcpProtocol.NextPacket(out packet))
                 {
                     ProcessPacket(packet);
                 }
+
+                Thread.Sleep(0);
             }
         }
 
@@ -59,17 +93,23 @@ namespace NCode
             {
                 case Packet.RConResponseAuthenticate:
                     {
-                        if (reader.ReadBoolean())
-                        {
-                            Authenticated = true;
-                        }
-                        else
-                        {
-                            Authenticated = false;
-                        }
+                        if (reader.ReadBoolean())                        
+                            Authenticated = true;                      
+                        else                        
+                            Authenticated = false;                       
                         break;
                     }
             }
+        }
+
+        public BinaryWriter BeginSend(Packet p)
+        {
+            return TcpProtocol.BeginSend(p);
+        }
+
+        public void EndSend()
+        {
+            TcpProtocol.EndSend();
         }
 
     }
