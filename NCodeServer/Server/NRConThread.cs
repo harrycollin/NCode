@@ -11,9 +11,9 @@ namespace NCode
     public class NRConThread
     {
         Thread SendThread;
-        NMainThread ServerInstance;
+        NMainThreads ServerInstance;
 
-        public void Start(NMainThread instance)
+        public void Start(NMainThreads instance)
         {
             ServerInstance = instance;
             ServerInstance.onPlayerConnect += OnPlayerConnect;

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace NCode
 {
-    public class NMainThread : NMainFunctions
+    public class NMainThreads : NMainFunctions
     {
         /// <summary>
         /// Starts the main processes
@@ -19,7 +19,7 @@ namespace NCode
         public void Start(string name, int tcpport, int udpport, int rconport, string password, string rconpassword, bool AutoStart)
         {
             //Start the main thread.
-            MainThread = new Thread(MainThreadLoop);
+            MainThread = new Thread(TcpThreadLoop);
             MainThread.Start();
 
             //Start the RCon thread.
@@ -127,7 +127,7 @@ namespace NCode
                     }
                     catch (System.Exception ex)
                     {
-                        Tools.Print("@NMainThread.StartListening", Tools.MessageType.error, ex);
+                        Tools.Print("@NMainThreads.StartListening", Tools.MessageType.error, ex);
                     }
                 }
             }
@@ -157,17 +157,25 @@ namespace NCode
                     }
                     catch (System.Exception ex)
                     {
-                        Tools.Print("@NMainThread.StartListening", Tools.MessageType.error, ex);
+                        Tools.Print("@NMainThreads.StartListening", Tools.MessageType.error, ex);
                     }
                 }
             }
             return false;
         }
 
+        void UdpThreadLoop()
+        {
+            while (RunGameServer)
+            {
+                lock
+            }
+        }
+
         /// <summary>
         /// The main thread on the server. Cycles through pending connections, queued packets etc.
         /// </summary>
-        void MainThreadLoop()
+        void TcpThreadLoop()
         {
             Tools.Print("Starting main thread.");
 
@@ -177,9 +185,7 @@ namespace NCode
 
                 lock (GameServerThreadLock)
                 {
-                    //Will be used when UDP is inplemented
-                    IPEndPoint IP;
-
+                 
                     //The tick time divided by 10000 as a counter (used to calculate ping etc.)
                     TickTime = DateTime.UtcNow.Ticks / 10000;
 
@@ -205,7 +211,7 @@ namespace NCode
                         }
                         catch (Exception e)
                         {
-                            Tools.Print("@MainThreadLoop - add game server pending connection", Tools.MessageType.error, e);
+                            Tools.Print("@TcpThreadLoop - add game server pending connection", Tools.MessageType.error, e);
                         }
                     }
 

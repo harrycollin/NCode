@@ -34,7 +34,7 @@ namespace NCode
             if (!DatabaseConnection.ConnectionTester()) { Tools.Print("Failed to establish a connection to the database. Please check settings in 'server.cfg' and make sure all ports are forwarded", Tools.MessageType.error);  }
             
             //Makes a new instance of the server. 
-            NMainThread app = new NMainThread();
+            NMainThreads app = new NMainThreads();
             app.Start(info.servername, info.tcpport, info.udpport, info.rconport, info.password, info.rconpassword, info.autostart);
 
         }

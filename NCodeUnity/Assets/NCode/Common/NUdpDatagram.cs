@@ -4,7 +4,7 @@ namespace NCode
 {
     public class NUdpDatagram
     {
-        IPEndPoint ip;
-        NPacketContainer container;
+        public IPEndPoint ip;
+        public NPacketContainer container;
     }
 }
