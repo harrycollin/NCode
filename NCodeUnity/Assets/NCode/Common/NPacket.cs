@@ -26,6 +26,11 @@
         ServerShutDown, 
 
         /// <summary>
+        /// Sends udp port to clients.
+        /// </summary>
+        SetupUDP,
+
+        /// <summary>
         /// Requests to join a channel. 
         /// </summary>
         RequestJoinChannel,
@@ -53,12 +58,12 @@
         /// <summary>
         /// First packet that should be sent to the server. Otherwise you'll get disconnected. Contains version, steam info etc. 
         /// </summary>
-        RequestVersionValidation,
+        RequestClientSetup,
 
         /// <summary>
-        /// Response to RequestVersionValidation. Sends back some infomation about you or disconnects you depending on your information. 
+        /// Response to RequestClientSetup. Sends back some infomation about you or disconnects you depending on your information. 
         /// </summary>
-        ResponseVersionValidation,
+        ResponseClientSetup,
 
         /// <summary>
         /// Request to create an NetworkObject. 

@@ -40,27 +40,22 @@ namespace NCode
                 ms.Seek(value, SeekOrigin.Begin);
             }
         }
-
-        public void Flush()
+    
+        void Reset()
         {
             try
             {
                 ms = null;
                 reader = null;
                 writer = null;
+                ms = new MemoryStream();
+                reader = new BinaryReader(ms);
+                writer = new BinaryWriter(ms);
             }
             catch (Exception e)
             {
                 Tools.Print("@Buffer.Flush", Tools.MessageType.error, e);
-            }
-        }
-
-        public void Reset()
-        {
-            Flush();
-            ms = new MemoryStream();
-            reader = new BinaryReader(ms);
-            writer = new BinaryWriter(ms);
+            }          
         }
 
         /// <summary>
@@ -70,7 +65,7 @@ namespace NCode
         public void Create(byte[] bytes)
         {
             packet = bytes;
-            Flush();
+            Reset();
             ms = new MemoryStream(bytes);
             reader = new BinaryReader(ms);
             writer = new BinaryWriter(ms);
@@ -103,6 +98,9 @@ namespace NCode
         {
             writer.Seek(0, SeekOrigin.Begin);
             writer.Write((int)ms.Length - 4);
+            length = (int)ms.Length - 4;
+            packet = ms.ToArray();
+            position = 0;
             //Tools.Print((ms.Length - 4).ToString());      
             return ms.ToArray();
         }

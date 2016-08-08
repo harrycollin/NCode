@@ -137,10 +137,6 @@ namespace NCode
             }
         }
 
-        public void RequestClientInfo()
-        {
-           
-        }
 
         /// <summary>
         /// The connect callback
@@ -163,10 +159,13 @@ namespace NCode
                 //Set the state to verifying
                 State = ConnectionState.verifying;
 
+                
+
                 //Send a verification packet
-                BinaryWriter writer = BeginSend(Packet.RequestVersionValidation);
+                BinaryWriter writer = BeginSend(Packet.RequestClientSetup);
                 writer.Write(ProtocolVersion);
                 EndSend();
+                Tools.Print("Requested Client setup");
            
                 isTryingToConnect = false;
 
@@ -348,7 +347,7 @@ namespace NCode
 
         public void SendPacketContainer(NPacketContainer packet)
         {
-            Send(packet.End());         
+            Send(packet.EndWriting());         
         }
 
         /// <summary>

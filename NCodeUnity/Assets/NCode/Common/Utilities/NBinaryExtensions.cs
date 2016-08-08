@@ -20,7 +20,7 @@ namespace NCode
         /// </summary>
         /// <param name="writer"></param>
         /// <param name="b"></param>
-        public static void WriteByteArray(this BinaryWriter writer, byte[] b)
+        static void WriteByteArray(this BinaryWriter writer, byte[] b)
         {
             if (b == null)
             {
@@ -39,7 +39,7 @@ namespace NCode
         /// </summary>
         /// <param name="reader"></param>
         /// <returns></returns>
-        public static byte[] ReadByteArray(this BinaryReader reader)
+        static byte[] ReadByteArray(this BinaryReader reader)
         {
             int len = reader.ReadInt32();
             if (len > 0) return reader.ReadBytes(len);
@@ -72,7 +72,7 @@ namespace NCode
         /// </summary>
         /// <param name="writer"></param>
         /// <param name="b"></param>
-        static public void WriteObjectArrayEx(this BinaryWriter writer, object[] b)
+        public static void WriteObjectArrayEx(this BinaryWriter writer, object[] b)
         {
             if (b == null)
             {
@@ -105,7 +105,7 @@ namespace NCode
             writer.Write(prefix);
             switch (prefix)
             {
-                case 0: writer.Write((NetworkObject)obj); break;
+                case 99: writer.Write((NetworkObject)obj); break;
                 case 1: writer.Write((Guid)obj); break;
 #if UNITY_EDITOR || UNITY_STANDALONE
                 case 2: writer.Write((Vector2)obj); break;
@@ -129,7 +129,7 @@ namespace NCode
             if (prefix == 0) return null;
             switch (prefix)
             {
-                case 0: return reader.ReadNetworkObject();
+                case 99: return reader.ReadNetworkObject();
                 case 1: return reader.ReadGUID();
 #if UNITY_EDITOR || UNITY_STANDALONE
                 case 2: return reader.ReadVector2(); 
@@ -149,7 +149,7 @@ namespace NCode
         /// <returns></returns>
         static int GetPrefix(Type type)
         {
-            if (type == typeof(NetworkObject)) return 0;
+            if (type == typeof(NetworkObject)) return 99;
             if (type == typeof(Guid)) return 1;
 #if UNITY_EDITOR || UNITY_STANDALONE
             if (type == typeof(Vector2)) return 2;
@@ -171,7 +171,7 @@ namespace NCode
         {
             switch (prefix)
             {
-                case 0: return typeof(NetworkObject);
+                case 99: return typeof(NetworkObject);
                 case 1: return typeof(Guid);
 #if UNITY_EDITOR || UNITY_STANDALONE
                 case 2: return typeof(Vector2);

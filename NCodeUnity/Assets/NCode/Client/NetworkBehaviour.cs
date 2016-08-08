@@ -73,7 +73,7 @@ namespace NCode
             writer.Write(guid); //Network Behaviour Guid
             writer.Write(rfcID); //RFC id
             writer.WriteObjectArrayEx(objs); //Parameters
-            NClientManager.EndSend();
+            NClientManager.EndSend(reliable);
             Tools.Print("Sending RFC");
         }
 

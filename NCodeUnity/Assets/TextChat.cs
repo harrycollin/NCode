@@ -49,7 +49,7 @@ public class TextChat : MonoBehaviour
 
         BinaryWriter writer = NClientManager.BeginSend(Packet.TextChat, true);
         writer.Write(MainMessage.text);
-        NClientManager.EndSend();
+        NClientManager.EndSend(true);
     }
 
     public void JoinChannel()

@@ -15,6 +15,11 @@ namespace NCode
     public sealed class NClientManager : MonoBehaviour
     {
         /// <summary>
+        /// A temporary packet to write to. 
+        /// </summary>
+        static NPacketContainer tempPacket;
+
+        /// <summary>
         /// The instance of the MainClient. This is the core of the networking. 
         /// </summary>
         static NMainClient instance = new NMainClient();
@@ -120,21 +125,37 @@ namespace NCode
         /// <param name="packet"></param>
         /// <returns></returns>
         public static BinaryWriter BeginSend(Packet packet, bool reliable)
-        {
-            if (instance != null && instance.isSocketConnected)
+        {     
+            if (instance != null && instance.isSocketConnected )
             {
-                return instance.TcpClient.BeginSend(packet);
+                if (reliable)
+                    return instance.TcpClient.BeginSend(packet);
+                else
+                    return instance.UdpClient.BeginSend(packet);
+            }     
+            else
+            {
+                Tools.Print("@NClientManager.BeginSend - Either the MainClient instance is null OR the instance isn't connected and verified", Tools.MessageType.warning);
             }
-            else { Tools.Print("@NClientManager.BeginSend - Either the MainClient instance is null OR the instance isn't connected and verified", Tools.MessageType.warning); }
             return null;
         }
 
         /// <summary>
         /// End the sending process
         /// </summary>
-        public static void EndSend()
+        public static void EndSend(bool reliable)
         {
-            instance.TcpClient.EndSend();
+            if(instance != null && instance.isSocketConnected)
+            {
+                if (reliable)
+                {
+                    instance.TcpClient.EndSend();
+                }
+                else
+                {
+                    instance.UdpClient.EndSend(instance.ServerUdpEndpoint);
+                }
+            }
         }
 
         /// <summary>
@@ -148,7 +169,7 @@ namespace NCode
                 Tools.Print(ID.ToString());
                 BinaryWriter writer = BeginSend(Packet.RequestJoinChannel, true);
                 writer.Write(ID);
-                EndSend();
+                EndSend(true);
             }
         }
 
@@ -163,7 +184,7 @@ namespace NCode
             {
                 BinaryWriter writer = BeginSend(Packet.RequestLeaveChannel, true);
                 writer.Write(ID);
-                EndSend();
+                EndSend(true);
             }
         }
 
@@ -177,7 +198,6 @@ namespace NCode
         public static void CreateNewObject(int channelID, int PrefabID, bool Persistant, Vector3 position, Quaternion rotation)
         {            
             BinaryWriter writer = BeginSend(Packet.RequestCreateObject, true);
-
             NetworkObject TempObject = new NetworkObject();
             TempObject.LastChannelID = channelID;
             TempObject.prefabid = PrefabID;
@@ -186,10 +206,9 @@ namespace NCode
             TempObject.position = Converters.Vector3ToString(position);
             TempObject.rotation = Converters.QuaternionToString(rotation);
             TempObject.owner = instance.TcpClient.SteamID;
-
-            writer.WriteByteArray(Converters.ConvertObjectToByteArray(TempObject));
-            EndSend();
-            
+            writer.WriteObject(TempObject);
+            EndSend(true);
+            Tools.Print("Getting there");
         }
 
         /// <summary>
@@ -211,8 +230,8 @@ namespace NCode
             if(guid != null && DoesObjectExist(guid))
             {
                 BinaryWriter writer = BeginSend(Packet.RequestDestroyObject, true);
-                writer.WriteByteArray(Converters.ConvertObjectToByteArray(guid));
-                EndSend();
+                writer.WriteObject(guid);
+                EndSend(true);
             }
         }
 

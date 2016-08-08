@@ -8,6 +8,6 @@ public class Script : MonoBehaviour
 	// Use this for initialization
 	void Start ()
     {
-        NClientManager.Connect("82.21.29.175", 5127);
+        NClientManager.Connect("127.0.0.1", 5127);
 	}
 }

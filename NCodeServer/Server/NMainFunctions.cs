@@ -94,7 +94,17 @@ namespace NCode
         /// <summary>
         /// Contains all the players currently connected to the server
         /// </summary>
-        public List<NTcpPlayer> MainPlayers = new List<NTcpPlayer>();
+        public List<NTcpPlayer> PlayersList = new List<NTcpPlayer>();
+
+        /// <summary>
+        /// A dictionary will all players in it for quick access.
+        /// </summary>
+        public Dictionary<Guid, NTcpPlayer> PlayerDictionary = new Dictionary<Guid, NTcpPlayer>();
+
+        /// <summary>
+        /// Dictionary containing player's Udp Endpoints
+        /// </summary>
+        public Dictionary<IPEndPoint, NTcpPlayer> PlayerUdpEPDictionary = new Dictionary<IPEndPoint, NTcpPlayer>(); 
 
         /// <summary>
         /// Temp packet for processing
@@ -133,7 +143,7 @@ namespace NCode
         public delegate void OnPlayerLeaveChannel(NTcpPlayer player, NChannel channel, bool result);
 
         /// <summary>
-        /// Adds the player to the MainPlayers list.
+        /// Adds the player to the PlayersList list.
         /// </summary>
         /// <param name="client"></param>
         /// <returns></returns>
@@ -145,7 +155,7 @@ namespace NCode
                 player.thisSocket = client;
                 player.BeginListening();
                 player.State = NTcpProtocol.ConnectionState.verifying;
-                MainPlayers.Add(player);
+                PlayersList.Add(player);
                 //onPlayerConnect(player);
                 player = null;
                 client = null;
@@ -176,7 +186,7 @@ namespace NCode
         }
 
         /// <summary>
-        /// Removes the player from the MainPlayers list.
+        /// Removes the player from the PlayersList list.
         /// </summary>
         /// <param name="client"></param>
         /// <returns></returns>
@@ -197,15 +207,15 @@ namespace NCode
                 }
                 //onPlayerDisconnect(client);
                 client.Disconnect();
-                MainPlayers.Remove(client);
+                PlayersList.Remove(client);
+                PlayerDictionary.Remove(client.ClientGUID);
                 return true;
             }
             return false;
         }
         /// <summary>
-        /// Removes the player from the MainPlayers list.
+        /// Removes the player from the PlayersList list.
         /// </summary>
-        /// <param name="client"></param>
         /// <returns></returns>
         public bool RemoveRConClient(NRConClient client)
         {
@@ -219,11 +229,38 @@ namespace NCode
         }
 
         /// <summary>
+        /// Handles the setup of newly connected clients who have sent a 'RequestClientSetup' packet with their version.
+        /// </summary>
+        public void ClientSetup(BinaryReader reader, NTcpPlayer player)
+        {
+            BinaryWriter writer = player.BeginSend(Packet.ResponseClientSetup);
+            if(reader.ReadInt32() == player.ProtocolVersion) //Correct protocol version
+            {
+                Guid guid = Guid.NewGuid(); //Generate a new Guid for this client.
+                player.ClientGUID = guid; //Assign the Guid to the player.
+                player.State = NTcpProtocol.ConnectionState.connected; //Change the player's connection status.
+                PlayerDictionary.Add(guid, player); //Add the player to the player dictionary for quicker access that doesn't require iterations.
+
+                writer.Write(true); //Tell the client their client version is matched.
+                writer.Write(UdpPort); //Let the client know which port to send udp packets to.              
+                writer.WriteObject(guid); //Let the client know what their Guid is. 
+                player.EndSend(); 
+
+                Tools.Print(player.thisSocket.RemoteEndPoint.ToString() + " connected."); //Log the event. 
+            }
+            else //Incorrect protocol version
+            {
+                writer.Write(false); //Tell the client that their version is a mismatch.
+                Tools.Print(player.thisSocket.RemoteEndPoint.ToString() + " attempted to connect with the wrong client version. Disconnecting and notififying."); //Log the event. 
+                player.EndSend();
+                RemovePlayer(player);
+            }
+
+        }
+
+        /// <summary>
         /// Handles a RFC 
         /// </summary>
-        /// <param name="player"></param>
-        /// <param name="reader"></param>
-        /// <param name="packet"></param>
         public void ReceiveRFC(NTcpPlayer player, BinaryReader reader, NPacketContainer packet)
         {
             Packet packetid = packet.packetid;
@@ -245,9 +282,6 @@ namespace NCode
         /// <summary>
         /// Handles the creation/joining of a channel. Creates a new channel if specified channel doesn't exist.s
         /// </summary>
-        /// <param name="ID"></param>
-        /// <param name="player"></param>
-        /// <returns></returns>
         public bool JoinChannel(int ID, NTcpPlayer player)
         {               
             //Check for null before begin writing       
@@ -364,12 +398,12 @@ namespace NCode
         {
             if(player != null && player.isConnected)
             {
-                for(int i = 0; i < MainPlayers.Count; i++)
+                for(int i = 0; i < PlayersList.Count; i++)
                 {
-                    if (MainPlayers[i] != player)
+                    if (PlayersList[i] != player)
                     {
                         BinaryWriter writer = player.BeginSend(Packet.PlayerUpdate);
-                        NPlayer p = MainPlayers[i].thisPlayer();
+                        NPlayer p = PlayersList[i].thisPlayer();
                         writer.WriteObject(p);
                         writer.Write(true); //The client is still connected
                         player.EndSend();
@@ -381,29 +415,80 @@ namespace NCode
         public void SendPlayerDisconnected(NTcpPlayer player)
         {
             NPlayer p = player.thisPlayer();
-            for (int i = 0; i < MainPlayers.Count; i++)
+            for (int i = 0; i < PlayersList.Count; i++)
             {
-                if (MainPlayers[i] != player)
+                if (PlayersList[i] != player)
                 {
-                    BinaryWriter writer = MainPlayers[i].BeginSend(Packet.PlayerUpdate);
+                    BinaryWriter writer = PlayersList[i].BeginSend(Packet.PlayerUpdate);
                     writer.WriteObject(p);
                     writer.Write(false);
-                    MainPlayers[i].EndSend();
+                    PlayersList[i].EndSend();
                 }
+            }
+        }
+
+        /// <summary>
+        /// Returns a NTcpPlayer by their Udp EndPoint.
+        /// </summary>
+        /// <param name="endPoint"></param>
+        /// <returns></returns>
+        public NTcpPlayer GetPlayer(IPEndPoint endPoint)
+        {
+            if(endPoint != null)
+            {
+                NTcpPlayer player = null;
+                try
+                {
+                    if(PlayerUdpEPDictionary.ContainsKey(endPoint))
+                    player = PlayerUdpEPDictionary[endPoint];
+                     return player;
+                }
+                catch (Exception e) { Tools.Print("Error accessing returning a player from 'GetPlayer(IPEndPoint)'.", Tools.MessageType.error, e); return null; }
+
+            }
+            else
+            {
+                Tools.Print("@GetPlayer(IPEndPoint) Parameter 'endPoint' is null", Tools.MessageType.error);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Returns a NTcpPlayer by their Guid.
+        /// </summary>
+        /// <param name="endPoint"></param>
+        /// <returns></returns>
+        public NTcpPlayer GetPlayer(Guid guid)
+        {
+            if (guid != null)
+            {
+                NTcpPlayer player;
+                try
+                {
+                    player = PlayerDictionary[guid];
+                    if (player != null) { return player; } else { return null; }
+                }
+                catch (Exception e) { Tools.Print("Error accessing returning a player from 'GetPlayer(Guid)'.", Tools.MessageType.error, e); return null; }
+
+            }
+            else
+            {
+                Tools.Print("@GetPlayer(IPEndPoint) Parameter 'endPoint' is null", Tools.MessageType.error);
+                return null;
             }
         }
 
         public void SendPlayerConnected(NTcpPlayer player)
         {
             NPlayer p = player.thisPlayer();
-            for (int i = 0; i < MainPlayers.Count; i++)
+            for (int i = 0; i < PlayersList.Count; i++)
             {
-                if (MainPlayers[i] != player)
+                if (PlayersList[i] != player)
                 {
-                    BinaryWriter writer = MainPlayers[i].BeginSend(Packet.PlayerUpdate);
+                    BinaryWriter writer = PlayersList[i].BeginSend(Packet.PlayerUpdate);
                     writer.WriteObject(p);
                     writer.Write(true);
-                    MainPlayers[i].EndSend();
+                    PlayersList[i].EndSend();
                 }
             }
         }
@@ -416,6 +501,7 @@ namespace NCode
         /// <returns></returns>
         public bool ClientRequestCreateObject(NetworkObject obj, NTcpPlayer player)
         {
+            Tools.Print(obj.LastChannelID.ToString());
             if (obj == null || obj.LastChannelID == 0) return false;
             if (ActiveChannels.ContainsKey(obj.LastChannelID))
             {
@@ -423,12 +509,11 @@ namespace NCode
                 {
                     if (ActiveChannels[obj.LastChannelID].AddObject(obj))
                     {
-                        for(int i = 0; i < ActiveChannels[obj.LastChannelID].Players.size;)
+                        for (int i = 0; i < ActiveChannels[obj.LastChannelID].Players.size; i++)
                         {
                             BinaryWriter writer = ActiveChannels[obj.LastChannelID].Players[i].BeginSend(Packet.ClientObjectUpdate);
-                            writer.WriteByteArray(Converters.ConvertObjectToByteArray(obj));
+                            writer.WriteObject(obj);
                             ActiveChannels[obj.LastChannelID].Players[i].EndSend();
-                            i++;
                         }
                         return true;
                     }
@@ -443,11 +528,11 @@ namespace NCode
 
         public void DisconnectAllPlayers()
         {
-            for (int i = 0; i < MainPlayers.Count; i++)
+            for (int i = 0; i < PlayersList.Count; i++)
             {
-                BinaryWriter writer = MainPlayers[i].BeginSend(Packet.ServerShutDown);
-                MainPlayers[i].EndSend();
-                MainPlayers[i].Disconnect();
+                BinaryWriter writer = PlayersList[i].BeginSend(Packet.ServerShutDown);
+                PlayersList[i].EndSend();
+                PlayersList[i].Disconnect();
             }
         }
 

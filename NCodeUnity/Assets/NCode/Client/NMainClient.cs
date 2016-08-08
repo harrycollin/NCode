@@ -18,7 +18,8 @@ public class NMainClient : NMainFunctionsClient
     public bool Start(IPEndPoint ip)
     {
         if (TcpClient.Connect(ip))
-        {
+        { 
+            UdpClient.Start(UnityEngine.Random.Range(10000, 50000));
             return true;
         }
         return false;
@@ -93,7 +94,7 @@ public class NMainClient : NMainFunctionsClient
                     TcpClient.PingInMs = reader.ReadInt32();
                     break;
                 }
-            case Packet.ResponseVersionValidation:
+            case Packet.ResponseClientSetup:
                 {
                     if (!reader.ReadBoolean())
                     {
@@ -103,13 +104,19 @@ public class NMainClient : NMainFunctionsClient
                     else
                     {
                         TcpClient.State = NTcpProtocol.ConnectionState.connected;
-                        TcpClient.ClientGUID = reader.ReadGUID();
+                        IPEndPoint remoteIp = TcpClient.thisSocket.RemoteEndPoint as IPEndPoint;
+                        ServerUdpEndpoint = new IPEndPoint(remoteIp.Address, reader.ReadInt32());
+                        BinaryWriter writer = UdpClient.BeginSend(Packet.SetupUDP);
+                        writer.Write(111);
+                        UdpClient.EndSend(ServerUdpEndpoint);
+                        TcpClient.ClientGUID = (Guid)reader.ReadObject();
+                        
                     }
                     break;
                 }
             case Packet.ClientObjectUpdate:
                 {
-                    ReceiveObject(reader.ReadNetworkObject());
+                    ReceiveObject((NetworkObject)reader.ReadObject());
                     break;
                 }
             case Packet.PlayerUpdate:

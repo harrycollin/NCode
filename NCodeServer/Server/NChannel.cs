@@ -28,7 +28,7 @@ namespace NCode
                 foreach (KeyValuePair<Guid, NetworkObject> i in channelObjects)
                 {
                     BinaryWriter writer = player.BeginSend(Packet.ClientObjectUpdate);
-                    writer.WriteByteArray(Converters.ConvertObjectToByteArray(i.Value));
+                    writer.WriteObject(i.Value);
                     player.EndSend();
                 }
             }

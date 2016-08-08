@@ -10,15 +10,15 @@ namespace NCode
 {
     public class NUdpProtocol
     {
-
         static public IPAddress defaultNetworkInterface = null;
 
         // Port used to listen and socket used to send and receive
         int mPort = -1;
-        Socket mSocket;
+        Socket thisSocket;
 
         // Buffer used for receiving incoming data
         byte[] tempBuffer = new byte[8192];
+        NBuffer tempPacket;
 
         // End point of where the data is coming from
         EndPoint mEndPoint;
@@ -33,20 +33,13 @@ namespace NCode
         /// <summary>
         /// Whether we can send or receive through the UDP socket.
         /// </summary>
-
         public bool isActive { get { return mPort != -1; } }
 
         /// <summary>
         /// Port used for listening.
         /// </summary>
-
         public int listeningPort { get { return mPort > 0 ? mPort : 0; } }
 
-        /// <summary>
-        /// Start UDP, but don't bind it to a specific port. This means we will be able to send, but not receive.
-        /// </summary>
-
-        public bool Start() { return Start(0); }
 
         /// <summary>
         /// Start listening for incoming messages on the specified port.
@@ -54,14 +47,12 @@ namespace NCode
         public bool Start(int port)
         {
             Stop();
-
             mPort = port;
-            mSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-
+            thisSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
             try
             {
-                mSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
+                thisSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
             }
             catch (System.Exception) { }
 
@@ -75,12 +66,13 @@ namespace NCode
                 mDefaultEndPoint = new IPEndPoint(networkInterface, 0);
 
                 // Bind the socket to the specific network interface and start listening for incoming packets
-                mSocket.Bind(new IPEndPoint(networkInterface, mPort));
-                mSocket.BeginReceiveFrom(tempBuffer, 0, tempBuffer.Length, SocketFlags.None, ref mEndPoint, OnReceive, null);
+                thisSocket.Bind(new IPEndPoint(networkInterface, mPort));
+                
+                thisSocket.BeginReceiveFrom(tempBuffer, 0, tempBuffer.Length, SocketFlags.None, ref mEndPoint, OnReceive, null);
             }
 
             catch (System.Exception ex) { Tools.Print("Udp.Start: " + ex.Message); Stop(); return false; }
-
+            
             return true;
         }
 
@@ -93,10 +85,10 @@ namespace NCode
         {
             mPort = -1;
 
-            if (mSocket != null)
+            if (thisSocket != null)
             {
-                mSocket.Close();
-                mSocket = null;
+                thisSocket.Close();
+                thisSocket = null;
             }
         }
 
@@ -106,12 +98,13 @@ namespace NCode
 
         void OnReceive(IAsyncResult result)
         {
+            Tools.Print("UDP Receive");
             if (!isActive) return;
             int bytes = 0;
 
             try
             {
-                bytes = mSocket.EndReceiveFrom(result, ref mEndPoint);
+                bytes = thisSocket.EndReceiveFrom(result, ref mEndPoint);
             }
             catch (System.Exception ex)
             {
@@ -121,8 +114,8 @@ namespace NCode
             if (bytes > 4)
             {
                 // This datagram is now ready to be processed
-                NPacketContainer buffer = new NPacketContainer();
-                buffer.Create(tempBuffer);
+                NBuffer buffer = new NBuffer();
+                buffer.InitialiseWithData(tempBuffer);
 
                 // The 'endPoint', gets reassigned rather than updated.
                 NUdpDatagram dg = new NUdpDatagram();
@@ -132,15 +125,15 @@ namespace NCode
             }
 
             // Queue up the next receive operation
-            if (mSocket != null)
+            if (thisSocket != null)
             {
                 mEndPoint = mDefaultEndPoint;
 
                 try
                 {
-                    mSocket.BeginReceiveFrom(tempBuffer, 0, tempBuffer.Length, SocketFlags.None, ref mEndPoint, OnReceive, null);
+                    thisSocket.BeginReceiveFrom(tempBuffer, 0, tempBuffer.Length, SocketFlags.None, ref mEndPoint, OnReceive, null);
                 }
-                catch (System.Exception ex)
+                catch (System.Exception e)
                 {
                     
                 }
@@ -148,11 +141,11 @@ namespace NCode
         }
 
         /// <summary>
-        /// Extract the first incoming packet.
+        /// Extract the next packet in the 'inQueue' is there is any.
         /// </summary>
-
-        public bool ReceivePacket(out NPacketContainer buffer, out IPEndPoint source)
+        public bool ReceivePacket(out NBuffer buffer, out IPEndPoint source)
         {
+
             if (mPort == 0)
             {
                 Stop();
@@ -173,35 +166,43 @@ namespace NCode
             return false;
         }
 
-            
+        
 
         /// <summary>
         /// Send the specified datagram.
         /// </summary>
 
-        public void Send(NPacketContainer buffer, IPEndPoint ip)
+        public void Send(NBuffer buffer, IPEndPoint ip)
         {
-            
-            if (mSocket != null)
+            Tools.Print(ip.ToString());
+            if (thisSocket != null)
             {
-                buffer.BeginReading();
+                Tools.Print(ip.ToString() + " not null");
+
                 lock (mOut)
                 {
+                    Tools.Print(ip.ToString() + " lock");
+
                     NUdpDatagram dg = new NUdpDatagram();
                     dg.container = buffer;
                     dg.ip = ip;
                     mOut.Enqueue(dg);
 
-                    if (mOut.Count == 1)
+
+                    if (mOut.Count > -1)
                     {
                         try
                         {
+                            Tools.Print(buffer.length + " + " + buffer.position);
+                            buffer.position = 0;
                             // If it's the first datagram, begin the sending process
-                            mSocket.BeginSendTo(buffer.packet, buffer.position, buffer.length, SocketFlags.None, ip, OnSend, null);
+                            thisSocket.BeginSendTo(buffer.EntirePacket, buffer.position, buffer.length, SocketFlags.None, ip, OnSend, null);
+                            Tools.Print(ip.ToString() + " sent");
+
                         }
                         catch (Exception ex)
                         {
-
+                            Tools.Print("Error on sending udp", Tools.MessageType.error, ex);
                         }
                     }
                 }
@@ -214,12 +215,13 @@ namespace NCode
 
         void OnSend(IAsyncResult result)
         {
+            Tools.Print("hhhvhdfvudfsvbd");
             if (!isActive) return;
             int bytes = 0;
 
             try
             {
-                bytes = mSocket.EndSendTo(result);
+                bytes = thisSocket.EndSendTo(result);
             }
             catch (System.Exception ex)
             {
@@ -229,15 +231,31 @@ namespace NCode
 
             lock (mOut)
             {
-                
-                if (bytes > 0 && mSocket != null && mOut.Count != 0)
+                //mOut.Dequeue().container;
+
+                if (bytes > 0 && thisSocket != null && mOut.Count != 0)
                 {
                     // If there is another packet to send out, let's send it
                     NUdpDatagram dg = mOut.Peek();
-                    mSocket.BeginSendTo(dg.container.packet, dg.container.position, dg.container.length, SocketFlags.None, dg.ip, OnSend, null);
+                    thisSocket.BeginSendTo(dg.container.EntirePacket, dg.container.position, dg.container.length, SocketFlags.None, dg.ip, OnSend, null);
                 }
             }
-        }      
+            Tools.Print("Send via udp");
+
+        }
+
+        public BinaryWriter BeginSend(Packet packet)
+        {
+            tempPacket = null;
+            tempPacket = new NBuffer();
+            return tempPacket.BeginWriting(packet);
+        }     
+        
+        public void EndSend(IPEndPoint IP)
+        {
+            tempPacket.EndWriting();
+            Send(tempPacket, IP);
+        } 
     }
 }
 

@@ -14,9 +14,14 @@ namespace NCode
     public class NMainFunctionsClient
     {
         /// <summary>
-        /// The Tcp protocol for this player
+        /// The Tcp protocol for this player.
         /// </summary>
         public NTcpProtocol TcpClient = new NTcpProtocol();
+
+        /// <summary>
+        /// The Udp protocol for this player.
+        /// </summary>
+        public NUdpProtocol UdpClient = new NUdpProtocol();
 
         /// <summary>
         /// The current tick time of this client.
@@ -42,6 +47,11 @@ namespace NCode
         /// Whether the player's socket is connected to the server (Not nessecary verifed).
         /// </summary>
         public bool isSocketConnected { get { return TcpClient.isSocketConnected; } }
+
+        /// <summary>
+        /// The endpoint for udp traffic on the server.
+        /// </summary>
+        public IPEndPoint ServerUdpEndpoint;
 
         /// <summary>
         /// A dictionary of custom packet listeners. The key is the packet. 

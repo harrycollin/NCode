@@ -9,10 +9,9 @@ public class RollerBallScene : MonoBehaviour {
     {
         if(NClientManager.Connect("127.0.0.1", 5127))
         {
-            
+            StartCoroutine(i());
         }
-        StartCoroutine(i());
-	}
+    }
     IEnumerator i()
     {
         yield return new WaitForSeconds(1);

@@ -86,7 +86,7 @@ public class PlayerSync : PlayerController
             {
                 Tools.Print("Rotating");
                 lastDirection = transform.rotation;
-                tno.SendRFC(2, Packet.RFC, true, transform.rotation);
+                tno.SendRFC(2, Packet.RFC, false, transform.rotation);
             }
 
             // If the deviation is significant enough, send the update to other players
@@ -94,13 +94,13 @@ public class PlayerSync : PlayerController
             {
                 mLastInputSend = time;
                 mLastInput = mInput;
-                tno.SendRFC(1, Packet.RFC, true, mInput);
+                tno.SendRFC(1, Packet.RFC, false, mInput);
             }
 
             //Wont send anything unless its changed
             if (lastBool != running)
             {
-                tno.SendRFC(5, Packet.RFC, true, running);
+                tno.SendRFC(5, Packet.RFC, false, running);
                 lastBool = running;
             }
 
@@ -109,13 +109,13 @@ public class PlayerSync : PlayerController
             if (mNextRB < time && !jump)
             {
                 mNextRB = time + 1f / rigidbodyUpdates;
-                tno.SendRFC(3, Packet.RFC, true, gameObject.transform.position, gameObject.transform.rotation);
+                tno.SendRFC(3, Packet.RFC, false, gameObject.transform.position, gameObject.transform.rotation);
             }
 
             if (jump)
             {
                 //Sends the Jump trigger
-                tno.SendRFC(4, Packet.RFC, true);
+                tno.SendRFC(4, Packet.RFC, false);
             }
             
         }

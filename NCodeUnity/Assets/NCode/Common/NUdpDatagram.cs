@@ -5,6 +5,6 @@ namespace NCode
     public class NUdpDatagram
     {
         public IPEndPoint ip;
-        public NPacketContainer container;
+        public NBuffer container;
     }
 }
