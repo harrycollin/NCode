@@ -1,1 +1,0 @@
-S:\Github\NCode\NCodeServer\bin\Release\NCodeServer.exe.config
