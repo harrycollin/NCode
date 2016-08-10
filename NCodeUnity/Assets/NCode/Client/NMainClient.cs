@@ -52,10 +52,10 @@ public class NMainClient : NMainFunctionsClient
     /// </summary>
     /// <param name="packet"></param>
     /// <returns></returns>
-    bool ProcessPacket(NPacketContainer packet)
+    bool ProcessPacket(NBuffer packet)
     {
         BinaryReader reader = packet.BeginReading();
-        Packet p = packet.packetid;
+        Packet p = packet.packet;
 
         //Filters out any packets that have custom handlers. 
         OnPacket callback;

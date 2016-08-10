@@ -30,17 +30,17 @@ namespace NCode
         /// <summary>
         /// The inbound queue of packets that have been received but not processed by the main thread. 
         /// </summary>
-        public Queue<NPacketContainer> InQueue = new Queue<NPacketContainer>();
+        public Queue<NBuffer> InQueue = new Queue<NBuffer>();
 
         /// <summary>
         /// The outbound queue of packets that need to be sent back to the client. 
         /// </summary>
-        public Queue<NPacketContainer> OutQueue = new Queue<NPacketContainer>();
+        public Queue<NBuffer> OutQueue = new Queue<NBuffer>();
 
         /// <summary>
         /// A temporary packet for extracting exsiting packets into. 
         /// </summary>
-        NPacketContainer tempPacket;
+        NBuffer tempPacket;
 
         /// <summary>
         /// The timeout of
@@ -256,9 +256,9 @@ namespace NCode
                     {
                         if (buffer.Length != 0)
                         {
-                            NPacketContainer packet = new NPacketContainer();
+                            NBuffer packet = new NBuffer();
 
-                            packet.Create(buffer);
+                            packet.Initialize(buffer);
                             InQueue.Enqueue(packet);
                         }
                     }
@@ -319,7 +319,7 @@ namespace NCode
         /// </summary>
         /// <param name="packet"></param>
         /// <returns></returns>
-        public bool NextPacket(out NPacketContainer packet)
+        public bool NextPacket(out NBuffer packet)
         {
             lock (InQueue)
             {
@@ -341,11 +341,11 @@ namespace NCode
         public BinaryWriter BeginSend(Packet packet)
         {
             tempPacket = null;
-            tempPacket = new NPacketContainer();
+            tempPacket = new NBuffer();
             return tempPacket.BeginWriting(packet);
         }
 
-        public void SendPacketContainer(NPacketContainer packet)
+        public void SendPacketContainer(NBuffer packet)
         {
             Send(packet.EndWriting());         
         }

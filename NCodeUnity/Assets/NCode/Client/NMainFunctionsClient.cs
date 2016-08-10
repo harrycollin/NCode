@@ -31,7 +31,7 @@ namespace NCode
         /// <summary>
         /// A temporary packet container. Used for extracting packets
         /// </summary>
-        public NPacketContainer tempPacket;
+        public NBuffer tempPacket;
 
         /// <summary>
         /// Whether the player is trying to connect to a server

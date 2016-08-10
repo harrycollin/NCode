@@ -10,6 +10,7 @@ using System.Collections.Generic;
 namespace NCode
 {
     [System.Serializable]
+    [System.Obsolete]
     public class NPacketContainer
     {
         volatile MemoryStream ms;

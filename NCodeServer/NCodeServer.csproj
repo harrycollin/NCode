@@ -118,7 +118,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server\NMainThreads.cs" />
     <Compile Include="Server\NRConClient.cs" />
-    <Compile Include="Server\NRConThread.cs" />
     <Compile Include="Server\NTcpPlayer.cs" />
   </ItemGroup>
   <ItemGroup>

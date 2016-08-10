@@ -15,7 +15,13 @@ public class Example:MonoBehaviour {
 		Console.AddCommand(new Command<string>("PHYSICS_GRAVITY_Z", ZGravity));
 		Console.AddCommand(new Command<string>("EXAMPLE_HELP",ExampleCommand, ExampleCommandHelp));
         Console.AddCommand(new Command<int, object>("SEND_UDP_PACKET", SendUDPPacket));
-	}
+        Console.AddCommand(new Command<int, object>("SEND_TCP_PACKET", SendTCPPacket));
+        Console.AddCommand(new Command<int>("REQUEST_JOIN_CHANNEL", RequestJoinChannel));
+        Console.AddCommand(new Command<int>("REQUEST_LEAVE_CHANNEL", RequestLeaveChannel));
+
+
+
+    }
     static void ExampleCommand(string args){
 		Console.Log("Type EXAMPLE_HELP? to use this command");
 	}
@@ -79,5 +85,23 @@ public class Example:MonoBehaviour {
         BinaryWriter writer = NClientManager.BeginSend((Packet)p, false);
         writer.WriteObject(o);
         NClientManager.EndSend(false);
+    }
+    static void SendTCPPacket(int p, object o)
+    {
+        BinaryWriter writer = NClientManager.BeginSend((Packet)p, true);
+        writer.WriteObject(o);
+        NClientManager.EndSend(true);
+    }
+    static void RequestJoinChannel(int id)
+    {
+        BinaryWriter writer = NClientManager.BeginSend(Packet.RequestJoinChannel, true);
+        writer.Write(id);
+        NClientManager.EndSend(true);
+    }
+    static void RequestLeaveChannel(int id)
+    {
+        BinaryWriter writer = NClientManager.BeginSend(Packet.RequestLeaveChannel, true);
+        writer.Write(id);
+        NClientManager.EndSend(true);
     }
 }

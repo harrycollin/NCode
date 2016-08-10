@@ -109,7 +109,7 @@ namespace NCode
         /// <summary>
         /// Temp packet for processing
         /// </summary>
-        public NPacketContainer packet;
+        public NBuffer packet;
 
         /// <summary>
         /// Dictionary of active channels
@@ -120,27 +120,6 @@ namespace NCode
         /// A dictionary of all network objects
         /// </summary>
         public Dictionary<Guid, NetworkObject> NetworkObjects = new Dictionary<Guid, NetworkObject>();
-
-        public OnPacket onPacket;
-        public delegate void OnPacket(NTcpPlayer player, NPacketContainer packet);
-
-        public OnPlayerConnect onPlayerConnect;
-        public delegate void OnPlayerConnect(NTcpPlayer player);
-
-        public OnPlayerDisconnect onPlayerDisconnect;
-        public delegate void OnPlayerDisconnect(NTcpPlayer player);
-
-        public OnCreateChannel onCreateChannel;
-        public delegate void OnCreateChannel(NChannel channel);
-
-        public OnCloseChannel onCloseChannel;
-        public delegate void OnCloseChannel(NChannel channel);
-
-        public OnPlayerJoinChannel onPlayerJoinChannel;
-        public delegate void OnPlayerJoinChannel(NTcpPlayer player, NChannel channel, bool result);
-
-        public OnPlayerLeaveChannel onPlayerLeaveChannel;
-        public delegate void OnPlayerLeaveChannel(NTcpPlayer player, NChannel channel, bool result);
 
         /// <summary>
         /// Adds the player to the PlayersList list.
@@ -262,12 +241,12 @@ namespace NCode
         /// <summary>
         /// Handles a RFC 
         /// </summary>
-        public void ReceiveRFC(NTcpPlayer player, BinaryReader reader, NPacketContainer packet)
+        public void ReceiveRFC(NTcpPlayer player, BinaryReader reader, NBuffer packet)
         {
-            Packet packetid = packet.packetid;
+            Packet packetid = packet.packet;
             int channel = reader.ReadInt32();          
             packet.position = 0;
-            byte[] bytes = packet.packetData;
+            byte[] bytes = packet.PacketData;
             for (int i = 0; i < ActiveChannels[channel].Players.Count; i++)
             {            
                 if (ActiveChannels[channel].Players[i] != player)
@@ -461,7 +440,7 @@ namespace NCode
         /// <returns></returns>
         public NTcpPlayer GetPlayer(Guid guid)
         {
-            Tools.Print("Reading GUID:" + guid.ToString());
+            Tools.Print("Sending GUID:" + guid.ToString());
 
             if (guid != null)
             {

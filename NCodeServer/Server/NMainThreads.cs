@@ -216,9 +216,7 @@ namespace NCode
                                 NTcpPlayer player = GetPlayer(udpEndpoint);
                                 if(player != null)
                                 {
-                                    Tools.Print("Player in dictionary");
-                                    //Cant yet send to packet processor as it's still using the old NPacketContainer class. 
-                                    //ProcessPlayerPacket(player, packet); 
+                                    ProcessPlayerPacket(player, buffer); 
                                     continue;
                                 }
 
@@ -379,15 +377,15 @@ namespace NCode
         /// <summary>
         /// Processes a single packet.
         /// </summary>
-        void ProcessPlayerPacket(NTcpPlayer player, NPacketContainer packet)
+        void ProcessPlayerPacket(NTcpPlayer player, NBuffer packet)
         {       
             //Begin reading the packet. Returns the BinaryReader loaded with the memorystream to be read. 
             BinaryReader reader = packet.BeginReading();
 
             //Identifies the packet.
-            if (packet.packetid != 0)
+            if (packet.packet != 0)
             {
-                Packet p = packet.packetid;
+                Packet p = packet.packet;
                 Tools.Print(p.ToString());
                 if (player.State != NTcpProtocol.ConnectionState.connected && p != Packet.RequestClientSetup) { RemovePlayer(player); }
 
@@ -437,10 +435,10 @@ namespace NCode
         /// <summary>
         /// Processes RCon client packets.
         /// </summary>
-        void ProcessRConPacket(NRConClient client, NPacketContainer packet)
+        void ProcessRConPacket(NRConClient client, NBuffer packet)
         {
             BinaryReader reader = packet.BeginReading();
-            Packet p = packet.packetid;
+            Packet p = packet.packet;
             Tools.Print("Received from rcon client");
 
             if (client.State != NTcpProtocol.ConnectionState.connected && p != Packet.RequestClientSetup) { RemoveRConClient(client); }
