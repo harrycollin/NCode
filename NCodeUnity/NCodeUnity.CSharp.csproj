@@ -66,7 +66,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\DevConsole\Commands\CommandBase.cs" />
+    <Compile Include="Assets\DevConsole\Commands\Commands.cs" />
+    <Compile Include="Assets\DevConsole\Commands\ConsoleCommands.cs" />
+    <Compile Include="Assets\DevConsole\Console.cs" />
+    <Compile Include="Assets\DevConsole\Example.cs" />
     <Compile Include="Assets\JoinLeaveChannel.cs" />
+    <Compile Include="Assets\NCode\Client\NAutoJoin.cs" />
     <Compile Include="Assets\NCode\Client\NClientManager.cs" />
     <Compile Include="Assets\NCode\Client\NMainClient.cs" />
     <Compile Include="Assets\NCode\Client\NMainFunctionsClient.cs" />
@@ -100,6 +106,9 @@
     <Compile Include="Assets\Scripts\Vehicle\VehicleCamConfig.cs" />
     <Compile Include="Assets\TextChat.cs" />
     <Compile Include="Assets\WorldChannel.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\DevConsole\ReadMe.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\SyntaxTree\UnityVS\2015\UnityVS.CSharp.targets" />
 </Project>
