@@ -244,6 +244,7 @@ namespace NCode
                 writer.Write(true); //Tell the client their client version is matched.
                 writer.Write(UdpPort); //Let the client know which port to send udp packets to.              
                 writer.WriteObject(guid); //Let the client know what their Guid is. 
+                Tools.Print("Sending GUID:" + guid.ToString());
                 player.EndSend(); 
 
                 Tools.Print(player.thisSocket.RemoteEndPoint.ToString() + " connected."); //Log the event. 
@@ -460,12 +461,21 @@ namespace NCode
         /// <returns></returns>
         public NTcpPlayer GetPlayer(Guid guid)
         {
+            Tools.Print("Reading GUID:" + guid.ToString());
+
             if (guid != null)
             {
-                NTcpPlayer player;
+                NTcpPlayer player = null;
                 try
                 {
-                    player = PlayerDictionary[guid];
+                    if (PlayerDictionary.ContainsKey(guid))
+                    {
+                        player = PlayerDictionary[guid];
+                    }
+                    else
+                    {
+                        Tools.Print("GetPlayer Dictionary null");
+                    }
                     if (player != null) { return player; } else { return null; }
                 }
                 catch (Exception e) { Tools.Print("Error accessing returning a player from 'GetPlayer(Guid)'.", Tools.MessageType.error, e); return null; }

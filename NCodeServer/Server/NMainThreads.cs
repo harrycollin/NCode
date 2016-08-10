@@ -217,25 +217,29 @@ namespace NCode
                                 if(player != null)
                                 {
                                     Tools.Print("Player in dictionary");
-                                    //ProcessPlayerPacket(player, packet);
+                                    //Cant yet send to packet processor as it's still using the old NPacketContainer class. 
+                                    //ProcessPlayerPacket(player, packet); 
                                     continue;
                                 }
 
                                 BinaryReader reader = buffer.BeginReading();
-                                Tools.Print(buffer.packet.ToString() + ": packet type");
+                 
                                 if (buffer.packet == Packet.SetupUDP)
                                 {
-                                    Tools.Print("Setup");
-
-                                    if (GetPlayer((Guid)reader.ReadObject()) != null)
+                                    player = GetPlayer((Guid)reader.ReadObject());
+                                    if (player != null)
                                     {
+                                        Tools.Print(player.thisSocket.RemoteEndPoint.ToString() + " has setup their udp connection");
                                         PlayerUdpEPDictionary.Add(udpEndpoint, player);
                                         BinaryWriter writer = player.BeginSend(Packet.SetupUDP);
                                         writer.Write(true);
                                         player.EndSend();
                                     }
+                                    else
+                                    {
+                                        Tools.Print("GetPlayer null");
+                                    }
                                 }
-                                Tools.Print("UDP Packet");
                             }              
                         }
                         //Add any game server pending connections (Pending connections on the Game server's tcp listener).

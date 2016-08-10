@@ -105,12 +105,13 @@ public class NMainClient : NMainFunctionsClient
                     {
                         TcpClient.State = NTcpProtocol.ConnectionState.connected;
                         IPEndPoint remoteIp = TcpClient.thisSocket.RemoteEndPoint as IPEndPoint;
-                        ServerUdpEndpoint = new IPEndPoint(remoteIp.Address, reader.ReadInt32());
-                        BinaryWriter writer = UdpClient.BeginSend(Packet.SetupUDP);
-                        writer.Write(111);
-                        UdpClient.EndSend(ServerUdpEndpoint);
+                        ServerUdpEndpoint = new IPEndPoint(remoteIp.Address, reader.ReadInt32());                      
                         TcpClient.ClientGUID = (Guid)reader.ReadObject();
-                        
+
+                        BinaryWriter writer = UdpClient.BeginSend(Packet.SetupUDP);
+                        writer.WriteObject(TcpClient.ClientGUID);
+                        Tools.Print("Reading GUID:" + TcpClient.ClientGUID.ToString());
+                        UdpClient.EndSend(ServerUdpEndpoint);
                     }
                     break;
                 }
@@ -124,7 +125,14 @@ public class NMainClient : NMainFunctionsClient
                     ReceivePlayerUpdate((NPlayer)reader.ReadObject(), reader.ReadBoolean());
                     break;
                 }
-
+            case Packet.SetupUDP:
+                {
+                    if (reader.ReadBoolean())
+                    {
+                        Tools.Print("UDP Setup!");
+                    }
+                    break;
+                }
             default:
                 {
                     Tools.Print("No defined Packet");

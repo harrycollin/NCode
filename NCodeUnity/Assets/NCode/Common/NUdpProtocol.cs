@@ -28,7 +28,7 @@ namespace NCode
 
         // Incoming message queue
         protected Queue<NUdpDatagram> mIn = new Queue<NUdpDatagram>();
-        protected Queue<NUdpDatagram> mOut = new Queue<NUdpDatagram>();
+        //protected Queue<NUdpDatagram> mOut = new Queue<NUdpDatagram>();
 
         /// <summary>
         /// Whether we can send or receive through the UDP socket.
@@ -98,7 +98,6 @@ namespace NCode
 
         void OnReceive(IAsyncResult result)
         {
-            Tools.Print("UDP Receive");
             if (!isActive) return;
             int bytes = 0;
 
@@ -108,20 +107,25 @@ namespace NCode
             }
             catch (System.Exception ex)
             {
-
+                Tools.Print("Receive Error");
             }
+
 
             if (bytes > 4)
             {
+                MemoryStream ms = new MemoryStream(tempBuffer);
+                BinaryReader bufferReader = new BinaryReader(ms);
                 // This datagram is now ready to be processed
                 NBuffer buffer = new NBuffer();
-                buffer.InitialiseWithData(tempBuffer);
+                buffer.Initialize(bufferReader.ReadBytes(bytes));
+
 
                 // The 'endPoint', gets reassigned rather than updated.
                 NUdpDatagram dg = new NUdpDatagram();
                 dg.container = buffer;
                 dg.ip = (IPEndPoint)mEndPoint;
                 lock (mIn) mIn.Enqueue(dg);
+
             }
 
             // Queue up the next receive operation
@@ -135,7 +139,7 @@ namespace NCode
                 }
                 catch (System.Exception e)
                 {
-                    
+                    Tools.Print("UDP next queued up");
                 }
             }
         }
@@ -174,38 +178,30 @@ namespace NCode
 
         public void Send(NBuffer buffer, IPEndPoint ip)
         {
-            Tools.Print(ip.ToString());
             if (thisSocket != null)
             {
-                Tools.Print(ip.ToString() + " not null");
-
-                lock (mOut)
-                {
-                    Tools.Print(ip.ToString() + " lock");
-
+                //lock (mOut)
+                //{
                     NUdpDatagram dg = new NUdpDatagram();
                     dg.container = buffer;
                     dg.ip = ip;
-                    mOut.Enqueue(dg);
 
 
-                    if (mOut.Count > -1)
-                    {
+                    //if (mOut.Count > -1)
+                    //{
                         try
                         {
-                            Tools.Print(buffer.length + " + " + buffer.position);
-                            buffer.position = 0;
                             // If it's the first datagram, begin the sending process
-                            thisSocket.BeginSendTo(buffer.EntirePacket, buffer.position, buffer.length, SocketFlags.None, ip, OnSend, null);
-                            Tools.Print(ip.ToString() + " sent");
-
+                            Tools.Print("Buffer Length : " + buffer.EntirePacket.Length.ToString());
+                            thisSocket.BeginSendTo(buffer.EntirePacket, 0, buffer.PacketLength, SocketFlags.None, ip, OnSend, null);
+                            Tools.Print(buffer.packet.ToString() + " " + buffer.PacketLength);
                         }
                         catch (Exception ex)
                         {
                             Tools.Print("Error on sending udp", Tools.MessageType.error, ex);
                         }
-                    }
-                }
+                    //}
+                //}
             }
         }
 
@@ -215,7 +211,6 @@ namespace NCode
 
         void OnSend(IAsyncResult result)
         {
-            Tools.Print("hhhvhdfvudfsvbd");
             if (!isActive) return;
             int bytes = 0;
 
@@ -225,23 +220,20 @@ namespace NCode
             }
             catch (System.Exception ex)
             {
-                bytes = 1;
 
             }
 
-            lock (mOut)
-            {
-                //mOut.Dequeue().container;
+            //lock (mOut)
+            //{
+            //    //mOut.Dequeue().container;
 
-                if (bytes > 0 && thisSocket != null && mOut.Count != 0)
-                {
-                    // If there is another packet to send out, let's send it
-                    NUdpDatagram dg = mOut.Peek();
-                    thisSocket.BeginSendTo(dg.container.EntirePacket, dg.container.position, dg.container.length, SocketFlags.None, dg.ip, OnSend, null);
-                }
-            }
-            Tools.Print("Send via udp");
-
+                //if (bytes > 0 && thisSocket != null )/*&& mOut.Count != 0)*/
+                //{
+                //    // If there is another packet to send out, let's send it
+                //    NUdpDatagram dg = mOut.Peek();
+                //    thisSocket.BeginSendTo(dg.container.EntirePacket, dg.container.position, dg.container.PacketLength, SocketFlags.None, dg.ip, OnSend, null);
+                //}
+            //}
         }
 
         public BinaryWriter BeginSend(Packet packet)

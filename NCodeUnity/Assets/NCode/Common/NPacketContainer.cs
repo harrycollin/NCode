@@ -72,7 +72,7 @@ namespace NCode
         }
 
         /// <summary>
-        /// Begins reading the packet. Reads the length etc. 
+        /// Begins reading the packet. Reads the PacketLength etc. 
         /// </summary>
         /// <returns></returns>
         public BinaryReader BeginReading()
@@ -120,7 +120,7 @@ namespace NCode
             packetid = (Packet)reader.ReadByte();
             packetData = reader.ReadBytes(length);
          
-            //Tools.Print(length.ToString());
+            //Tools.Print(PacketLength.ToString());
             //Tools.Print(packetid.ToString());
             Create(packetData);
         }

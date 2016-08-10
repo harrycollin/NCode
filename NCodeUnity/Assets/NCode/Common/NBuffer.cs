@@ -8,16 +8,31 @@ namespace NCode
 {
     public class NBuffer
     {
+
+        volatile MemoryStream ms;
+        volatile BinaryWriter writer;
+        volatile BinaryReader reader;
+
+        bool writing = false;
+        bool used = false;
+        private int receivedLength;
+
         public Packet packet;
+        public int PacketLength
+        {
+            get { if (used) return (int)ms.Length; else { return receivedLength; } }
+            set { receivedLength = value; }
+        }
         public byte[] PacketData
         {
             get
             {          
                 if (!writing && ms != null && used)
                 {
+                    position = 5;
                     BinaryReader temp = new BinaryReader(ms);
-                    byte[] data = new byte[length];
-                    data = reader.ReadBytes(length);
+                    byte[] data = new byte[PacketLength];
+                    data = reader.ReadBytes(PacketLength);
                     return data;
                 }
                 else
@@ -30,26 +45,14 @@ namespace NCode
         {
             get { if (used && !writing) return ms.ToArray(); else return null; }
         }
-       
-
-       
-        volatile MemoryStream ms;
-        volatile BinaryWriter writer;
-        volatile BinaryReader reader;
         
-        bool writing = false;
-        bool used = false;
+
         
         public int position
         {
             get { if (ms != null) return (int)ms.Position; else return 0; }
             set { ms.Seek(value, SeekOrigin.Begin); }
-        }
-
-        public int length
-        {
-            get { if (ms != null && !writing) return (int)ms.Length - 4; else return 0; }
-        }
+        }   
         
         bool Recycle()
         {
@@ -68,12 +71,22 @@ namespace NCode
             return false;
         }
 
-        void Initialize(byte[] bytes = null)
+        public void Initialize(byte[] bytes = null)
         {
             Recycle();
-            if (bytes != null) { ms = new MemoryStream(bytes); Tools.Print("NOT NULL"); } else { ms = new MemoryStream(); Tools.Print("NULL"); }
+            if (bytes != null) {
+                ms = new MemoryStream(bytes);
+            } else { ms = new MemoryStream(); }
             reader = new BinaryReader(ms);
             writer = new BinaryWriter(ms);
+            if(bytes != null)
+            {
+                PacketLength = reader.ReadInt32();
+                Tools.Print("Buffer Init length: " + PacketLength.ToString());
+                packet = (Packet)reader.ReadByte();
+                Tools.Print("Buffer Init packet: " + packet.ToString());
+            }
+            used = true;
         }
 
         public BinaryWriter BeginWriting(Packet packettype)
@@ -91,7 +104,7 @@ namespace NCode
             used = true;
             writing = false;
             position = 0;
-            writer.Write(length);
+            writer.Write(PacketLength);
             return ms.ToArray();
         }
 
@@ -102,13 +115,6 @@ namespace NCode
                 return reader;
             }
             return null;
-        }
-
-        public void InitialiseWithData(byte[] bytes)
-        {
-            if (!writing) Initialize(bytes); else return;
-            packet = (Packet)reader.ReadByte();
-            used = true;
-        }
+        }       
     }
 }
