@@ -1,13 +1,12 @@
-﻿using NCode.Utilities;
+﻿using NCode.Core;
+using NCode.Utilities;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
+
 #if UNITY_EDITOR || UNITY_STANDALONE 
 using UnityEngine;
 #endif
-namespace NCode
+namespace NCode.Utilities
 {
     /// <summary>
     /// A useful class for reading & writing extensions for BinaryReader & Writer.
@@ -235,21 +234,21 @@ namespace NCode
         {
             if (o != null)
             {
-                writer.WriteByteArray(Converters.ConvertObjectToByteArray(o));
+                writer.WriteByteArray(NConverters.ConvertObjectToByteArray(o));
             }
         }
         public static void Write(this BinaryWriter writer, Guid v)
         {
             if (v != null)
             {
-                writer.WriteByteArray(Converters.ConvertObjectToByteArray(v));
+                writer.WriteByteArray(NConverters.ConvertObjectToByteArray(v));
             }
         }
         public static void Write(this BinaryWriter writer, NPlayer player)
         {
             if(player != null)
             {
-                writer.WriteByteArray(Converters.ConvertObjectToByteArray(player));
+                writer.WriteByteArray(NConverters.ConvertObjectToByteArray(player));
             }
         }
 
@@ -305,20 +304,20 @@ namespace NCode
 #endif
         public static NetworkObject ReadNetworkObject(this BinaryReader reader)
         {
-            NetworkObject o = (NetworkObject)Converters.ConvertByteArrayToObject(reader.ReadByteArray());
+            NetworkObject o = (NetworkObject)NConverters.ConvertByteArrayToObject(reader.ReadByteArray());
             if (o == null) return null;
             return o;
         }
         public static Guid ReadGUID(this BinaryReader reader)
         {
-            Guid guid = (Guid)Converters.ConvertByteArrayToObject(reader.ReadByteArray());
+            Guid guid = (Guid)NConverters.ConvertByteArrayToObject(reader.ReadByteArray());
             if (guid != null) return guid;
             Guid empty = Guid.Empty;
             return empty;
         }
         public static NPlayer ReadNPlayer(this BinaryReader reader)
         {
-            NPlayer player = (NPlayer)Converters.ConvertByteArrayToObject(reader.ReadByteArray());
+            NPlayer player = (NPlayer)NConverters.ConvertByteArrayToObject(reader.ReadByteArray());
             if (player != null) return player;
             return null;
         }

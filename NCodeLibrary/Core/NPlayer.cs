@@ -1,7 +1,6 @@
-﻿
-using System;
+﻿using System;
 
-namespace NCode
+namespace NCode.Core
 {
     [Serializable]
     public class NPlayer

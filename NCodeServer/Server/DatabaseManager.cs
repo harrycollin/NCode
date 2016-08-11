@@ -105,7 +105,7 @@ namespace NCode
                 comm.Connection = ChosenConnection;
                 comm.CommandText = @"INSERT INTO players (steamid, info) VALUES (@var1, @var2); ";
                 comm.Parameters.AddWithValue("@var1", playerInfo.steamid);
-                comm.Parameters.AddWithValue("@var2", Converters.ConvertObjectToByteArray(playerInfo));
+                comm.Parameters.AddWithValue("@var2", NConverters.ConvertObjectToByteArray(playerInfo));
                 try
                 {
                     comm.ExecuteNonQuery();
@@ -157,7 +157,7 @@ namespace NCode
                         for (int i = 0; i < dt.Rows.Count; i++)
                         {
                             byte[] ibytes = (byte[])dt.Rows[i]["info"];
-                            PlayerInfo obj = (PlayerInfo)Converters.ConvertByteArrayToObject(ibytes);
+                            PlayerInfo obj = (PlayerInfo)NConverters.ConvertByteArrayToObject(ibytes);
                             ChosenConnection.Close();
                             return obj;
                         }
@@ -197,7 +197,7 @@ namespace NCode
             {
                 comm.Connection = ChosenConnection;
                 comm.CommandText = @"UPDATE players SET info = @var1 WHERE steamid = @var2;";
-                comm.Parameters.AddWithValue("@var1", Converters.ConvertObjectToByteArray(playerInfo));
+                comm.Parameters.AddWithValue("@var1", NConverters.ConvertObjectToByteArray(playerInfo));
                 comm.Parameters.AddWithValue("@var2", playerInfo.steamid);
                 try
                 {
@@ -296,7 +296,7 @@ namespace NCode
                         for (int i = 0; i < dt.Rows.Count; i++)
                         {
                             byte[] ibytes = (byte[])dt.Rows[i]["object"];
-                            NetworkObject obj = (NetworkObject)Converters.ConvertByteArrayToObject(ibytes);
+                            NetworkObject obj = (NetworkObject)NConverters.ConvertByteArrayToObject(ibytes);
                             list.Add(obj);
                         }
                     }
@@ -336,7 +336,7 @@ namespace NCode
                 comm2.Connection = ChosenConnection;
                 comm2.CommandText = @"INSERT INTO objects (guid,object) VALUES (@var1,@var2);";
                 comm2.Parameters.AddWithValue("@var1", obj.GUID);
-                comm2.Parameters.AddWithValue("@var2", Converters.ConvertObjectToByteArray(obj));
+                comm2.Parameters.AddWithValue("@var2", NConverters.ConvertObjectToByteArray(obj));
                 try
                 {
 
@@ -374,7 +374,7 @@ namespace NCode
             {
                 comm1.Connection = ChosenConnection;
                 comm1.CommandText = @"UPDATE objects SET object = @var1 WHERE guid = @var2;";
-                comm1.Parameters.AddWithValue("@var1", Converters.ConvertObjectToByteArray(obj));
+                comm1.Parameters.AddWithValue("@var1", NConverters.ConvertObjectToByteArray(obj));
                 comm1.Parameters.AddWithValue("@var2", obj.GUID);
                 try
                 {

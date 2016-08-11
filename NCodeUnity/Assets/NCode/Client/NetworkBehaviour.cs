@@ -1,4 +1,5 @@
-﻿using NCode.BaseClasses;
+﻿
+using NCode.Core;
 using NCode.Utilities;
 using System;
 using System.Collections.Generic;
@@ -27,7 +28,7 @@ namespace NCode
         [System.NonSerialized]
         public NetworkObject networkObject;
         [System.NonSerialized]
-        public List<int> channels = new List<int>();
+        public System.Collections.Generic.List<int> channels = new System.Collections.Generic.List<int>();
         public int MainChannel = 0;
 
               

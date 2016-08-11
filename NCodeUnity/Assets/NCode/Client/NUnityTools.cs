@@ -1,39 +1,11 @@
-﻿using System;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
-
-#if UNITY_EDITOR || UNITY_STANDALONE
-using UnityEngine;
-#endif
-
+﻿using UnityEngine;
+using System.Collections;
+using System;
 namespace NCode.Utilities
 {
-    public class Converters
+
+    public class NUnityTools
     {
-        public static byte[] ConvertObjectToByteArray(object Object)
-        {
-            if (Object == null)
-                return null;
-            BinaryFormatter bf = new BinaryFormatter();
-            MemoryStream ms = new MemoryStream();
-            bf.Serialize(ms, Object);
-            return ms.ToArray();
-        }
-       
-        public static object ConvertByteArrayToObject(byte[] bytes)
-        {
-            MemoryStream memStream = new MemoryStream();
-            BinaryFormatter binForm = new BinaryFormatter();
-            memStream.Write(bytes, 0, bytes.Length);
-            memStream.Seek(0, SeekOrigin.Begin);
-            System.Object obj = (System.Object)binForm.Deserialize(memStream);
-            return obj;
-        }
-
-        /* All UnityEngine dependent below */
-#if UNITY_EDITOR || UNITY_STANDALONE
-
-
 
         /// <summary>
         /// Converts a string of 3 numercial values seperated by commas to a Vector3.
@@ -69,7 +41,7 @@ namespace NCode.Utilities
             string s;
             s = v.x + "|" + v.y + "|" + v.z + "|" + v.w;
             return s;
-             
+
         }
 
         /// <summary>
@@ -94,6 +66,5 @@ namespace NCode.Utilities
             }
             return quaternion;
         }
-#endif
     }
 }

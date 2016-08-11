@@ -1,4 +1,4 @@
-﻿namespace NCode
+﻿namespace NCode.Core
 {
     /// <summary>
     /// Contains all the posible packet definitions that can be sent/received. 

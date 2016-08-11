@@ -53,8 +53,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="MySql.Data, Version=6.9.8.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL" />
-    <Reference Include="NCode">
-      <HintPath>..\NCodeLibrary\NCode\bin\Release\NCode.dll</HintPath>
+    <Reference Include="NCode, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\NCodeLibrary\bin\Release\NCode.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -66,51 +67,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\NCodeUnity\Assets\NCode\Common\NBuffer.cs">
-      <Link>Common\NBuffer.cs</Link>
-    </Compile>
-    <Compile Include="..\NCodeUnity\Assets\NCode\Common\NContainerClasses.cs">
-      <Link>Common\NContainerClasses.cs</Link>
-    </Compile>
-    <Compile Include="..\NCodeUnity\Assets\NCode\Common\NPacket.cs">
-      <Link>Common\NPacket.cs</Link>
-    </Compile>
-    <Compile Include="..\NCodeUnity\Assets\NCode\Common\NPacketContainer.cs">
-      <Link>Common\NPacketContainer.cs</Link>
-    </Compile>
-    <Compile Include="..\NCodeUnity\Assets\NCode\Common\NPlayer.cs">
-      <Link>Common\NPlayer.cs</Link>
-    </Compile>
-    <Compile Include="..\NCodeUnity\Assets\NCode\Common\NTcpProtocol.cs">
-      <Link>Common\NTcpProtocol.cs</Link>
-    </Compile>
-    <Compile Include="..\NCodeUnity\Assets\NCode\Common\NUdpDatagram.cs">
-      <Link>Common\NUdpDatagram.cs</Link>
-    </Compile>
-    <Compile Include="..\NCodeUnity\Assets\NCode\Common\NUdpProtocol.cs">
-      <Link>Common\NUdpProtocol.cs</Link>
-    </Compile>
-    <Compile Include="..\NCodeUnity\Assets\NCode\Common\Utilities\Compare.cs">
-      <Link>Common\Utilities\Compare.cs</Link>
-    </Compile>
-    <Compile Include="..\NCodeUnity\Assets\NCode\Common\Utilities\Converters.cs">
-      <Link>Common\Utilities\Converters.cs</Link>
-    </Compile>
-    <Compile Include="..\NCodeUnity\Assets\NCode\Common\Utilities\ExceptionLogger.cs">
-      <Link>Common\Utilities\ExceptionLogger.cs</Link>
-    </Compile>
-    <Compile Include="..\NCodeUnity\Assets\NCode\Common\Utilities\Generate.cs">
-      <Link>Common\Utilities\Generate.cs</Link>
-    </Compile>
-    <Compile Include="..\NCodeUnity\Assets\NCode\Common\Utilities\NBinaryExtensions.cs">
-      <Link>Common\Utilities\NBinaryExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\NCodeUnity\Assets\NCode\Common\Utilities\NList.cs">
-      <Link>Common\Utilities\NList.cs</Link>
-    </Compile>
-    <Compile Include="..\NCodeUnity\Assets\NCode\Common\Utilities\NTools.cs">
-      <Link>Common\Utilities\NTools.cs</Link>
-    </Compile>
     <Compile Include="Server\DatabaseManager.cs" />
     <Compile Include="Server\NChannel.cs" />
     <Compile Include="Server\NMainFunctions.cs" />

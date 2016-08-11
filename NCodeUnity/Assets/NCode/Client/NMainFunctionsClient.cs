@@ -1,4 +1,6 @@
-﻿using NCode.BaseClasses;
+﻿
+using NCode.Core;
+using NCode.Core.Protocols;
 using System;
 using System.Collections.Generic;
 using System.IO;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NCode.Utilities;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -32,7 +33,9 @@ namespace NCode
             DatabaseConnection.ConnectionsInit("datasource = " + info.databaseip + "; database = " + info.databasename + "; port = " + info.databaseport + "; username = " + info.databaseuser + "; password = " + info.databasepassword + ";");
             //Test the connections
             if (!DatabaseConnection.ConnectionTester()) { Tools.Print("Failed to establish a connection to the database. Please check settings in 'server.cfg' and make sure all ports are forwarded", Tools.MessageType.error);  Console.ReadLine(); return; }
-            
+
+            NLogger.LogToFile("ddd");
+
             //Makes a new instance of the server. 
             NMainThreads app = new NMainThreads();
             app.Start(info.servername, info.tcpport, info.udpport, info.rconport, info.password, info.rconpassword, info.autostart);

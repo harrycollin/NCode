@@ -5,7 +5,7 @@
 
 using System.Diagnostics;
 
-namespace NCode
+namespace NCode.Utilities
 {
     /// <summary>
     /// Generic interface with an Add function so that it can be used by the Serializer.

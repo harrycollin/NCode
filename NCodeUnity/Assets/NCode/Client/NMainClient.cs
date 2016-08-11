@@ -1,13 +1,11 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Net;
+﻿using System.Net;
 using NCode;
 using System.IO;
-using System.Threading;
 using System;
-using System.Collections.Generic;
-using NCode.BaseClasses;
 using NCode.Utilities;
+using NCode.Core.Protocols;
+using NCode.Core;
+using UnityEngine;
 
 public class NMainClient : NMainFunctionsClient
 {
@@ -18,7 +16,8 @@ public class NMainClient : NMainFunctionsClient
     public bool Start(IPEndPoint ip)
     {
         if (TcpClient.Connect(ip))
-        { 
+        {
+            Debug.Log("ss");
             UdpClient.Start(UnityEngine.Random.Range(10000, 50000));
             return true;
         }

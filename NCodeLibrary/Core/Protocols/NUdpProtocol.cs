@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Diagnostics;
 using System.IO;
-using System.Text;
-using System.Threading;
-namespace NCode
+
+
+
+namespace NCode.Core.Protocols
 {
     public class NUdpProtocol
     {

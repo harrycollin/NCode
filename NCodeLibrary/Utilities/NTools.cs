@@ -1,4 +1,6 @@
-﻿using System;
+﻿using NCode.Utilities;
+using System;
+using System.IO;
 using System.Text;
 #if UNITY_EDITOR
 using UnityEngine;
@@ -21,28 +23,34 @@ namespace NCode
         /// <param name="msg"></param>
         /// <param name="type"></param>
         /// <param name="ex"></param>
-        static public void Print(string msg, MessageType type = MessageType.notification, Exception ex = null)
+        static public void Print(string msg, MessageType type = MessageType.notification, Exception ex = null, bool Log = false)
         {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder printBuilder = new StringBuilder();
+            StringBuilder logBuilder = new StringBuilder();
+
             DateTime now = DateTime.Now;
-            builder.Append("[" + now + "]: ");
+            printBuilder.Append("[" + now + "]: ");
             switch (type)
             {
-                case MessageType.warning: { builder.Append("Warning: "); break; }
-                case MessageType.error: { builder.Append("Error: "); break; }
+                case MessageType.warning: { printBuilder.Append("Warning: "); logBuilder.Append("[[WARNING]]:"); break; }
+                case MessageType.error: { printBuilder.Append("Error: "); logBuilder.Append("[[ERROR]]:"); break; }
             }
 
-            builder.Append(msg);
-            builder.Append(Environment.NewLine);
-            if(ex != null) { builder.Append("| Exception: " + ex.ToString()); }
+            printBuilder.Append(msg);
+            printBuilder.Append(Environment.NewLine);
+            logBuilder.Append(msg);
+            logBuilder.Append(Environment.NewLine);
+            if(ex != null) { printBuilder.Append("| Exception: " + ex.ToString()); }
 
 #if UNITY_EDITOR
             Debug.Log(builder.ToString());
 #else
-            Console.Write(builder.ToString());
+            Console.Write(printBuilder.ToString());
 #endif
-
+            if (Log) { NLogger.LogToFile(logBuilder.ToString()); }
         }
+
+        
 
         static public bool IsNotEqual(float before, float after, float threshold)
         {

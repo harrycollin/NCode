@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 using NCode;
 
-namespace NCode
+namespace NCode.Core.Protocols
 {
     public class NTcpProtocol : NPlayer
     {

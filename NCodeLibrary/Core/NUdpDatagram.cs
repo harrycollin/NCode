@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace NCode
+namespace NCode.Core
 {
     public class NUdpDatagram
     {

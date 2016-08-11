@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using UnityEngine;
 using NCode.Utilities;
+using NCode.Core;
 
 namespace NCode
 {
@@ -17,7 +18,7 @@ namespace NCode
         /// <summary>
         /// A temporary packet to write to. 
         /// </summary>
-        static NPacketContainer tempPacket;
+        static NBuffer tempPacket;
 
         /// <summary>
         /// The instance of the MainClient. This is the core of the networking. 
@@ -41,7 +42,7 @@ namespace NCode
             {
                 if(instance.Start(new IPEndPoint(IPAddress.Parse(ip), port)))
                 {
-
+                    Debug.Log("sssssss");
                     return true;
                 }
             }
@@ -91,8 +92,8 @@ namespace NCode
 
         static void SpawnQueuedObject(NetworkObject obj)
         {
-            Vector3 pos = Converters.StringToVector3(obj.position);
-            Quaternion rot = Converters.StringToQuaternion(obj.rotation);
+            Vector3 pos = NUnityTools.StringToVector3(obj.position);
+            Quaternion rot = NUnityTools.StringToQuaternion(obj.rotation);
             if (obj != null)
             {
                 GameObject go = (GameObject)Instantiate(ClientConfig.GetPrefabByID(obj.prefabid), pos, rot);
@@ -202,9 +203,9 @@ namespace NCode
             TempObject.LastChannelID = channelID;
             TempObject.prefabid = PrefabID;
             TempObject.Persistant = Persistant;
-            TempObject.GUID = Generate.GenerateGUID();
-            TempObject.position = Converters.Vector3ToString(position);
-            TempObject.rotation = Converters.QuaternionToString(rotation);
+            TempObject.GUID = Guid.NewGuid();
+            TempObject.position = NUnityTools.Vector3ToString(position);
+            TempObject.rotation = NUnityTools.QuaternionToString(rotation);
             TempObject.owner = instance.TcpClient.SteamID;
             writer.WriteObject(TempObject);
             EndSend(true);

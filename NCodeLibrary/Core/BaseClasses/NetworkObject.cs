@@ -22,7 +22,7 @@ namespace NCode
         /// </summary>
         public Guid NetworkOwnerGUID { get; set; }
         public bool Persistant { get; set; }
-        public int MainChannelID { get; set; }
+        public int LastChannelID { get; set; }
 
         public int prefabid { get; set; }
         public string position { get; set; }

@@ -1,4 +1,5 @@
 ﻿
+using NCode.Core;
 using NCode.Utilities;
 using System;
 using System.Collections.Generic;
@@ -16,7 +17,7 @@ namespace NCode
         /// Acts as a slave to all objects that need owners and will act as a slave to sync them until a reliable owner can be found.
         /// </summary>
         public NTcpPlayer ChannelSlave;
-        public List<NTcpPlayer> Players = new List<NTcpPlayer>();
+        public System.Collections.Generic.List<NTcpPlayer> Players = new System.Collections.Generic.List<NTcpPlayer>();
         public int ID = 0;
         public int PlayerLimit = 300;
 
@@ -53,7 +54,7 @@ namespace NCode
         /// <returns></returns>
         public bool IsPlayerConnected(NTcpPlayer player)
         {
-            for(int i = 0; i < Players.size;)
+            for(int i = 0; i < Players.Count;)
             {
                 if (Players.Contains(player)) { return true; }
 

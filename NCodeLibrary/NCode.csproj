@@ -42,10 +42,23 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="NetworkObject.cs" />
-    <Compile Include="PlayerInfo.cs" />
+    <Compile Include="Core\NBuffer.cs" />
+    <Compile Include="Core\NPacket.cs" />
+    <Compile Include="Core\NPlayer.cs" />
+    <Compile Include="Core\NUdpDatagram.cs" />
+    <Compile Include="Core\Protocols\NTcpProtocol.cs" />
+    <Compile Include="Core\Protocols\NUdpProtocol.cs" />
+    <Compile Include="Core\BaseClasses\NetworkObject.cs" />
+    <Compile Include="Core\BaseClasses\PlayerInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\Compare.cs" />
+    <Compile Include="Utilities\NConverters.cs" />
+    <Compile Include="Utilities\NBinaryExtensions.cs" />
+    <Compile Include="Utilities\NList.cs" />
+    <Compile Include="Utilities\NLogger.cs" />
+    <Compile Include="Utilities\NTools.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

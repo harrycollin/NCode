@@ -3,6 +3,7 @@ using System.Collections;
 using UnityEngine.UI;
 using NCode;
 using System.IO;
+using NCode.Core;
 
 public class TextChat : MonoBehaviour
 {

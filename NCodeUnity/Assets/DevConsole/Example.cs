@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using DevConsole;
 using NCode;
 using System.IO;
+using NCode.Core;
+using NCode.Utilities;
 
 public class Example:MonoBehaviour {
 

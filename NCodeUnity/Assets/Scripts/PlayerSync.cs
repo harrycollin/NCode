@@ -2,6 +2,7 @@
 using System;
 using NCode;
 using NCode.Utilities;
+using NCode.Core;
 
 [RequireComponent(typeof(NetworkBehaviour))]
 public class PlayerSync : PlayerController
@@ -88,7 +89,7 @@ public class PlayerSync : PlayerController
                 lastDirection = transform.rotation;
                 tno.SendRFC(2, Packet.RFC, false, transform.rotation);
             }
-
+            
             // If the deviation is significant enough, send the update to other players
             if (Tools.IsNotEqual(mLastInput.x, mInput.x, threshold) || Tools.IsNotEqual(mLastInput.y, mInput.y, threshold))
             {

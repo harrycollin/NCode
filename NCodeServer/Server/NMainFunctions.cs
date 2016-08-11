@@ -1,4 +1,5 @@
 ﻿using NCode.Utilities;
+using NCode.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,6 +9,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NCode.Core.Protocols;
 
 namespace NCode
 {
@@ -89,12 +91,12 @@ namespace NCode
         /// <summary>
         /// List of any RCon Clients
         /// </summary>
-        public List<NRConClient> RConClients = new List<NRConClient>();
+        public System.Collections.Generic.List<NRConClient> RConClients = new System.Collections.Generic.List<NRConClient>();
 
         /// <summary>
         /// Contains all the players currently connected to the server
         /// </summary>
-        public List<NTcpPlayer> PlayersList = new List<NTcpPlayer>();
+        public System.Collections.Generic.List<NTcpPlayer> PlayersList = new System.Collections.Generic.List<NTcpPlayer>();
 
         /// <summary>
         /// A dictionary will all players in it for quick access.
@@ -498,7 +500,7 @@ namespace NCode
                 {
                     if (ActiveChannels[obj.LastChannelID].AddObject(obj))
                     {
-                        for (int i = 0; i < ActiveChannels[obj.LastChannelID].Players.size; i++)
+                        for (int i = 0; i < ActiveChannels[obj.LastChannelID].Players.Count; i++)
                         {
                             BinaryWriter writer = ActiveChannels[obj.LastChannelID].Players[i].BeginSend(Packet.ClientObjectUpdate);
                             writer.WriteObject(obj);
