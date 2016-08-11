@@ -309,6 +309,7 @@ namespace NCode
         {
             Tools.Print("Starting RCon thread.");
 
+
             //Loop forever until server is stopped.
             while(RunRConServer)
             {

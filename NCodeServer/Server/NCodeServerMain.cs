@@ -17,6 +17,7 @@ namespace NCode
         /// <param name="args"></param>
         static void Main(string[] args)
         {
+            NLogger.LogToFile("Application launched\n");
             
             //The server's system path.
             string systemPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
@@ -33,8 +34,6 @@ namespace NCode
             DatabaseConnection.ConnectionsInit("datasource = " + info.databaseip + "; database = " + info.databasename + "; port = " + info.databaseport + "; username = " + info.databaseuser + "; password = " + info.databasepassword + ";");
             //Test the connections
             if (!DatabaseConnection.ConnectionTester()) { Tools.Print("Failed to establish a connection to the database. Please check settings in 'server.cfg' and make sure all ports are forwarded", Tools.MessageType.error);  Console.ReadLine(); return; }
-
-            NLogger.LogToFile("ddd");
 
             //Makes a new instance of the server. 
             NMainThreads app = new NMainThreads();
@@ -130,7 +129,7 @@ namespace NCode
                         catch (Exception e)
                         {
                             info.servername = "Kleos Server";
-                            Tools.Print("Failed to read the 'server_name' parameter in 'server.cfg'. Defaulting server name to 'Kleos Server'.", Tools.MessageType.error);
+                            Tools.Print("Failed to read the 'server_name' parameter in 'server.cfg'. Defaulting server name to 'Kleos Server'.", Tools.MessageType.error, e, true);
                         }
 
                     }
@@ -152,7 +151,7 @@ namespace NCode
                         catch (Exception e)
                         {
                             info.password = null;
-                            Tools.Print("Failed to read the 'server_password' parameter in 'server.cfg'. Defaulting server server password to null.", Tools.MessageType.error);
+                            Tools.Print("Failed to read the 'server_password' parameter in 'server.cfg'. Defaulting server server password to null.", Tools.MessageType.error, e, true);
                         }
                     }
                     continue;
@@ -171,7 +170,7 @@ namespace NCode
                         catch (Exception e)
                         {
                             info.rconpassword = null;
-                            Tools.Print("Failed to read the 'server_rconpassword' parameter in 'server.cfg'. Defaulting rcon server password to 'changeme'.", Tools.MessageType.error);
+                            Tools.Print("Failed to read the 'server_rconpassword' parameter in 'server.cfg'. Defaulting rcon server password to 'changeme'.", Tools.MessageType.error, e, true);
                         }
                     }
                     continue;
@@ -191,7 +190,7 @@ namespace NCode
                         catch (Exception e)
                         {
                             info.tcpport = 5127;
-                            Tools.Print("Failed to read the 'server_tcpport' parameter in 'server.cfg'. Defaulting TCP port to 5127.", Tools.MessageType.error);
+                            Tools.Print("Failed to read the 'server_tcpport' parameter in 'server.cfg'. Defaulting TCP port to 5127.", Tools.MessageType.error, e, true);
                         }
                     }
                     continue;
@@ -211,7 +210,7 @@ namespace NCode
                         catch (Exception e)
                         {
                             info.udpport = 5128;
-                            Tools.Print("Failed to read the 'server_udpport' parameter in 'server.cfg'. Defaulting UDP port to 5128.", Tools.MessageType.error);
+                            Tools.Print("Failed to read the 'server_udpport' parameter in 'server.cfg'. Defaulting UDP port to 5128.", Tools.MessageType.error, e, true);
                         }
                     }
                     continue;
@@ -231,7 +230,7 @@ namespace NCode
                         catch (Exception e)
                         {
                             info.rconport = 5129;
-                            Tools.Print("Failed to read the 'server_rconport' parameter in 'server.cfg'. Defaulting RCon port to 5129.", Tools.MessageType.error);
+                            Tools.Print("Failed to read the 'server_rconport' parameter in 'server.cfg'. Defaulting RCon port to 5129.", Tools.MessageType.error, e, true);
                         }
                     }
                     continue;
@@ -250,7 +249,7 @@ namespace NCode
                         catch (Exception e)
                         {
                             info.autostart = true;
-                            Tools.Print("Failed to read the 'server_autostart' parameter in 'server.cfg'. Defaulting to true.", Tools.MessageType.error);
+                            Tools.Print("Failed to read the 'server_autostart' parameter in 'server.cfg'. Defaulting to true.", Tools.MessageType.error, e, true);
                         }
                     }
                     continue;
@@ -270,7 +269,7 @@ namespace NCode
                         catch (Exception e)
                         {
                             info.databaseip = "127.0.0.1";
-                            Tools.Print("Failed to read the 'database_ip' parameter in 'server.cfg'. Defaulting to '127.0.0.1'.", Tools.MessageType.error);
+                            Tools.Print("Failed to read the 'database_ip' parameter in 'server.cfg'. Defaulting to '127.0.0.1'.", Tools.MessageType.error, e, true);
                         }
                         
 
@@ -292,7 +291,7 @@ namespace NCode
                         catch (Exception e)
                         {
                             info.databaseport = 3306;
-                            Tools.Print("Failed to read the 'database_port' parameter in 'server.cfg'. Defaulting port to 3306.", Tools.MessageType.error);
+                            Tools.Print("Failed to read the 'database_port' parameter in 'server.cfg'. Defaulting port to 3306.", Tools.MessageType.error, e, true);
                         }
 
 
@@ -315,7 +314,7 @@ namespace NCode
                         catch (Exception e)
                         {
                             info.databaseuser = "admin";
-                            Tools.Print("Failed to read the 'database_user' parameter in 'server.cfg'. Defaulting to 'admin'.", Tools.MessageType.error);
+                            Tools.Print("Failed to read the 'database_user' parameter in 'server.cfg'. Defaulting to 'admin'.", Tools.MessageType.error, e, true);
                         }
                     }
                     continue;
@@ -335,7 +334,7 @@ namespace NCode
                         catch (Exception e)
                         {
                             info.databasepassword = "changeme";
-                            Tools.Print("Failed to read the 'database_password' parameter in 'server.cfg'. Defaulting to 'changeme'.", Tools.MessageType.error);
+                            Tools.Print("Failed to read the 'database_password' parameter in 'server.cfg'. Defaulting to 'changeme'.", Tools.MessageType.error, e, true);
                         }
                     }
                     continue;
@@ -355,16 +354,13 @@ namespace NCode
                         catch (Exception e)
                         {
                             info.databasename = "kleos_data";
-                            Tools.Print("Failed to read the 'database_name' parameter in 'server.cfg'. Defaulting to 'kleos_data'.", Tools.MessageType.error);
+                            Tools.Print("Failed to read the 'database_name' parameter in 'server.cfg'. Defaulting to 'kleos_data'.", Tools.MessageType.error, e, true);
                         }
 
                     }
                     continue;
-
                 }
-
             }
-
             return info;
         }
     }

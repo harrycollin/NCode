@@ -23,13 +23,15 @@ namespace NCode
         /// <param name="msg"></param>
         /// <param name="type"></param>
         /// <param name="ex"></param>
-        static public void Print(string msg, MessageType type = MessageType.notification, Exception ex = null, bool Log = false)
+        static public void Print(string msg, MessageType type = MessageType.notification, Exception ex = null, bool Log = true)
         {
             StringBuilder printBuilder = new StringBuilder();
             StringBuilder logBuilder = new StringBuilder();
 
             DateTime now = DateTime.Now;
             printBuilder.Append("[" + now + "]: ");
+            logBuilder.Append("[" + now + "]: ");
+
             switch (type)
             {
                 case MessageType.warning: { printBuilder.Append("Warning: "); logBuilder.Append("[[WARNING]]:"); break; }
