@@ -83,7 +83,7 @@ public class PlayerSync : PlayerController
             // The closer we are to the desired send time, the smaller is the deviation required to send an update.
             float threshold = Mathf.Clamp01(delta - delay) * 0.5f;
 
-            if (Tools.IsNotEqual(lastDirection.y, transform.rotation.y, 0.02f))
+            if (Compare.FloatEqual(lastDirection.y, transform.rotation.y, 0.02f))
             {
                 Tools.Print("Rotating");
                 lastDirection = transform.rotation;
@@ -91,7 +91,7 @@ public class PlayerSync : PlayerController
             }
             
             // If the deviation is significant enough, send the update to other players
-            if (Tools.IsNotEqual(mLastInput.x, mInput.x, threshold) || Tools.IsNotEqual(mLastInput.y, mInput.y, threshold))
+            if (Compare.FloatEqual(mLastInput.x, mInput.x, threshold) || Compare.FloatEqual(mLastInput.y, mInput.y, threshold))
             {
                 mLastInputSend = time;
                 mLastInput = mInput;

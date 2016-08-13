@@ -42,7 +42,7 @@ namespace NCode
             {
                 if(instance.Start(new IPEndPoint(IPAddress.Parse(ip), port)))
                 {
-                    Debug.Log("sssssss");
+                    Tools.Print("Hhhshshshhshsxhjvbxdhjvbd");
                     return true;
                 }
             }
