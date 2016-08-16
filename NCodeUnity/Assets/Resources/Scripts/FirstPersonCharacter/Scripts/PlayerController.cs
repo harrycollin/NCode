@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
-
+using NCode;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
+    protected NetworkBehaviour nb;
 
     public float walkSpeed = 6.0f;
     public float runSpeed = 11.0f;
@@ -20,7 +21,7 @@ public class PlayerController : MonoBehaviour
     public bool toggleRun = false;
 
     
-
+   
     // Units that player can fall before a falling damage function is run. To disable, type "infinity" in the inspector
     public float fallingDamageThreshold = 10.0f;
 
@@ -71,15 +72,14 @@ public class PlayerController : MonoBehaviour
 
     
     protected virtual void Awake()
-    {       
+    {
+        nb = GetComponent<NetworkBehaviour>();
         controller = GetComponent<CharacterController>();
         myTransform = transform;
         speed = walkSpeed;
         rayDistance = controller.height * .5f + controller.radius;
         slideLimit = controller.slopeLimit - .1f;
         jumpTimer = antiBunnyHopFactor;
-
-
 
     }
 

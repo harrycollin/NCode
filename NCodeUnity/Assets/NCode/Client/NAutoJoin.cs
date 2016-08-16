@@ -2,6 +2,7 @@
 using System.Collections;
 using NCode;
 using System;
+using NCode.Core.Client;
 
 public class NAutoJoin : MonoBehaviour {
 
@@ -13,10 +14,12 @@ public class NAutoJoin : MonoBehaviour {
     {
         try
         {
+            NClientManager.CreateInstance();
             NClientManager.Connect(ServerIPAddress, ServerPort);
-        }catch(Exception e)
+        }
+        catch (Exception e)
         {
-            Tools.Print("Failed to connect to server. Ensure there is always an instance of NClientManager", Tools.MessageType.error, e);
+            Tools.Print("Failed to connect to server. Ensure there is always an staticInstance of NClientManager", Tools.MessageType.error, e);
         }
 	}
 }

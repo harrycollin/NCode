@@ -43,12 +43,13 @@ namespace NCode.Utilities
         {
             try
             {
-                string time =
-                    DateTime.Now.Hour.ToString() + "." +
-                    DateTime.Now.Minute.ToString() + "_" +
+                string time = "server_activity_["+
                     DateTime.Now.Day.ToString() + "-" +
                     DateTime.Now.Month.ToString() + "-" +
-                    DateTime.Now.Year.ToString() + ".log";
+                    DateTime.Now.Year.ToString() + "]_[" +
+                    DateTime.Now.Hour.ToString() + "." +
+                    DateTime.Now.Minute.ToString() + "]" +
+                     ".log";
 
                 pathToSessionLog = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "/Logs/" + time;
                 FileStream stream = File.Create(pathToSessionLog);

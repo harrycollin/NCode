@@ -1,143 +1,144 @@
 ﻿using System.Net;
-using NCode;
 using System.IO;
 using System;
 using NCode.Utilities;
 using NCode.Core.Protocols;
-using NCode.Core;
-using UnityEngine;
 
-public class NMainClient : NMainFunctionsClient
+namespace NCode.Core.Client
 {
-    /// <summary>
-    /// Starts the connection process 
-    /// </summary>
-    /// <param name="ip"></param>
-    public bool Start(IPEndPoint ip)
+    public class NMainClient : NMainFunctionsClient
     {
-        if (TcpClient.Connect(ip))
+        /// <summary>
+        /// Checks for queued packet and carries out routine functions. 
+        /// </summary>
+        public void ClientUpdate()
         {
-            Debug.Log("ss");
-            UdpClient.Start(UnityEngine.Random.Range(10000, 50000));
-            return true;
-        }
-        return false;
-    }
+            if (!TcpClient.isSocketConnected) { return; }
 
-    /// <summary>
-    /// Checks for queued packet and carries out routine functions. 
-    /// </summary>
-    public void ClientUpdate()
-    {
-        if (!TcpClient.isSocketConnected) { return; }
+            //Set the client time
+            ClientTime = DateTime.UtcNow.Ticks / 10000;
 
-        ClientTime = DateTime.UtcNow.Ticks / 10000;
+            //Temporary variables for Udp packets
+            NBuffer tempUdpBuffer;
+            IPEndPoint tempIP;
 
-        if (TcpClient.NextPacket(out tempPacket))
-        {
-            ProcessPacket(tempPacket);
-        }
-        if (LastPingTime + 3000 < ClientTime && TcpClient.State == NTcpProtocol.ConnectionState.connected)
-        {
-            LastPingTime = ClientTime;
-            BinaryWriter writer = TcpClient.BeginSend(Packet.Ping);
-            writer.Write(ClientTime);
-            TcpClient.EndSend();
-        }
-    }
+            //Process all Udp packets first.
+            if (UdpClient.ReceivePacket(out tempUdpBuffer, out tempIP))
+            {
+                ProcessPacket(tempUdpBuffer, tempIP);
+            }
 
-    /// <summary>
-    /// Processes queued packets. 
-    /// </summary>
-    /// <param name="packet"></param>
-    /// <returns></returns>
-    bool ProcessPacket(NBuffer packet)
-    {
-        BinaryReader reader = packet.BeginReading();
-        Packet p = packet.packet;
+            //Temp buffer for Tcp packets
+            NBuffer tempTcpBuffer;
 
-        //Filters out any packets that have custom handlers. 
-        OnPacket callback;
-        if (packetHandlers.TryGetValue(p, out callback) && callback != null)
-        {
-            callback(p, reader);
-            return true;
+            //Process Tcp packets
+            if (TcpClient.NextPacket(out tempTcpBuffer))
+            {
+                ProcessPacket(tempTcpBuffer);
+            }
+
+            //Check if we need to ping (failing to ping reguarly will result in the server disconnecting this player).
+            if (LastPingTime + 3000 < ClientTime && TcpClient.State == NTcpProtocol.ConnectionState.connected)
+            {
+                LastPingTime = ClientTime;
+                BinaryWriter writer = TcpClient.BeginSend(Packet.Ping);
+                TcpClient.EndSend();
+            }
         }
 
-        switch (p)
+        /// <summary>
+        /// Processes queued packets. 
+        /// </summary>
+        /// <param name="packet"></param>
+        /// <returns></returns>
+        bool ProcessPacket(NBuffer packet, IPEndPoint source = null)
         {
-            case Packet.RFC:
-                {
-                    int channelID = reader.ReadInt32();
-                    Guid guid = reader.ReadGUID();
-                    int RFCID = reader.ReadInt32();
-                    object[] parameters = reader.ReadObjectArrayEx();
-                    onRFC(channelID, guid, RFCID, parameters);
-                    break;
-                }
-            case Packet.ResponseJoinChannel:
-                {
-                    int channelID = reader.ReadInt32();
-                    if(channelID != 0)
+            BinaryReader reader = packet.BeginReading();
+            Packet p = packet.packet;
+
+            //Filters out any packets that have custom handlers. 
+            OnPacket callback;
+            if (packetHandlers.TryGetValue(p, out callback) && callback != null)
+            {
+                callback(p, reader);
+                return true;
+            }
+
+            switch (p)
+            {
+                case Packet.RFC:
+                    {
+                        int channelID = reader.ReadInt32();
+                        Guid guid = reader.ReadGUID();
+                        int RFCID = reader.ReadInt32();
+                        object[] parameters = reader.ReadObjectArrayEx();
+                        onRFC(channelID, guid, RFCID, parameters);
+                        break;
+                    }
+                case Packet.ResponseJoinChannel:
+                    {
+                        int channelID = reader.ReadInt32();
+                        if (channelID != 0)
+                        {
+                            if (reader.ReadBoolean())
+                            {
+                                if (!ConnectedChannels.Contains(channelID)) { ConnectedChannels.Add(channelID); }
+                            }
+                        }
+                        break;
+                    }
+                case Packet.Ping:
+                    {
+                        TcpClient.LastReceiveTime = ClientTime;
+                        TcpClient.PingInMs = reader.ReadInt32();
+                        break;
+                    }
+                case Packet.ResponseClientSetup:
+                    {
+                        if (!reader.ReadBoolean())
+                        {
+                            TcpClient.Disconnect();
+                            Tools.Print("Server - Client version mismatch");
+                        }
+                        else
+                        {
+                            TcpClient.State = NTcpProtocol.ConnectionState.connected;
+                            IPEndPoint remoteIp = TcpClient.thisSocket.RemoteEndPoint as IPEndPoint;
+                            ServerUdpEndpoint = new IPEndPoint(remoteIp.Address, reader.ReadInt32());
+                            TcpClient.ClientGUID = (Guid)reader.ReadObject();
+
+                            BinaryWriter writer = UdpClient.BeginSend(Packet.SetupUDP);
+                            writer.WriteObject(TcpClient.ClientGUID);
+                            Tools.Print("Reading GUID:" + TcpClient.ClientGUID.ToString());
+                            UdpClient.EndSend(ServerUdpEndpoint);
+                        }
+                        break;
+                    }
+                case Packet.ClientObjectUpdate:
+                    {
+                        ReceiveObject((NetworkObject)reader.ReadObject());
+                        break;
+                    }
+                case Packet.PlayerUpdate:
+                    {
+                        ReceivePlayerUpdate((NPlayer)reader.ReadObject(), reader.ReadBoolean());
+                        break;
+                    }
+                case Packet.SetupUDP:
                     {
                         if (reader.ReadBoolean())
                         {
-                            if (!ConnectedChannels.Contains(channelID)) { ConnectedChannels.Add(channelID); }
+                            Tools.Print("UDP Setup!");
                         }
+                        break;
                     }
-                    break;
-                }
-            case Packet.Ping:
-                {
-                    TcpClient.LastReceiveTime = ClientTime;
-                    TcpClient.PingInMs = reader.ReadInt32();
-                    break;
-                }
-            case Packet.ResponseClientSetup:
-                {
-                    if (!reader.ReadBoolean())
+                default:
                     {
-                        TcpClient.Disconnect();
-                        Tools.Print("Server - Client version mismatch");
+                        Tools.Print("No defined Packet");
+                        break;
                     }
-                    else
-                    {
-                        TcpClient.State = NTcpProtocol.ConnectionState.connected;
-                        IPEndPoint remoteIp = TcpClient.thisSocket.RemoteEndPoint as IPEndPoint;
-                        ServerUdpEndpoint = new IPEndPoint(remoteIp.Address, reader.ReadInt32());                      
-                        TcpClient.ClientGUID = (Guid)reader.ReadObject();
-
-                        BinaryWriter writer = UdpClient.BeginSend(Packet.SetupUDP);
-                        writer.WriteObject(TcpClient.ClientGUID);
-                        Tools.Print("Reading GUID:" + TcpClient.ClientGUID.ToString());
-                        UdpClient.EndSend(ServerUdpEndpoint);
-                    }
-                    break;
-                }
-            case Packet.ClientObjectUpdate:
-                {
-                    ReceiveObject((NetworkObject)reader.ReadObject());
-                    break;
-                }
-            case Packet.PlayerUpdate:
-                {
-                    ReceivePlayerUpdate((NPlayer)reader.ReadObject(), reader.ReadBoolean());
-                    break;
-                }
-            case Packet.SetupUDP:
-                {
-                    if (reader.ReadBoolean())
-                    {
-                        Tools.Print("UDP Setup!");
-                    }
-                    break;
-                }
-            default:
-                {
-                    Tools.Print("No defined Packet");
-                    break;
-                }
+            }
+            return false;
         }
-        return false;
     }
 }

@@ -1,5 +1,6 @@
 ﻿
 using NCode.Core;
+using NCode.Core.Client;
 using NCode.Utilities;
 using System;
 using System.Collections.Generic;
@@ -14,24 +15,44 @@ namespace NCode
     /// <summary>
     /// Inherited by all networked objects (physical).
     /// </summary>
-    public class NetworkBehaviour : MonoBehaviour
+    public sealed class NetworkBehaviour : MonoBehaviour
     {
         //Global list of all NetworkObjects
         public static Dictionary<Guid, NetworkBehaviour> NetworkObjects = new Dictionary<Guid, NetworkBehaviour>();
 
-        [System.NonSerialized]
-        Dictionary<int, CachedFunc> RFCList = new Dictionary<int, CachedFunc>();
-        [System.NonSerialized]
-        public Guid guid;
-        [System.NonSerialized]
-        public string owner;
-        [System.NonSerialized]
-        public NetworkObject networkObject;
-        [System.NonSerialized]
-        public System.Collections.Generic.List<int> channels = new System.Collections.Generic.List<int>();
-        public int MainChannel = 0;
+        //Local variables
+        public bool rebuildMethodList = true;
 
-              
+        public Guid guid
+        {
+            get { return networkObject.GUID; }
+            set { networkObject.GUID = value; }
+        }
+        public string owner
+        {
+            get { return networkObject.owner; }
+            set { networkObject.owner = value; }
+        }     
+        public Guid NetworkOwner
+        {
+            get { return networkObject.NetworkOwnerGUID; }
+            set { networkObject.NetworkOwnerGUID = value; } 
+        }
+        public int LastChannelID
+        {
+            get { return networkObject.LastChannelID; }
+            set { networkObject.LastChannelID = value; }
+        }
+
+        public NetworkObject networkObject;
+
+        [System.NonSerialized]
+        public System.Collections.Generic.List<int> ConnectedChannels = new System.Collections.Generic.List<int>();
+        
+        //A local dictionary of cached RFCs
+        private Dictionary<int, CachedFunc> RFCList = new Dictionary<int, CachedFunc>();
+
+
         /// <summary>
         /// The static method to find a execute an RFC on any NetworkBehaviour
         /// </summary>
@@ -44,25 +65,14 @@ namespace NCode
         /// <summary>
         /// Finds a NetworkBehaviour by GUID
         /// </summary>
-        /// <param name="guid"></param>
         /// <returns></returns>
-        static NetworkBehaviour Find(Guid guid)
+        private static NetworkBehaviour Find(Guid guid)
         {
             if (NetworkObjects.ContainsKey(guid))
             {
                 return NetworkObjects[guid];
             }
             return null;
-        }
-
-
-        //Local methods below//
-
-        public void SetValues()
-        {
-            if (networkObject == null) return;
-            guid = networkObject.GUID;
-            owner = networkObject.owner;
         }
 
         /// Send an RFC from this NetworkBehaviour
@@ -75,7 +85,6 @@ namespace NCode
             writer.Write(rfcID); //RFC id
             writer.WriteObjectArrayEx(objs); //Parameters
             NClientManager.EndSend(reliable);
-            Tools.Print("Sending RFC");
         }
 
         /// <summary>
@@ -84,7 +93,7 @@ namespace NCode
         /// <returns></returns>
         public bool ExecuteRFC(int ID, params object[] parameters)
         {
-            RebuildMethodList();
+            if(rebuildMethodList) RebuildMethodList();
             CachedFunc fnc;
             if (RFCList.TryGetValue(ID, out fnc))
             {
@@ -108,30 +117,37 @@ namespace NCode
         /// Checks if this NetworkBehaviour is owned by this client.
         /// </summary>
         /// <returns></returns>
-        public bool IsMine { get { return  owner == NClientManager.LocalPlayer().SteamID; }  }
+        public bool IsMine { get { return NetworkOwner == NClientManager.LocalPlayer().ClientGUID; }  }
 
         /// <summary>
         /// Finds RFCs on this object. Adds them to a local dictionary for quick access
         /// </summary>
-        void RebuildMethodList()
+        private void RebuildMethodList()
         {
+            rebuildMethodList = false;
             RFCList.Clear();
+
+            //Get all monobehaviour objects attached to this object
             MonoBehaviour[] monoBehaviours = GetComponentsInChildren<MonoBehaviour>(true);
 
+            //Iterate the classes
             for (int i = 0, imax = monoBehaviours.Length; i < imax; ++i)
             {
                 MonoBehaviour monoBehaviour = monoBehaviours[i];
                 System.Type type = monoBehaviour.GetType();
 
+                //Get all methods 
                 MethodInfo[] methods = type.GetMethods(
                     BindingFlags.Public |
                     BindingFlags.NonPublic |
                     BindingFlags.Instance);
 
+                //Iterate the methods
                 for (int b = 0, bmax = methods.Length; b < bmax; ++b)
                 {
                     MethodInfo method = methods[b];
 
+     
                     if (method.IsDefined(typeof(RFC), true))
                     {
                         CachedFunc ent = new CachedFunc();
@@ -142,7 +158,7 @@ namespace NCode
 
                         if (tnc.id > 0)
                         {
-                            if (tnc.id < 256) RFCList[tnc.id] = ent;
+                            if (tnc.id < 256) RFCList.Add(tnc.id, ent);
                             else Debug.LogError("RFC IDs need to be between 1 and 255 (1 byte). If you need more, just don't specify an ID and use the function's name instead.");
                         }                      
                     }

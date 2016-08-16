@@ -6,6 +6,7 @@ using NCode;
 using System.IO;
 using NCode.Core;
 using NCode.Utilities;
+using NCode.Core.Client;
 
 public class Example:MonoBehaviour {
 

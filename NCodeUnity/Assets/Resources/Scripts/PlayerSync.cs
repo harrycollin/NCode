@@ -29,8 +29,6 @@ public class PlayerSync : PlayerController
     /// If the script was derived from TNBehaviour, this wouldn't have been necessary.
     /// </summary>
 
-    [System.NonSerialized]
-    public NetworkBehaviour tno;
     [SerializeField]
     protected Vector2 mLastInput;
     [SerializeField]
@@ -50,14 +48,13 @@ public class PlayerSync : PlayerController
     protected override void Awake()
     {
         base.Awake();
-        tno = GetComponent<NetworkBehaviour>();
     }
 
     void Start()
     {
         lastDirection = transform.rotation;
         Cursor.visible = false;
-        if (!tno.IsMine)
+        if (!nb.IsMine)
         {
             camera.enabled = false;
         }
@@ -68,7 +65,7 @@ public class PlayerSync : PlayerController
     protected override void Update()
     {
 
-        if (!tno.IsMine) return;
+        if (!nb.IsMine) return;
 
         
         base.Update();
@@ -87,7 +84,7 @@ public class PlayerSync : PlayerController
             {
                 Tools.Print("Rotating");
                 lastDirection = transform.rotation;
-                tno.SendRFC(2, Packet.RFC, false, transform.rotation);
+                nb.SendRFC(2, Packet.RFC, false, transform.rotation);
             }
             
             // If the deviation is significant enough, send the update to other players
@@ -95,13 +92,13 @@ public class PlayerSync : PlayerController
             {
                 mLastInputSend = time;
                 mLastInput = mInput;
-                tno.SendRFC(1, Packet.RFC, false, mInput);
+                nb.SendRFC(1, Packet.RFC, false, mInput);
             }
 
             //Wont send anything unless its changed
             if (lastBool != running)
             {
-                tno.SendRFC(5, Packet.RFC, false, running);
+                nb.SendRFC(5, Packet.RFC, false, running);
                 lastBool = running;
             }
 
@@ -110,13 +107,13 @@ public class PlayerSync : PlayerController
             if (mNextRB < time && !jump)
             {
                 mNextRB = time + 1f / rigidbodyUpdates;
-                tno.SendRFC(3, Packet.RFC, false, gameObject.transform.position, gameObject.transform.rotation);
+                nb.SendRFC(3, Packet.RFC, false, gameObject.transform.position, gameObject.transform.rotation);
             }
 
             if (jump)
             {
                 //Sends the Jump trigger
-                tno.SendRFC(4, Packet.RFC, false);
+                nb.SendRFC(4, Packet.RFC, false);
             }
             
         }
@@ -130,7 +127,7 @@ public class PlayerSync : PlayerController
 
     void Lerp()
     {
-        if (!tno.IsMine)
+        if (!nb.IsMine)
         {
             mInput = Vector2.Lerp(mInput, syncAxis, Time.deltaTime * LerpRate);
             transform.rotation = Quaternion.Lerp(transform.rotation, syncRotation, Time.deltaTime * LerpRate);

@@ -118,16 +118,16 @@ namespace NCode.Core.Protocols
             }
             catch (Exception e)
             {
-                Tools.Print("@NTcpProtocol.Connect", Tools.MessageType.error, e);
+                Tools.Print("@NTcpProtocol.Connect", Tools.MessageType.error, e, true);
+                return false;
             }
-            return false;
         }
         
         /// <summary>
         /// Handles timeouts when connecting
         /// </summary>
         /// <param name="obj"></param>
-        void ConnectTimeout(object obj)
+        private void ConnectTimeout(object obj)
         {
             IAsyncResult result = (IAsyncResult)obj;
             if(result != null && !result.AsyncWaitHandle.WaitOne(Timeout, true))
@@ -142,7 +142,7 @@ namespace NCode.Core.Protocols
         /// The connect callback
         /// </summary>
         /// <param name="result"></param>
-        public void ConnectCallback(IAsyncResult result)
+        private void ConnectCallback(IAsyncResult result)
         {
             if (thisSocket == null) return;
             try
@@ -159,13 +159,10 @@ namespace NCode.Core.Protocols
                 //Set the state to verifying
                 State = ConnectionState.verifying;
 
-                
-
                 //Send a verification packet
                 BinaryWriter writer = BeginSend(Packet.RequestClientSetup);
                 writer.Write(ProtocolVersion);
                 EndSend();
-                Tools.Print("Requested Client setup");
            
                 isTryingToConnect = false;
 
@@ -175,7 +172,7 @@ namespace NCode.Core.Protocols
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Tools.Print("@NTcpProtocol:ConnectCallback", Tools.MessageType.error, e);
             }
         }
 
@@ -196,29 +193,37 @@ namespace NCode.Core.Protocols
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.ToString());
+                    Tools.Print("@NTcpProtocol:BeginListening", Tools.MessageType.error, e, true);
+                    return false;
                 }
             }
             return false;
         }
 
-        public void ReceiveCallback(IAsyncResult result)
+        /// <summary>
+        /// The callback for the async receive event. 
+        /// </summary>
+        private void ReceiveCallback(IAsyncResult result)
         {
+            //If the state of this client is 'disconnected' then don't bother. 
             if (State == ConnectionState.disconnected) return;
             int bytes = 0;
             Socket socket = (Socket)result.AsyncState;
+
             try
             {
-                bytes = socket.EndReceive(result);
                 if (socket != thisSocket) return;
+                bytes = socket.EndReceive(result);
             }
-            catch (System.Exception ex)
+            catch (Exception e)
             {
+                Tools.Print("@NTcpProtocol:ReceiveCallback 'socket.EndReceive'", Tools.MessageType.error, e, true);
                 if (socket != thisSocket) return;                
                 Disconnect();
                 return;
             }
 
+            //Set now as being the last time we received a message from this socket. 
             LastReceiveTime = DateTime.UtcNow.Ticks / 10000;
 
             if (bytes == 0)
@@ -231,11 +236,12 @@ namespace NCode.Core.Protocols
 
                 try
                 {
-                    // Queue up the next read operation
+                    // Queue up the next receive operation
                     thisSocket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, ReceiveCallback, thisSocket);
                 }
-                catch (System.Exception ex)
-                {                   
+                catch (Exception e)
+                {
+                    Tools.Print("@NTcpProtocol:ReceiveCallback 'Queue up next receive operation' ", Tools.MessageType.error, e, true);
                     Close();
                 }
             }
@@ -245,8 +251,7 @@ namespace NCode.Core.Protocols
         /// <summary>
         /// Processes packets from the client. (Needs to be refined along with the NPacketContainer
         /// </summary>
-        /// <returns></returns>
-        bool ProcessPacket()
+        private bool ProcessPacket()
         {
             if ( thisSocket != null && buffer.Length != 0)
             {
@@ -257,20 +262,17 @@ namespace NCode.Core.Protocols
                         if (buffer.Length != 0)
                         {
                             NBuffer packet = new NBuffer();
-
                             packet.Initialize(buffer);
                             InQueue.Enqueue(packet);
+                            return true;
                         }
                     }
                 }
                 catch(Exception e)
                 {
-                    Tools.Print("@NTcpProtocol.ProcessPacket", Tools.MessageType.error, e);
+                    Tools.Print("@NTcpProtocol.ProcessPacket", Tools.MessageType.error, e, true);
+                    return false;
                 }
-#if UNITY_EDITOR
-            Tools.Print("Received");
-#endif
-                return true;
             }
             return false;
         }
@@ -278,7 +280,7 @@ namespace NCode.Core.Protocols
         /// <summary>
         /// Closes the socket instantly
         /// </summary>
-        void Close()
+        private void Close()
         {
             if(thisSocket != null)
             {
@@ -290,7 +292,6 @@ namespace NCode.Core.Protocols
         /// <summary>
         /// Disconnects sockets on each end of the connection. 
         /// </summary>
-        /// <returns></returns>
         public bool Disconnect()
         {
             if (thisSocket != null )
@@ -299,7 +300,7 @@ namespace NCode.Core.Protocols
                 {
                     lock (thisSocket)
                     {
-                        Tools.Print(thisSocket.RemoteEndPoint.ToString() + ": disconnected");
+                        Tools.Print(thisSocket.RemoteEndPoint.ToString() + ": disconnected", Tools.MessageType.notification, null, true);
                         thisSocket.Shutdown(SocketShutdown.Both);
                         thisSocket.Close();
                         thisSocket = null;
@@ -307,7 +308,7 @@ namespace NCode.Core.Protocols
                 }
                 catch (Exception e)
                 {
-                    Tools.Print("@NTcpProtocol.Disconnect", Tools.MessageType.error, e);
+                    Tools.Print("@NTcpProtocol.Disconnect", Tools.MessageType.error, e, true);
                 }
                 return true;
             }
@@ -317,8 +318,6 @@ namespace NCode.Core.Protocols
         /// <summary>
         /// Grabs the next packet in the InQueue 
         /// </summary>
-        /// <param name="packet"></param>
-        /// <returns></returns>
         public bool NextPacket(out NBuffer packet)
         {
             lock (InQueue)
@@ -336,8 +335,6 @@ namespace NCode.Core.Protocols
         /// <summary>
         /// Begin the sending process 
         /// </summary>
-        /// <param name="packet"></param>
-        /// <returns></returns>
         public BinaryWriter BeginSend(Packet packet)
         {
             tempPacket = null;
@@ -345,15 +342,10 @@ namespace NCode.Core.Protocols
             return tempPacket.BeginWriting(packet);
         }
 
-        public void SendPacketContainer(NBuffer packet)
-        {
-            Send(packet.EndWriting());         
-        }
-
         /// <summary>
         /// End the sending process
         /// </summary>
-        public void EndSend ()
+        public void EndSend()
         {
             Send(tempPacket.EndWriting());
         }
@@ -362,7 +354,7 @@ namespace NCode.Core.Protocols
         /// Sends the provided byte array to the remote socket
         /// </summary>
         /// <param name="data"></param>
-        void Send(byte[] data)
+        private void Send(byte[] data)
         {
             if (thisSocket != null && isSocketConnected)
             {
@@ -373,11 +365,14 @@ namespace NCode.Core.Protocols
                 }
                 catch (Exception e)
                 {
-                    Tools.Print("@NTcpProtocol.Send", Tools.MessageType.error, e);
+                    Tools.Print("@NTcpProtocol.Send", Tools.MessageType.error, e, true);
                 }
             }
         }
 
+        /// <summary>
+        /// The callback for the async send event. 
+        /// </summary>
         private void SendCallback(IAsyncResult ar)
         {
             try
@@ -390,10 +385,13 @@ namespace NCode.Core.Protocols
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Tools.Print("@NTcpProtocol:SendCallback", Tools.MessageType.error, e, true);
             }
         }    
 
+        /// <summary>
+        /// Pings the remote socket. 
+        /// </summary>
         public void Ping()
         {
             if(thisSocket != null && thisSocket.Connected)

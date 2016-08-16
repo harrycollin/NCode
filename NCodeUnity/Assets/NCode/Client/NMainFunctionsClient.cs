@@ -1,14 +1,10 @@
-﻿
-using NCode.Core;
-using NCode.Core.Protocols;
+﻿using NCode.Core.Protocols;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Text;
 
-namespace NCode
+namespace NCode.Core.Client
 {
     /// <summary>
     /// Contains all properties and values used across the client. 
@@ -29,11 +25,6 @@ namespace NCode
         /// The current tick time of this client.
         /// </summary>
         public long ClientTime = 0;
-
-        /// <summary>
-        /// A temporary packet container. Used for extracting packets
-        /// </summary>
-        public NBuffer tempPacket;
 
         /// <summary>
         /// Whether the player is trying to connect to a server
@@ -100,15 +91,29 @@ namespace NCode
         /// </summary>
         public Dictionary<Guid, NPlayer> ConnectedPlayers = new Dictionary<Guid, NPlayer>();
 
+
+
+        /// <summary>
+        /// Starts the connection process 
+        /// </summary>
+        public bool Start(IPEndPoint ip)
+        {
+            if (TcpClient.Connect(ip))
+            {
+                if (UdpClient.Start(UnityEngine.Random.Range(10000, 50000)))
+                    return true;
+                return false;
+            }
+            return false;
+        }
+
         /// <summary>
         /// Handles the arrival of an NetworkObject
         /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
         public bool ReceiveObject(NetworkObject obj)
         {
             if (obj == null) return false;
-            if (obj.GUID == null) return false;
+            if (obj.GUID == Guid.Empty) return false;
             if (obj.LastChannelID == 0) return false;
             if (NetworkedObjects.ContainsKey(obj.GUID))
             {

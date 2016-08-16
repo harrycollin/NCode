@@ -82,9 +82,7 @@ namespace NCode.Core
             if(bytes != null)
             {
                 PacketLength = reader.ReadInt32();
-                Tools.Print("Buffer Init length: " + PacketLength.ToString());
                 packet = (Packet)reader.ReadByte();
-                Tools.Print("Buffer Init packet: " + packet.ToString());
             }
             used = true;
         }

@@ -17,7 +17,7 @@ namespace NCode
         /// <param name="args"></param>
         static void Main(string[] args)
         {
-            NLogger.LogToFile("Application launched\n");
+            Tools.Print("Application launched");
             
             //The server's system path.
             string systemPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);

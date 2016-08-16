@@ -20,40 +20,44 @@ namespace NCode
         /// <summary>
         /// Used to print various types of messages. 
         /// </summary>
-        /// <param name="msg"></param>
-        /// <param name="type"></param>
-        /// <param name="ex"></param>
-        public static void Print(string msg, MessageType type = MessageType.notification, Exception ex = null, bool Log = false)
+
+        public static void Print(string msg, MessageType type = MessageType.notification, Exception e = null, bool Log = true, bool Print = true)
         {
-            StringBuilder printBuilder = new StringBuilder();
+            if (!Log && !Print) return;
+
             StringBuilder logBuilder = new StringBuilder();
 
             DateTime now = DateTime.Now;
-            printBuilder.Append("[" + now + "]: ");
             logBuilder.Append("[" + now + "]: ");
 
+            //The message type here.
             switch (type)
             {
-                case MessageType.warning: { printBuilder.Append("Warning: "); logBuilder.Append("[[WARNING]]:"); break; }
-                case MessageType.error: { printBuilder.Append("Error: "); logBuilder.Append("[[ERROR]]:"); break; }
+                case MessageType.warning: {  logBuilder.Append("[[WARNING]]: "); break; }
+                case MessageType.error: {  logBuilder.Append("[[ERROR]]: "); break; }
             }
-
-            printBuilder.Append(msg);
-            printBuilder.Append(Environment.NewLine);
+            
             logBuilder.Append(msg);
             logBuilder.Append(Environment.NewLine);
-            if(ex != null) { printBuilder.Append("| Exception: " + ex.ToString()); }
+            if(e != null) { logBuilder.Append("| Exception: " + e.ToString()); }
 
-#if UNITY_EDITOR|| UNITY_STANDALONE
-            Debug.Log(printBuilder.ToString());
+            //Do we want to print this to the console?
+            if (Print)
+            {
+#if UNITY_EDITOR || UNITY_STANDALONE
+                Debug.Log(logBuilder.ToString());
 #else
-            Console.Write(printBuilder.ToString());
+                Console.Write(logBuilder.ToString());
 #endif
-            if (Log) { NLogger.LogToFile(logBuilder.ToString()); }
+            }
+
+            //We aren't logging in Unity yet.
+#if !UNITY_EDITOR && !UNITY_STANDALONE
+            if (Log) 
+            { 
+                NLogger.LogToFile(logBuilder.ToString()); 
+            }
+#endif
         }
-
-        
-
-        
     }
 }

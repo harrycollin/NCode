@@ -8,10 +8,10 @@ using UnityEngine;
 using NCode.Utilities;
 using NCode.Core;
 
-namespace NCode
+namespace NCode.Core.Client
 {
     /// <summary>
-    /// Acts as a more friendly way to carry out network fucntions. Derives from monobehaviour so needs to have an instance of itself in-game. 
+    /// Acts as a more friendly way to carry out network fucntions. Derives from monobehaviour so needs to have an staticInstance of itself in-game. 
     /// </summary>
     public sealed class NClientManager : MonoBehaviour
     {
@@ -21,14 +21,51 @@ namespace NCode
         static NBuffer tempPacket;
 
         /// <summary>
-        /// The instance of the MainClient. This is the core of the networking. 
+        /// The instance of this class. 
         /// </summary>
-        static NMainClient instance = new NMainClient();
+        static NClientManager staticInstance;
+
+        /// <summary>
+        /// The staticInstance of the MainClient. This is the core of the networking. 
+        /// </summary>
+        [System.NonSerialized]NMainClient mainClient = new NMainClient();
+
+
+        void Start()
+        {
+            SetDelegates();
+        }
+        
+        /// <summary>
+        /// Updates every frame. Meaning clients will get network updates processed at the rate of their framerate. 
+        /// </summary>
+        void Update()
+        {
+            if (staticInstance != null && staticInstance.mainClient.isSocketConnected)
+            {
+                staticInstance.mainClient.ClientUpdate();
+                //Dequeues and spawns the network object
+                if (staticInstance.mainClient.WaitingForSpawn.Count > 0)
+                {
+                    SpawnQueuedObject(staticInstance.mainClient.WaitingForSpawn.Dequeue());
+                }
+            }
+        }
 
         void SetDelegates()
         {
-            instance.onRFC = OnRFC;
+            staticInstance.mainClient.onRFC = OnRFC;
+        }
 
+        public static void CreateInstance()
+        {
+            if(staticInstance == null)
+            {
+                GameObject newInstance = new GameObject("NetworkManager");
+                DontDestroyOnLoad(newInstance);
+                staticInstance = newInstance.AddComponent<NClientManager>();
+                newInstance.GetComponent<NClientManager>().enabled = true;
+            }
         }
 
         /// <summary>
@@ -38,11 +75,10 @@ namespace NCode
         /// <param name="port"></param>
         public static bool Connect(string ip, int port)
         {
-            if(instance != null && !instance.isTryingToConnect && !instance.isConnected)
+            if(staticInstance != null && !staticInstance.mainClient.isTryingToConnect && !staticInstance.mainClient.isConnected)
             {
-                if(instance.Start(new IPEndPoint(IPAddress.Parse(ip), port)))
+                if(staticInstance.mainClient.Start(new IPEndPoint(IPAddress.Parse(ip), port)))
                 {
-                    Tools.Print("Hhhshshshhshsxhjvbxdhjvbd");
                     return true;
                 }
             }
@@ -54,42 +90,23 @@ namespace NCode
         /// </summary>
         public static void Disconnect()
         {
-            if (instance.isSocketConnected)
+            if (staticInstance.mainClient.isSocketConnected)
             {
-                instance.TcpClient.Disconnect();
+                staticInstance.mainClient.TcpClient.Disconnect();
             }
         }
 
-        void Awake()
-        {
-            SetDelegates();
-        }
+         
 
         /// <summary>
-        /// Updates every frame. Meaning clients will get network updates processed at the rate of their framerate. 
+        /// Handles RFCs that have just been received.
         /// </summary>
-        void Update()
-        {
-            if (instance != null && instance.isSocketConnected)
-            {
-                instance.ClientUpdate();
-                //Dequeues and spawns the network object
-                if (instance.WaitingForSpawn.Count > 0)
-                {
-                    SpawnQueuedObject(instance.WaitingForSpawn.Dequeue());
-                }
-            }
-        }
-
-        
-
         void OnRFC(int channelID, Guid guid, int RFCID, params object[] parameters)
         {
-            Tools.Print("OnRFC");
             NetworkBehaviour.FindAndExecute(guid, RFCID, parameters);
-
         }
 
+        [System.Obsolete]
         static void SpawnQueuedObject(NetworkObject obj)
         {
             Vector3 pos = NUnityTools.StringToVector3(obj.position);
@@ -102,8 +119,7 @@ namespace NCode
                 go.transform.rotation = rot;
                 if(go.GetComponent<NetworkBehaviour>() == null) { go.AddComponent<NetworkBehaviour>(); }
                 go.GetComponent<NetworkBehaviour>().networkObject = obj;
-                go.GetComponent<NetworkBehaviour>().SetValues();
-                instance.SpawnedNetworkedObjects.Add(obj.GUID, obj);
+                staticInstance.mainClient.SpawnedNetworkedObjects.Add(obj.GUID, obj);
                 NetworkBehaviour.NetworkObjects.Add(obj.GUID, go.GetComponent<NetworkBehaviour>());
             }
             else { Tools.Print("@SpawnQueuedObject - Object is null", Tools.MessageType.error); }
@@ -114,9 +130,9 @@ namespace NCode
         /// </summary>
         public static void SetPacketHandler(Packet packet, NMainFunctionsClient.OnPacket callback)
         {
-            if (instance != null)
+            if (staticInstance != null)
             {
-                instance.packetHandlers[packet] = callback;
+                staticInstance.mainClient.packetHandlers[packet] = callback;
             }
         }
 
@@ -127,16 +143,16 @@ namespace NCode
         /// <returns></returns>
         public static BinaryWriter BeginSend(Packet packet, bool reliable)
         {     
-            if (instance != null && instance.isSocketConnected )
+            if (staticInstance != null && staticInstance.mainClient.isSocketConnected )
             {
                 if (reliable)
-                    return instance.TcpClient.BeginSend(packet);
+                    return staticInstance.mainClient.TcpClient.BeginSend(packet);
                 else
-                    return instance.UdpClient.BeginSend(packet);
+                    return staticInstance.mainClient.UdpClient.BeginSend(packet);
             }     
             else
             {
-                Tools.Print("@NClientManager.BeginSend - Either the MainClient instance is null OR the instance isn't connected and verified", Tools.MessageType.warning);
+                Tools.Print("@NClientManager.BeginSend - Either the MainClient staticInstance is null OR the staticInstance isn't connected and verified", Tools.MessageType.warning);
             }
             return null;
         }
@@ -146,15 +162,15 @@ namespace NCode
         /// </summary>
         public static void EndSend(bool reliable)
         {
-            if(instance != null && instance.isSocketConnected)
+            if(staticInstance != null && staticInstance.mainClient.isSocketConnected)
             {
                 if (reliable)
                 {
-                    instance.TcpClient.EndSend();
+                    staticInstance.mainClient.TcpClient.EndSend();
                 }
                 else
                 {
-                    instance.UdpClient.EndSend(instance.ServerUdpEndpoint);
+                    staticInstance.mainClient.UdpClient.EndSend(staticInstance.mainClient.ServerUdpEndpoint);
                 }
             }
         }
@@ -206,7 +222,7 @@ namespace NCode
             TempObject.GUID = Guid.NewGuid();
             TempObject.position = NUnityTools.Vector3ToString(position);
             TempObject.rotation = NUnityTools.QuaternionToString(rotation);
-            TempObject.owner = instance.TcpClient.SteamID;
+            TempObject.owner = staticInstance.mainClient.TcpClient.SteamID;
             writer.WriteObject(TempObject);
             EndSend(true);
             Tools.Print("Getting there");
@@ -218,7 +234,7 @@ namespace NCode
         /// <returns></returns>
         public static NPlayer LocalPlayer()
         {
-            return instance.TcpClient;
+            return staticInstance.mainClient.TcpClient;
         }
 
         /// <summary>
@@ -228,7 +244,7 @@ namespace NCode
         /// <param name="guid"></param>
         public static void DestroyObject(Guid guid)
         {
-            if(guid != null && DoesObjectExist(guid))
+            if(guid != Guid.Empty && DoesObjectExist(guid))
             {
                 BinaryWriter writer = BeginSend(Packet.RequestDestroyObject, true);
                 writer.WriteObject(guid);
@@ -243,7 +259,7 @@ namespace NCode
         /// <returns></returns>
         public static bool DoesObjectExist(Guid guid)
         {
-            if (instance.NetworkedObjects.ContainsKey(guid)) { return true; }
+            if (staticInstance.mainClient.NetworkedObjects.ContainsKey(guid)) { return true; }
             return false;
         }
 

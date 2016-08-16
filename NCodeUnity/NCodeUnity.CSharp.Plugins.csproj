@@ -5,16 +5,16 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{B95C73EE-4269-2114-3DE1-319621B0F1B6}</ProjectGuid>
+    <ProjectGuid>{EFB77B69-224D-1377-6A32-02CCD20D0A63}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AssemblyName>Assembly-CSharp</AssemblyName>
+    <AssemblyName>Assembly-CSharp-firstpass</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
     <CompilerResponseFile></CompilerResponseFile>
-    <UnityProjectType>Game:1</UnityProjectType>
+    <UnityProjectType>GamePlugins:3</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows:5</UnityBuildTarget>
     <UnityVersion>5.4.0f3</UnityVersion>
     <RootNamespace></RootNamespace>
@@ -66,28 +66,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\DevConsole\Commands\CommandBase.cs" />
-    <Compile Include="Assets\DevConsole\Commands\Commands.cs" />
-    <Compile Include="Assets\DevConsole\Commands\ConsoleCommands.cs" />
-    <Compile Include="Assets\DevConsole\Console.cs" />
-    <Compile Include="Assets\DevConsole\Example.cs" />
-    <Compile Include="Assets\NCode\Client\NAutoJoin.cs" />
-    <Compile Include="Assets\NCode\Client\NClientManager.cs" />
-    <Compile Include="Assets\NCode\Client\NMainClient.cs" />
-    <Compile Include="Assets\NCode\Client\NMainFunctionsClient.cs" />
-    <Compile Include="Assets\NCode\Client\NRFC.cs" />
-    <Compile Include="Assets\NCode\Client\NTarget.cs" />
-    <Compile Include="Assets\NCode\Client\NUnityTools.cs" />
-    <Compile Include="Assets\NCode\Client\NetworkBehaviour.cs" />
-    <Compile Include="Assets\Resources\Scripts\Cameras\CameraManager.cs" />
-    <Compile Include="Assets\Resources\Scripts\Cameras\CarCamera.cs" />
-    <Compile Include="Assets\Resources\Scripts\FirstPersonCharacter\Scripts\PlayerController.cs" />
-    <Compile Include="Assets\Resources\Scripts\PlayerSync.cs" />
-    <Compile Include="Assets\Resources\Scripts\Vehicle\VehicleCamConfig.cs" />
-    <Compile Include="Assets\Script.cs" />
+    <Compile Include="Assets\Plugins\DevConsole\Commands\CommandBase.cs" />
+    <Compile Include="Assets\Plugins\DevConsole\Commands\Commands.cs" />
+    <Compile Include="Assets\Plugins\DevConsole\Commands\ConsoleCommands.cs" />
+    <Compile Include="Assets\Plugins\DevConsole\Console.cs" />
+    <Compile Include="Assets\Plugins\DevConsole\Example.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\DevConsole\ReadMe.txt" />
+    <None Include="Assets\Plugins\DevConsole\ReadMe.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\SyntaxTree\UnityVS\2015\UnityVS.CSharp.targets" />
 </Project>
