@@ -41,8 +41,7 @@ namespace NCode.Core.Client
             if (LastPingTime + 3000 < ClientTime && TcpClient.State == NTcpProtocol.ConnectionState.connected)
             {
                 LastPingTime = ClientTime;
-                BinaryWriter writer = TcpClient.BeginSend(Packet.Ping);
-                TcpClient.EndSend();
+                TcpClient.Ping();
             }
         }
 

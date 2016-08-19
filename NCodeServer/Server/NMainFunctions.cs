@@ -123,6 +123,8 @@ namespace NCode
         /// </summary>
         public Dictionary<Guid, NetworkObject> NetworkObjects = new Dictionary<Guid, NetworkObject>();
 
+
+
         /// <summary>
         /// Adds the player to the PlayersList list.
         /// </summary>

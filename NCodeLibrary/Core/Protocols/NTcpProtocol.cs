@@ -48,6 +48,11 @@ namespace NCode.Core.Protocols
         public int Timeout = 5000;
 
         /// <summary>
+        /// The Round trip time (Ping) of this client.
+        /// </summary>
+        public long RTT = 0;
+
+        /// <summary>
         /// A buffer for receiving packets into. 
         /// </summary>
         byte[] buffer = new byte[8192];

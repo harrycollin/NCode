@@ -26,6 +26,8 @@ namespace NCode.Core.Client
         /// </summary>
         public long ClientTime = 0;
 
+        public DateTime PingSent;
+
         /// <summary>
         /// Whether the player is trying to connect to a server
         /// </summary>

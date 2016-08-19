@@ -407,7 +407,8 @@ namespace NCode
                         }
                     case Packet.Ping:
                         {
-                            int playerTime = reader.ReadInt32();                  
+                            player.RTT = reader.ReadInt32();
+                            player.Ping();                
                             break;
                         }
                     case Packet.RequestJoinChannel:

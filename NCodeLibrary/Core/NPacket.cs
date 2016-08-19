@@ -13,8 +13,13 @@
         /// <summary>
         /// Used to let the other half that a critical error has occured. This will lead to a immediate disconnect. 
         /// </summary>
-        Error, 
-        
+        Error,
+
+        /// <summary>
+        /// Sends and Receives Pings between server and client.
+        /// </summary>
+        Ping,
+
         /// <summary>
         /// A safe way of letting the server know that you're going to disconnect. 
         /// </summary>
@@ -50,10 +55,7 @@
         /// </summary>
         ResponseLeaveChannel,
         
-        /// <summary>
-        /// Sends and Receives Pings between server and client.
-        /// </summary>
-        Ping,
+        
 
         /// <summary>
         /// First packet that should be sent to the server. Otherwise you'll get disconnected. Contains version, steam info etc. 
