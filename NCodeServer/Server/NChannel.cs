@@ -40,7 +40,19 @@ namespace NCode
         {
             if (IsPlayerConnected(player))
             {
-                
+                //Remove all none persistent objects in the channel for this player
+                int count = 0;
+
+                foreach (KeyValuePair<Guid, NetworkObject> i in channelObjects)
+                {
+                    if(i.Value.NetworkOwnerGUID == player.ClientGUID && !i.Value.Persistant)
+                    {
+                        count++;
+                        channelObjects.Remove(i.Key);
+                    }
+                }
+                Tools.Print("Removed " + count.ToString() + " Network objects");
+                //Remove the player
                 Players.Remove(player);
                 return true;
             }

@@ -139,7 +139,7 @@ namespace NCode.Core.Protocols
                 }
                 catch (System.Exception e)
                 {
-                    Tools.Print("UDP next queued up");
+                    
                 }
             }
         }
@@ -192,9 +192,7 @@ namespace NCode.Core.Protocols
                         try
                         {
                             // If it's the first datagram, begin the sending process
-                            Tools.Print("Buffer Length : " + buffer.EntirePacket.Length.ToString());
                             thisSocket.BeginSendTo(buffer.EntirePacket, 0, buffer.PacketLength, SocketFlags.None, ip, OnSend, null);
-                            Tools.Print(buffer.packet.ToString() + " " + buffer.PacketLength);
                         }
                         catch (Exception ex)
                         {

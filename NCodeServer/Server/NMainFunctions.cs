@@ -175,13 +175,18 @@ namespace NCode
         {
             if (client != null)
             {
-
+                Tools.Print(ActiveChannels.Count.ToString());
                 for (int i = 0; i < ActiveChannels.Count; i++)
                 {
+                    Tools.Print("1");
                     if (ActiveChannels.ContainsKey(i))
-                     {
+                    {
+                        Tools.Print("2");
+
                         if (ActiveChannels[i].IsPlayerConnected(client))
                         {
+
+                            Tools.Print("Player Removed from channel");
                             ActiveChannels[i].RemovePlayer(client);
                         }
                     }
@@ -217,22 +222,24 @@ namespace NCode
             BinaryWriter writer = player.BeginSend(Packet.ResponseClientSetup);
             if(reader.ReadInt32() == player.ProtocolVersion) //Correct protocol version
             {
-                Guid guid = Guid.NewGuid(); //Generate a new Guid for this client.
-                player.ClientGUID = guid; //Assign the Guid to the player.
+                player.ClientGUID = Guid.NewGuid(); //Assign the Guid to the player.
                 player.State = NTcpProtocol.ConnectionState.connected; //Change the player's connection status.
-                PlayerDictionary.Add(guid, player); //Add the player to the player dictionary for quicker access that doesn't require iterations.
+                PlayerDictionary.Add(player.ClientGUID, player); //Add the player to the player dictionary for quicker access that doesn't require iterations.
 
-                writer.Write(true); //Tell the client their client version is matched.
+                writer.Write((byte)1); //Tell the client their client version is matched.
+                writer.WriteObject(player.ClientGUID); //Let the client know what their Guid is. 
                 writer.Write(UdpPort); //Let the client know which port to send udp packets to.              
-                writer.WriteObject(guid); //Let the client know what their Guid is. 
-                Tools.Print("Sending GUID:" + guid.ToString());
-                player.EndSend(); 
+                player.EndSend();
+
+
+                Tools.Print("Sending GUID:" + player.ClientGUID.ToString());
+
 
                 Tools.Print(player.thisSocket.RemoteEndPoint.ToString() + " connected."); //Log the event. 
             }
             else //Incorrect protocol version
             {
-                writer.Write(false); //Tell the client that their version is a mismatch.
+                writer.Write((byte)0); //Tell the client that their version is a mismatch.
                 Tools.Print(player.thisSocket.RemoteEndPoint.ToString() + " attempted to connect with the wrong client version. Disconnecting and notififying."); //Log the event. 
                 player.EndSend();
                 RemovePlayer(player);
@@ -347,11 +354,16 @@ namespace NCode
             //Remove the player from channel
             if (ActiveChannels[ID].IsPlayerConnected(player))
             {
+                //Remove player from channel
                 ActiveChannels[ID].RemovePlayer(player);
                 //Remove from player's list of connected channels
                 player.ConnectedChannels.Remove(ActiveChannels[ID]);
+
                 Tools.Print(player.thisSocket.RemoteEndPoint.ToString() + " has left channel " + ID);
-                            return true;
+
+                
+
+                return true;
             }
             else
             {

@@ -1,4 +1,5 @@
 ﻿using NCode.Core.Protocols;
+using NCode.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,7 +10,7 @@ namespace NCode.Core.Client
     /// <summary>
     /// Contains all properties and values used across the client. 
     /// </summary>
-    public class NMainFunctionsClient
+    public class NMainFunctionsClient : ClientEvents
     {
         /// <summary>
         /// The Tcp protocol for this player.
@@ -42,18 +43,14 @@ namespace NCode.Core.Client
         public bool isSocketConnected { get { return TcpClient.isSocketConnected; } }
 
         /// <summary>
-        /// The endpoint for udp traffic on the server.
+        /// Whether the Udp Client is setup
         /// </summary>
-        public IPEndPoint ServerUdpEndpoint;
+        public bool isUdpSetup { get { return UdpClient.isActive; } }
 
         /// <summary>
-        /// A dictionary of custom packet listeners. The key is the packet. 
+        /// The endpoint for udp traffic on the server.
         /// </summary>
-        public Dictionary<Packet, OnPacket> packetHandlers = new Dictionary<Packet, OnPacket>();
-        public delegate void OnPacket(Packet response, BinaryReader reader);
-
-        public OnRFC onRFC;
-        public delegate void OnRFC(int channelID, Guid guid, int RFCID, params object[] parameters);
+        public IPEndPoint ServerUdpEndpoint;    
 
         /// <summary>
         /// The last time this client sent a ping.
@@ -76,14 +73,9 @@ namespace NCode.Core.Client
         public Queue<NetworkObject> WaitingForSpawn = new Queue<NetworkObject>();
 
         /// <summary>
-        /// Dictionary of cached RFCs for quick access.
-        /// </summary>
-        public Dictionary<int, CachedFunc> CachedRFCs = new Dictionary<int, CachedFunc>();
-
-        /// <summary>
         /// Currently connected channels
         /// </summary>
-        public List<int> ConnectedChannels = new List<int>();
+        public System.Collections.Generic.List<int> ConnectedChannels = new System.Collections.Generic.List<int>();
 
 
         /// <summary>
@@ -96,19 +88,91 @@ namespace NCode.Core.Client
         /// <summary>
         /// Starts the connection process 
         /// </summary>
-        public bool Start(IPEndPoint ip)
+        public bool Connect(IPEndPoint ip)
         {
             if (TcpClient.Connect(ip))
             {
                 if (UdpClient.Start(UnityEngine.Random.Range(10000, 50000)))
+                {
                     return true;
-                return false;
+                }
+            }
+            return false;
+        }
+
+        public bool Disconnect()
+        {
+            if (TcpClient.Disconnect())
+            {
+                onDisconnect();
+                return true;
             }
             return false;
         }
 
         /// <summary>
-        /// Handles the arrival of an NetworkObject
+        /// Handles the responseJoinChannel packet.
+        /// </summary>
+        public void ResponseJoinChannel(BinaryReader reader)
+        {
+            int channelID = reader.ReadInt32();
+            if (channelID != 0)
+            {
+                if (reader.ReadBoolean())
+                {
+                    if (!ConnectedChannels.Contains(channelID)) { ConnectedChannels.Add(channelID); onJoinChannel(channelID, true); }
+                }
+                else
+                {
+                    onJoinChannel(channelID, false);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handles the ResponseLeaveChannel packet.
+        /// </summary>
+        public void ResponseLeaveChannel(BinaryReader reader)
+        {
+            int channelID = reader.ReadInt32();
+            if (channelID != 0)
+            {
+                if (reader.ReadBoolean())
+                {
+                    if (ConnectedChannels.Contains(channelID)) { ConnectedChannels.Remove(channelID); onLeaveChannel(channelID, true); }
+                }
+                else
+                {
+                    onLeaveChannel(channelID, false);
+                }
+            }
+        }
+
+        public void ResponseClientSetup(BinaryReader reader)
+        {
+            if (reader.ReadByte() == 0)
+            {
+                TcpClient.Disconnect();
+                Tools.Print("Server - Client version mismatch");
+            }
+            else
+            {
+                TcpClient.ClientGUID = (Guid)reader.ReadObject();           
+                IPEndPoint remoteIp = TcpClient.thisSocket.RemoteEndPoint as IPEndPoint;
+                ServerUdpEndpoint = new IPEndPoint(remoteIp.Address, reader.ReadInt32());
+
+                TcpClient.State = NTcpProtocol.ConnectionState.connected;
+
+                BinaryWriter writer = UdpClient.BeginSend(Packet.SetupUDP);
+                writer.WriteObject(TcpClient.ClientGUID);
+                UdpClient.EndSend(ServerUdpEndpoint);
+
+                onConnect();
+            }
+        }
+
+        /// <summary>
+        /// Handles the arrival of an NetworkObject (either a new one or just an update)
         /// </summary>
         public bool ReceiveObject(NetworkObject obj)
         {
@@ -125,7 +189,7 @@ namespace NCode.Core.Client
                 Tools.Print(obj.GUID.ToString());
             }
 
-            WaitingForSpawn.Enqueue(obj);
+            onObjectUpdate(obj);
             return true;
         }
 

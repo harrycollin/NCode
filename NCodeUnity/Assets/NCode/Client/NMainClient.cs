@@ -3,6 +3,7 @@ using System.IO;
 using System;
 using NCode.Utilities;
 using NCode.Core.Protocols;
+using UnityEngine;
 
 namespace NCode.Core.Client
 {
@@ -13,28 +14,27 @@ namespace NCode.Core.Client
         /// </summary>
         public void ClientUpdate()
         {
-            if (!TcpClient.isSocketConnected) { return; }
+            if (!TcpClient.isSocketConnected) { onDisconnect(); return; }
 
             //Set the client time
             ClientTime = DateTime.UtcNow.Ticks / 10000;
 
-            //Temporary variables for Udp packets
-            NBuffer tempUdpBuffer;
+            //Temporary variables for packets
+            NBuffer tempBuffer;
             IPEndPoint tempIP;
 
+            bool keepProcessing = true;
+       
             //Process all Udp packets first.
-            if (UdpClient.ReceivePacket(out tempUdpBuffer, out tempIP))
+            while (keepProcessing && UdpClient.ReceivePacket(out tempBuffer, out tempIP))
             {
-                ProcessPacket(tempUdpBuffer, tempIP);
+                keepProcessing = ProcessPacket(tempBuffer, tempIP);
             }
 
-            //Temp buffer for Tcp packets
-            NBuffer tempTcpBuffer;
-
             //Process Tcp packets
-            if (TcpClient.NextPacket(out tempTcpBuffer))
-            {
-                ProcessPacket(tempTcpBuffer);
+            while (keepProcessing && TcpClient.NextPacket(out tempBuffer))
+            {               
+                ProcessPacket(tempBuffer);               
             }
 
             //Check if we need to ping (failing to ping reguarly will result in the server disconnecting this player).
@@ -68,23 +68,21 @@ namespace NCode.Core.Client
             {
                 case Packet.RFC:
                     {
-                        int channelID = reader.ReadInt32();
-                        Guid guid = reader.ReadGUID();
-                        int RFCID = reader.ReadInt32();
-                        object[] parameters = reader.ReadObjectArrayEx();
-                        onRFC(channelID, guid, RFCID, parameters);
+                        //int channelID = reader.ReadInt32();
+                        //Guid guid = reader.ReadGUID();
+                        //int RFCID = reader.ReadInt32();
+                        //object[] parameters = reader.ReadObjectArrayEx();
+                        onRFC(reader.ReadInt32(), (Guid)reader.ReadObject(), reader.ReadInt32(), reader.ReadObjectArrayEx());
                         break;
                     }
                 case Packet.ResponseJoinChannel:
                     {
-                        int channelID = reader.ReadInt32();
-                        if (channelID != 0)
-                        {
-                            if (reader.ReadBoolean())
-                            {
-                                if (!ConnectedChannels.Contains(channelID)) { ConnectedChannels.Add(channelID); }
-                            }
-                        }
+                        ResponseJoinChannel(reader);
+                        break;
+                    }
+                case Packet.ResponseLeaveChannel:
+                    {
+                        ResponseLeaveChannel(reader);
                         break;
                     }
                 case Packet.Ping:
@@ -95,23 +93,7 @@ namespace NCode.Core.Client
                     }
                 case Packet.ResponseClientSetup:
                     {
-                        if (!reader.ReadBoolean())
-                        {
-                            TcpClient.Disconnect();
-                            Tools.Print("Server - Client version mismatch");
-                        }
-                        else
-                        {
-                            TcpClient.State = NTcpProtocol.ConnectionState.connected;
-                            IPEndPoint remoteIp = TcpClient.thisSocket.RemoteEndPoint as IPEndPoint;
-                            ServerUdpEndpoint = new IPEndPoint(remoteIp.Address, reader.ReadInt32());
-                            TcpClient.ClientGUID = (Guid)reader.ReadObject();
-
-                            BinaryWriter writer = UdpClient.BeginSend(Packet.SetupUDP);
-                            writer.WriteObject(TcpClient.ClientGUID);
-                            Tools.Print("Reading GUID:" + TcpClient.ClientGUID.ToString());
-                            UdpClient.EndSend(ServerUdpEndpoint);
-                        }
+                        ResponseClientSetup(reader);
                         break;
                     }
                 case Packet.ClientObjectUpdate:
@@ -138,6 +120,7 @@ namespace NCode.Core.Client
                         break;
                     }
             }
+            reader = null;
             return false;
         }
     }

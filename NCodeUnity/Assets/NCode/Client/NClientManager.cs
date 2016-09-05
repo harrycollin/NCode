@@ -11,15 +11,10 @@ using NCode.Core;
 namespace NCode.Core.Client
 {
     /// <summary>
-    /// Acts as a more friendly way to carry out network fucntions. Derives from monobehaviour so needs to have an staticInstance of itself in-game. 
+    /// Acts as a more friendly way to carry out network functions. Derives from monobehaviour so needs to have an instance of itself in-game. 
     /// </summary>
     public sealed class NClientManager : MonoBehaviour
     {
-        /// <summary>
-        /// A temporary packet to write to. 
-        /// </summary>
-        static NBuffer tempPacket;
-
         /// <summary>
         /// The instance of this class. 
         /// </summary>
@@ -28,9 +23,42 @@ namespace NCode.Core.Client
         /// <summary>
         /// The staticInstance of the MainClient. This is the core of the networking. 
         /// </summary>
-        [System.NonSerialized]NMainClient mainClient = new NMainClient();
+        [System.NonSerialized]
+        NMainClient mainClient = new NMainClient();
+
+        /// <summary>
+        /// A temporary packet to write to. 
+        /// </summary>
+        static NBuffer tempPacket;
 
 
+        public static ClientEvents.OnConnect onConnect { get { return staticInstance != null ? staticInstance.mainClient.onConnect : null; } set { if (staticInstance != null && Application.isEditor) staticInstance.mainClient.onConnect = value; } }
+        
+        public static ClientEvents.OnDisconnect onDisconnect { get { return staticInstance != null ? staticInstance.mainClient.onDisconnect : null; } set { if (staticInstance != null && Application.isEditor) staticInstance.mainClient.onDisconnect = value; } }
+
+        public static ClientEvents.OnJoinChannel onJoinChannel { get { return staticInstance != null ? staticInstance.mainClient.onJoinChannel : null; } set { if (staticInstance != null && Application.isEditor) staticInstance.mainClient.onJoinChannel = value; } }
+
+        public static ClientEvents.OnLeaveChannel onLeaveChannel { get { return staticInstance != null ? staticInstance.mainClient.onLeaveChannel : null; } set { if (staticInstance != null && Application.isEditor) staticInstance.mainClient.onLeaveChannel = value; } }
+
+
+        public static ClientEvents.OnRFC onRFC { get { return staticInstance != null ? staticInstance.mainClient.onRFC : null; } set { if (staticInstance != null && Application.isEditor) staticInstance.mainClient.onRFC = value; } }
+
+        /// <summary>
+        /// Whether a connect operation is in progress.
+        /// </summary>
+        public static bool isTryingToConnect { get { return staticInstance != null ? staticInstance.mainClient.isTryingToConnect : false; } }
+        /// <summary>
+        /// Whether the player is connected and verified with the server.
+        /// </summary>
+        public static bool isConnected { get { return staticInstance != null ? staticInstance.mainClient.isConnected : false; } }
+        /// <summary>
+        /// The endpoint of the remote server if connected.
+        /// </summary>
+        public static EndPoint RemoteServerEndPoint { get { return staticInstance != null && isConnected ? staticInstance.mainClient.TcpClient.thisSocket.RemoteEndPoint : null; } }
+
+        /// <summary>
+        /// Start method from monobehaviour
+        /// </summary>                     
         void Start()
         {
             SetDelegates();
@@ -57,6 +85,7 @@ namespace NCode.Core.Client
             staticInstance.mainClient.onRFC = OnRFC;
         }
 
+
         public static void CreateInstance()
         {
             if(staticInstance == null)
@@ -77,7 +106,7 @@ namespace NCode.Core.Client
         {
             if(staticInstance != null && !staticInstance.mainClient.isTryingToConnect && !staticInstance.mainClient.isConnected)
             {
-                if(staticInstance.mainClient.Start(new IPEndPoint(IPAddress.Parse(ip), port)))
+                if(staticInstance.mainClient.Connect(new IPEndPoint(IPAddress.Parse(ip), port)))
                 {
                     return true;
                 }
@@ -96,7 +125,7 @@ namespace NCode.Core.Client
             }
         }
 
-         
+
 
         /// <summary>
         /// Handles RFCs that have just been received.
@@ -178,12 +207,10 @@ namespace NCode.Core.Client
         /// <summary>
         /// Sends a request to join the given channel. 
         /// </summary>
-        /// <param name="ID"></param>
         public static void JoinChannel(int ID)
         {
-            if(ID > 0)
+            if(ID > 0 && staticInstance.mainClient.isConnected)
             {
-                Tools.Print(ID.ToString());
                 BinaryWriter writer = BeginSend(Packet.RequestJoinChannel, true);
                 writer.Write(ID);
                 EndSend(true);
@@ -193,7 +220,6 @@ namespace NCode.Core.Client
         /// <summary>
         /// Sends a request to leave a given channel.
         /// </summary>
-        /// <param name="ID"></param>
         public static void LeaveChannel(int ID)
         {
             Tools.Print("Leave" + ID);
@@ -209,9 +235,6 @@ namespace NCode.Core.Client
         /// <summary>
         /// Creates a new NetworkObject and sends it to the server for proccessing. 
         /// </summary>
-        /// <param name="PrefabID"></param>
-        /// <param name="position"></param>
-        /// <param name="rotation"></param>
         public static void CreateNewObject(int channelID, int PrefabID, bool Persistant, Vector3 position, Quaternion rotation)
         {            
             BinaryWriter writer = BeginSend(Packet.RequestCreateObject, true);
@@ -223,9 +246,9 @@ namespace NCode.Core.Client
             TempObject.position = NUnityTools.Vector3ToString(position);
             TempObject.rotation = NUnityTools.QuaternionToString(rotation);
             TempObject.owner = staticInstance.mainClient.TcpClient.SteamID;
+            TempObject.NetworkOwnerGUID = staticInstance.mainClient.TcpClient.ClientGUID;
             writer.WriteObject(TempObject);
             EndSend(true);
-            Tools.Print("Getting there");
         }
 
         /// <summary>

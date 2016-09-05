@@ -6,6 +6,11 @@
     public enum Packet
     {
         /// <summary>
+        /// Any form of data.
+        /// </summary>
+        TestData,
+
+        /// <summary>
         /// A simple empty packet. Can simply be used to keep the connection alive. 
         /// </summary>
         Empty, 

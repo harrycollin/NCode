@@ -389,10 +389,9 @@ namespace NCode
             if (packet.packet != 0)
             {
                 Packet p = packet.packet;
-                Tools.Print(p.ToString());
                 if (player.State != NTcpProtocol.ConnectionState.connected && p != Packet.RequestClientSetup) { RemovePlayer(player); }
 
-
+                Tools.Print("Received Packet: " + p.ToString());
                 //Put higher priority cases at the top.
                 switch (p)
                 {
@@ -429,6 +428,12 @@ namespace NCode
                         {
                             NetworkObject obj = (NetworkObject)reader.ReadObject();
                             ClientRequestCreateObject(obj, player);
+                            break;
+                        }
+                    case Packet.TestData:
+                        {
+                            Tools.Print(reader.ReadBoolean().ToString());
+                            Tools.Print(reader.ReadInt32().ToString());
                             break;
                         }
                 }

@@ -206,7 +206,7 @@ namespace NCode.Core.Protocols
         private void ReceiveCallback(IAsyncResult result)
         {
             //If the state of this client is 'disconnected' then don't bother. 
-            if (State == ConnectionState.disconnected) return;
+            if (!isSocketConnected) return;
             int bytes = 0;
             Socket socket = (Socket)result.AsyncState;
 
@@ -231,13 +231,14 @@ namespace NCode.Core.Protocols
                 Close();
             }
             else if (ProcessPacket())
-            {
-                if (State == ConnectionState.disconnected) return;
-
+            {              
                 try
                 {
-                    // Queue up the next receive operation
-                    thisSocket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, ReceiveCallback, thisSocket);
+                    if (isSocketConnected)
+                    {
+                        // Queue up the next receive operation
+                        thisSocket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, ReceiveCallback, thisSocket);
+                    }
                 }
                 catch (Exception e)
                 {
@@ -253,7 +254,7 @@ namespace NCode.Core.Protocols
         /// </summary>
         private bool ProcessPacket()
         {
-            if ( thisSocket != null && buffer.Length != 0)
+            if ( thisSocket != null && isSocketConnected && buffer.Length != 0)
             {
                 try
                 {
@@ -294,7 +295,7 @@ namespace NCode.Core.Protocols
         /// </summary>
         public bool Disconnect()
         {
-            if (thisSocket != null )
+            if (thisSocket != null && isSocketConnected)
             {
                 try
                 {
@@ -304,6 +305,7 @@ namespace NCode.Core.Protocols
                         thisSocket.Shutdown(SocketShutdown.Both);
                         thisSocket.Close();
                         thisSocket = null;
+                        State = ConnectionState.disconnected;
                     }
                 }
                 catch (Exception e)
@@ -394,7 +396,7 @@ namespace NCode.Core.Protocols
         /// </summary>
         public void Ping()
         {
-            if(thisSocket != null && thisSocket.Connected)
+            if(thisSocket != null && isSocketConnected)
             {
                 BinaryWriter writer = BeginSend(Packet.Ping);
                 EndSend();

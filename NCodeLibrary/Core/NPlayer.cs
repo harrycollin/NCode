@@ -2,14 +2,23 @@
 
 namespace NCode.Core
 {
+    /// <summary>
+    /// The lowest point of inheritance when it comes to anything player orientated. 
+    /// </summary>
     [Serializable]
     public class NPlayer
     {
-        public Guid ClientGUID;
+        public bool isPlayerTCPConnected = false;
 
-        public string SteamID = "";
+        public bool isPlayerUDPConnected = false;
 
-        public string Aliase { get; set; }
+        public bool isPlayerSetupComplete = false;
+
+        public Guid ClientGUID = Guid.Empty;
+
+        public string SteamID = null;
+
+        public string Aliase = null;
 
         public NPlayer thisPlayer()
         {
