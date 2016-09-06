@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using System.Net;
 using System.Collections.Generic;
 using NCode;
+using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour {
 
@@ -25,7 +26,8 @@ public class MainMenu : MonoBehaviour {
         NClientManager.onDisconnect += OnDisconnect;
         NClientManager.onJoinChannel += OnJoinChannel;
         NClientManager.onLeaveChannel += OnLeaveChannel;
-	}
+    }
+
 
     public void Connect()
     {
@@ -40,6 +42,13 @@ public class MainMenu : MonoBehaviour {
         }
     }
 
+    public void LoadObjectSync1()
+    {
+        if (NClientManager.isConnected)
+        {
+            SceneManager.LoadScene(1);
+        }
+    }
 
     public void JoinChannel()
     {

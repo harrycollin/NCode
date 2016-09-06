@@ -169,26 +169,17 @@ namespace NCode
         /// <summary>
         /// Removes the player from the PlayersList list.
         /// </summary>
-        /// <param name="client"></param>
         /// <returns></returns>
         public bool RemovePlayer(NTcpPlayer client)
         {
             if (client != null)
-            {
-                Tools.Print(ActiveChannels.Count.ToString());
-                for (int i = 0; i < ActiveChannels.Count; i++)
+            {               
+                foreach(KeyValuePair<int, NChannel> i in ActiveChannels)
                 {
-                    Tools.Print("1");
-                    if (ActiveChannels.ContainsKey(i))
+                    if (ActiveChannels[i.Key].IsPlayerConnected(client))
                     {
-                        Tools.Print("2");
-
-                        if (ActiveChannels[i].IsPlayerConnected(client))
-                        {
-
-                            Tools.Print("Player Removed from channel");
-                            ActiveChannels[i].RemovePlayer(client);
-                        }
+                        ActiveChannels[i.Key].RemovePlayer(client);
+                        Tools.Print("Player Removed from Channel:" + i.Key);
                     }
                 }
                 //onPlayerDisconnect(client);
@@ -199,6 +190,7 @@ namespace NCode
             }
             return false;
         }
+
         /// <summary>
         /// Removes the player from the PlayersList list.
         /// </summary>
@@ -348,9 +340,25 @@ namespace NCode
         public bool LeaveChannel(int ID, NTcpPlayer player)
         {
             //Check for null values
-            if (ID == 0 || player == null) return false;
+            if (player == null) return false;
+
+            BinaryWriter writer = player.BeginSend(Packet.ResponseLeaveChannel);
+
+            if (ID == 0)
+            {
+                RemovePlayer(player);
+                return false;
+            }
+
+            writer.Write(ID);
+
             //Check to see if the channel exists
-            if (!ActiveChannels.ContainsKey(ID)) return false;
+            if (!ActiveChannels.ContainsKey(ID))
+            {
+                writer.Write(false);
+                player.EndSend();
+            }
+
             //Remove the player from channel
             if (ActiveChannels[ID].IsPlayerConnected(player))
             {
@@ -358,15 +366,15 @@ namespace NCode
                 ActiveChannels[ID].RemovePlayer(player);
                 //Remove from player's list of connected channels
                 player.ConnectedChannels.Remove(ActiveChannels[ID]);
-
                 Tools.Print(player.thisSocket.RemoteEndPoint.ToString() + " has left channel " + ID);
-
-                
-
+                writer.Write(true);
+                player.EndSend();
                 return true;
             }
             else
             {
+                writer.Write(false);
+                player.EndSend();
                 return false;
             }
         }
@@ -504,14 +512,17 @@ namespace NCode
         /// <returns></returns>
         public bool ClientRequestCreateObject(NetworkObject obj, NTcpPlayer player)
         {
-            Tools.Print(obj.LastChannelID.ToString());
             if (obj == null || obj.LastChannelID == 0) return false;
+            //Does the channel exist?
             if (ActiveChannels.ContainsKey(obj.LastChannelID))
-            {
+            {   
+                //Is the player in that channel?
                 if (ActiveChannels[obj.LastChannelID].IsPlayerConnected(player))
                 {
+                    //Adds the object to the channel if it isn't already in it.
                     if (ActiveChannels[obj.LastChannelID].AddObject(obj))
                     {
+                        //Sends the update to all clients including the sender. 
                         for (int i = 0; i < ActiveChannels[obj.LastChannelID].Players.Count; i++)
                         {
                             BinaryWriter writer = ActiveChannels[obj.LastChannelID].Players[i].BeginSend(Packet.ClientObjectUpdate);

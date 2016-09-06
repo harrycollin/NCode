@@ -188,8 +188,8 @@ namespace NCode.Core.Client
                 NetworkedObjects.Add(obj.GUID, obj);
                 Tools.Print(obj.GUID.ToString());
             }
-
-            onObjectUpdate(obj);
+            WaitingForSpawn.Enqueue(obj);
+            //onObjectUpdate(obj);
             return true;
         }
 

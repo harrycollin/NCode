@@ -42,14 +42,27 @@ namespace NCode
             {
                 //Remove all none persistent objects in the channel for this player
                 int count = 0;
+                //Create a list to store the objects that need removing. You can't modify the dictionary whilst it is iterating.
+                System.Collections.Generic.List<KeyValuePair<Guid, NetworkObject>> objectsToRemove = new System.Collections.Generic.List<KeyValuePair<Guid, NetworkObject>>();
 
-                foreach (KeyValuePair<Guid, NetworkObject> i in channelObjects)
+                lock (channelObjects)
                 {
-                    if(i.Value.NetworkOwnerGUID == player.ClientGUID && !i.Value.Persistant)
+                    //Find the objects to remove.
+                    foreach (KeyValuePair<Guid, NetworkObject> i in channelObjects)
                     {
-                        count++;
-                        channelObjects.Remove(i.Key);
+                        if (i.Value.NetworkOwnerGUID == player.ClientGUID && !i.Value.Persistant)
+                        {
+                            count++;
+                            objectsToRemove.Add(i);
+                        }
                     }
+
+                    //Remove them without iterating the dictionary
+                    for(int i = 0; i < objectsToRemove.Count; i++)
+                    {
+                        channelObjects.Remove(objectsToRemove[i].Key);
+                    }
+
                 }
                 Tools.Print("Removed " + count.ToString() + " Network objects");
                 //Remove the player
@@ -116,8 +129,9 @@ namespace NCode
         /// <returns></returns>
         public bool AddObject(NetworkObject obj)
         {
-            if(obj != null && obj.GUID != null && !DoesObjectExist(obj.GUID))
+            if(obj != null && obj.GUID != Guid.Empty && !DoesObjectExist(obj.GUID))
             {
+                Tools.Print(obj.GUID.ToString() + " was added to Channel:" + ID);
                 channelObjects.Add(obj.GUID, obj);
                 return true;
             }

@@ -425,9 +425,8 @@ namespace NCode
                             break;
                         }                 
                     case Packet.RequestCreateObject:
-                        {
-                            NetworkObject obj = (NetworkObject)reader.ReadObject();
-                            ClientRequestCreateObject(obj, player);
+                        {                       
+                            ClientRequestCreateObject((NetworkObject)reader.ReadObject(), player);
                             break;
                         }
                     case Packet.TestData:
