@@ -240,6 +240,25 @@ namespace NCode
         }
 
         /// <summary>
+        /// Moves a network object from channelA to channelB
+        /// </summary>
+        /// <param name="channelA"></param>
+        /// <param name="channelB"></param>
+        /// <param name="guid"></param>
+        /// <returns></returns>
+        public bool RequestTransferObject(int channelA, int channelB, Guid guid)
+        {
+            if(guid != Guid.Empty && ActiveChannels.ContainsKey(channelA) && ActiveChannels.ContainsKey(channelB))
+            {
+                if (ActiveChannels[channelB].AddObject(ActiveChannels[channelA].RemoveObjectForTransfer(guid)))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Handles a RFC 
         /// </summary>
         public void ReceiveRFC(NTcpPlayer player, BinaryReader reader, NBuffer packet)

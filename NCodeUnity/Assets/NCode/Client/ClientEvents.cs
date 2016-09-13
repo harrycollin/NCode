@@ -47,5 +47,8 @@ namespace NCode.Core.Client
         /// </summary>
         public OnObjectUpdate onObjectUpdate;
         public delegate void OnObjectUpdate(NetworkObject obj);
+
+        public OnDestroyObject onDestroyObject;
+        public delegate void OnDestroyObject(Guid guid);
     }
 }

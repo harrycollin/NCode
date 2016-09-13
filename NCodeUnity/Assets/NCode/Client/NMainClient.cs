@@ -101,6 +101,11 @@ namespace NCode.Core.Client
                         ReceiveObject((NetworkObject)reader.ReadObject());
                         break;
                     }
+                case Packet.ResponseDestroyObject:
+                    {
+                        onDestroyObject((Guid)reader.ReadObject());
+                        break;
+                    }
                 case Packet.PlayerUpdate:
                     {
                         ReceivePlayerUpdate((NPlayer)reader.ReadObject(), reader.ReadBoolean());

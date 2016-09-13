@@ -125,7 +125,10 @@ namespace NCode.Core.Client
             }
         }
 
-
+        void OnDestroyObject(Guid guid)
+        {
+            
+        }
 
         /// <summary>
         /// Handles RFCs that have just been received.

@@ -9,6 +9,8 @@ namespace NCode
 {
     public class NTcpPlayer : NTcpProtocol 
     {
+        public NetworkObject AttachedNetworkObject;
+
         public List<NChannel> ConnectedChannels = new List<NChannel>();
 
         /// <summary>

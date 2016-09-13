@@ -90,6 +90,14 @@
         /// </summary>
         ResponseDestroyObject,
 
+        RequestObjectJoinChannel,
+        
+        ResponseObjectJoinChannel,
+        
+        RequestObjectLeaveChannel,
+        
+        ResponseObjectLeaveChannel, 
+
         /// <summary>
         /// Server to client packet for updating network objects. Also used to initially send a object. 
         /// </summary>

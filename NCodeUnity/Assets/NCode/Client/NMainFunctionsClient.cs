@@ -146,7 +146,7 @@ namespace NCode.Core.Client
                     onLeaveChannel(channelID, false);
                 }
             }
-        }
+        }      
 
         public void ResponseClientSetup(BinaryReader reader)
         {

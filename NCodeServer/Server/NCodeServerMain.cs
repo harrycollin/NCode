@@ -39,6 +39,23 @@ namespace NCode
             NMainThreads app = new NMainThreads();
             app.Start(info.servername, info.tcpport, info.udpport, info.rconport, info.password, info.rconpassword, info.autostart);
 
+            for (;;)
+            {
+                string command = Console.ReadLine();
+
+                switch (command)
+                {
+                    case "CHANNELS":
+                        {
+                            foreach (KeyValuePair<int, NChannel> i in app.ActiveChannels)
+                            {
+                                Tools.Print("[Channel:" + i.Value.ID + "] Players:" + i.Value.Players.Count + " Network Objects:" + i.Value.channelObjects.Count);
+                            }
+                            break;
+                        }
+                }
+            }
+
         }
 
         

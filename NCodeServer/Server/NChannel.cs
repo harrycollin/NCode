@@ -60,6 +60,12 @@ namespace NCode
                     //Remove them without iterating the dictionary
                     for(int i = 0; i < objectsToRemove.Count; i++)
                     {
+                        for(int p = 0; p < Players.Count; p++)
+                        {
+                            BinaryWriter writer = Players[p].BeginSend(Packet.ResponseDestroyObject);
+                            writer.Write(objectsToRemove[i].Key);
+                            Players[p].EndSend();
+                        }
                         channelObjects.Remove(objectsToRemove[i].Key);
                     }
 
@@ -114,7 +120,8 @@ namespace NCode
             {
                 if (channelObjects.ContainsKey(guid))
                 {
-                    NetworkObject obj = channelObjects[guid];
+                    NetworkObject obj = new NetworkObject();
+                    obj = channelObjects[guid];
                     channelObjects.Remove(guid);
                     return obj;
                 }
