@@ -111,7 +111,6 @@ namespace NCode
         /// <summary>
         /// Adds the player to the MainPlayerList list.
         /// </summary>
-        /// <param name="client"></param>
         /// <returns></returns>
         public bool AddPlayer(Socket client)
         {
@@ -120,6 +119,7 @@ namespace NCode
             player.StartReceiving(client);
             player.stage = TNTcpProtocol.Stage.Verifying;
             MainPlayerList.Add(player);
+            Console.WriteLine(client.RemoteEndPoint + " connecting...");
             return true;
         }     
 
@@ -157,7 +157,7 @@ namespace NCode
             BinaryWriter writer = player.BeginSend(Packet.ResponseClientSetup);
             if(reader.ReadInt32() == player.ProtocolVersion) //Correct protocol version
             {
-                player.ClientGuid = Guid.NewGuid(); //Assign the Guid to the player.
+                player.ClientGuid = Guid.NewGuid(); //Assign the ThisGuid to the player.
                 player.stage = TNTcpProtocol.Stage.Connected; //Change the player's connection status.
 
                 lock (PlayerDictionary)
@@ -165,7 +165,7 @@ namespace NCode
                     PlayerDictionary.Add(player.ClientGuid, player); //Add the player to the player dictionary for quicker access that doesn't require iterations.
                 }
                 writer.Write((byte)1); //Tell the client their client version is matched.
-                writer.WriteObject(player.ClientGuid); //Let the client know what their Guid is. 
+                writer.WriteObject(player.ClientGuid); //Let the client know what their ThisGuid is. 
                 writer.Write(UdpPort); //Let the client know which port to send udp packets to.              
                 player.EndSend();
 
@@ -244,7 +244,7 @@ namespace NCode
         }
 
         /// <summary>
-        /// Returns a NTcpPlayer by their Guid.
+        /// Returns a NTcpPlayer by their ThisGuid.
         /// </summary>
         /// <param name="endPoint"></param>
         /// <returns></returns>
@@ -267,7 +267,7 @@ namespace NCode
                     }
                     return player ?? null;
                 }
-                catch (Exception e) { Tools.Print("Error accessing returning a player from 'GetPlayer(Guid)'.", Tools.MessageType.error, e); return null; }
+                catch (Exception e) { Tools.Print("Error accessing returning a player from 'GetPlayer(ThisGuid)'.", Tools.MessageType.error, e); return null; }
 
             }
             else

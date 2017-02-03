@@ -1,12 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
-using NCode;
+using NCode.Core.Client;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
-    protected NetworkBehaviour nb;
+    public NNetworkEntityLink nb;
 
     public float walkSpeed = 6.0f;
     public float runSpeed = 11.0f;
@@ -72,7 +72,6 @@ public class PlayerController : MonoBehaviour
     
     protected virtual void Awake()
     {
-        nb = GetComponent<NetworkBehaviour>();
         controller = GetComponent<CharacterController>();
         myTransform = transform;
         speed = walkSpeed;
@@ -83,11 +82,6 @@ public class PlayerController : MonoBehaviour
 
     protected virtual void Update()
     {
-        if (Input.GetKeyDown(KeyCode.I))
-        {
-            CoreFunctions.OpenPlayerInventory();
-        }
-
         if (!AllowInput)
         {
             mInput.x = 0;

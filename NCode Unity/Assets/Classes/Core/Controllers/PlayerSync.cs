@@ -7,7 +7,7 @@ using System.IO;
 using NCode.Core.BaseClasses;
 using NCode.Core.Client;
 
-[RequireComponent(typeof(NetworkBehaviour))]
+[RequireComponent(typeof(NNetworkEntityLink))]
 public class PlayerSync : PlayerController
 {
 
@@ -78,13 +78,13 @@ public class PlayerSync : PlayerController
             {
                 mLastInputSend = time;
                 mLastInput = mInput;
-                nb.SendRFC(1, Packet.ForwardToChannels, false, mInput);
+                nb.SendRfc(1, Packet.ForwardToChannels, false, mInput);
             }
 
             if (Quaternion.Angle(transform.rotation, lastRotation) > RotationThreshold)
             {
                 lastRotation = transform.rotation;
-                nb.SendRFC(2, Packet.ForwardToChannels, false, transform.rotation);
+                nb.SendRfc(2, Packet.ForwardToChannels, false, transform.rotation);
             }
          
             // Since the input is sent frequently, rigidbody only needs to be corrected every couple of seconds.
@@ -92,7 +92,7 @@ public class PlayerSync : PlayerController
             if (mNextRB < time && !jump)
             {
                 mNextRB = time + 1f / rigidbodyUpdates;               
-                nb.SendRFC(3, Packet.ForwardToChannels, false, transform.position);
+                nb.SendRfc(3, Packet.ForwardToChannels, false, transform.position);
 
                 //Sets the PlayerObject position on the server
                 BinaryWriter writer = NetworkManager.BeginSend(Packet.PlayerPositionUpdate);

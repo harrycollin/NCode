@@ -120,13 +120,13 @@ namespace NCode.Core.Protocols
         /// In most cases you should use 'isConnected' instead.
         /// </summary>
 
-        public bool isSocketConnected { get { return mSocket != null && mSocket.Connected; } }
+        public bool isSocketConnected => mSocket != null && mSocket.Connected;
 
         /// <summary>
         /// Whether we are currently trying to establish a new connection.
         /// </summary>
 
-        public bool isTryingToConnect { get { return mConnecting.size != 0; } }
+        public bool isTryingToConnect => mConnecting.size != 0;
 
         /// <summary>
         /// Enable or disable the Nagle's buffering algorithm (aka NO_DELAY flag).

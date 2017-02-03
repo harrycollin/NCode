@@ -32,7 +32,7 @@ namespace NCode.Core
         private bool _isPlayerSetupComplete = false;
 
         /// <summary>
-        /// This player's Guid. Generated in constructor.
+        /// This player's ThisGuid. Generated in constructor.
         /// </summary>
         public Guid ClientGuid = Guid.Empty;
 

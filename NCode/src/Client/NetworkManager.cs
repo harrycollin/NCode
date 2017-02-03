@@ -33,7 +33,7 @@ namespace NCode.Core.Client
         public static ClientEvents.OnConnect onConnect { get { return instance != null ? instance.mainClient.onConnect : null; } set { if (instance != null && Application.isPlaying) instance.mainClient.onConnect = value; } }
 
         /// <summary>
-        /// Event triggered whent the client has disconnected from the server. 
+        /// Event triggered when the client has disconnected from the server. 
         /// </summary>
         public static ClientEvents.OnDisconnect onDisconnect { get { return instance != null ? instance.mainClient.onDisconnect : null; } set { if (instance != null && Application.isPlaying) instance.mainClient.onDisconnect = value; } }
        

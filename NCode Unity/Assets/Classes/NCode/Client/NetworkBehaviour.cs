@@ -15,6 +15,8 @@ namespace NCode
     /// <summary>
     /// Inherited by all networked objects (physical).
     /// </summary>
+    
+    [Obsolete]
     public sealed class NetworkBehaviour : MonoBehaviour
     {
         //Global list of all NetworkObjects
@@ -31,18 +33,18 @@ namespace NCode
         {
             get { return networkObject.owner; }
             set { networkObject.owner = value; }
-        }     
+        }
         public Guid NetworkOwner
         {
             get { return networkObject.NetworkOwnerGUID; }
-            set { networkObject.NetworkOwnerGUID = value; } 
+            set { networkObject.NetworkOwnerGUID = value; }
         }
-       
+
         public NetworkObject networkObject;
 
         public string ObjectGuid;
-        
-        
+
+
         void Start()
         {
             ObjectGuid = guid.ToString();
@@ -51,11 +53,11 @@ namespace NCode
         /// Checks if this NetworkBehaviour is owned by this client.
         /// </summary>
         /// <returns></returns>
-        public bool IsMine { get { return NetworkOwner == NetworkManager.LocalPlayer().ClientGuid; } }
+        public bool IsMine { get { return NetworkOwner == NetworkManager.ClientGuid; } }
 
         [System.NonSerialized]
         public System.Collections.Generic.List<int> ConnectedChannels = new System.Collections.Generic.List<int>();
-        
+
         //A local dictionary of cached RFCs
         private Dictionary<int, CachedFunc> RFCList = new Dictionary<int, CachedFunc>();
 
@@ -66,7 +68,7 @@ namespace NCode
         public static void FindAndExecute(Guid guid, int RFCID, params object[] parameters)
         {
             NetworkBehaviour obj = NetworkBehaviour.Find(guid);
-            if(obj != null)
+            if (obj != null)
                 obj.ExecuteRFC(RFCID, parameters);
         }
 
@@ -87,7 +89,7 @@ namespace NCode
         /// </summary>
         public void SendRFC(int rfcID, Packet target, bool reliable, params object[] objs)
         {
-            if (NetworkManager.isConnected)
+            if (NetworkManager.IsConnected)
             {
                 BinaryWriter writer = NetworkManager.BeginSend(target);
                 writer.WriteObject(guid); //Network Behaviour Guid
@@ -103,7 +105,7 @@ namespace NCode
         /// <returns></returns>
         public bool ExecuteRFC(int ID, params object[] parameters)
         {
-            if(rebuildMethodList) RebuildMethodList();
+            if (rebuildMethodList) RebuildMethodList();
             CachedFunc fnc;
             if (RFCList.TryGetValue(ID, out fnc))
             {
@@ -123,7 +125,7 @@ namespace NCode
             return false;
         }
 
-        
+
 
         /// <summary>
         /// Finds RFCs on this object. Adds them to a local dictionary for quick access
@@ -153,7 +155,7 @@ namespace NCode
                 {
                     MethodInfo method = methods[b];
 
-     
+
                     if (method.IsDefined(typeof(RFC), true))
                     {
                         CachedFunc ent = new CachedFunc();
@@ -166,7 +168,7 @@ namespace NCode
                         {
                             if (tnc.id < 256) RFCList.Add(tnc.id, ent);
                             else Debug.LogError("RFC IDs need to be between 1 and 255 (1 byte). If you need more, just don't specify an ID and use the function's name instead.");
-                        }                      
+                        }
                     }
                 }
             }

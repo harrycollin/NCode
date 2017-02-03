@@ -36,7 +36,7 @@ namespace NCode
         /// <param name="args"></param>
         static void Main(string[] args)
         {
-            SetLayout();
+            //SetLayout();
 
             Tools.Print("Application launched");
 

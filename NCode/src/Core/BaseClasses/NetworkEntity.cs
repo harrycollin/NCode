@@ -1,0 +1,67 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace NCode.Core.BaseClasses
+{
+    [Serializable]
+    public class NetworkEntity
+    {
+        #region Private vars
+
+        private SpawnPriority _spawnPriority;
+        private DespawnPriority _despawnPriority;
+
+        #endregion
+
+        #region Public properties
+
+        /// <summary>
+        /// This entity's guid.
+        /// </summary>
+        public readonly Guid Guid;
+
+        /// <summary>
+        /// Changes the spawn priority for this entity.
+        /// </summary>
+        public SpawnPriority SpawnPriority
+        {
+            get { return _spawnPriority; }
+            set { _spawnPriority = value; }
+        }
+
+        /// <summary>
+        /// Changes the despawn priority for this entity.
+        /// </summary>
+        public DespawnPriority DespawnPriority
+        {
+            get { return _despawnPriority; }
+            set { _despawnPriority = value; }
+        }
+
+        #endregion
+
+        public NetworkEntity()
+        {
+            Guid = Guid.NewGuid();
+        }
+
+    }
+
+    public enum SpawnPriority
+    {
+        Low,
+        Normal,
+        High,
+        Instant,
+    }
+
+    public enum DespawnPriority
+    {
+        Low,
+        Normal,
+        High,
+        Instant,
+    }
+}

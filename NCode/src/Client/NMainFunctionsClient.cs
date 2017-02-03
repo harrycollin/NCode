@@ -79,84 +79,10 @@ namespace NCode.Core.Client
             return true;
         }
 
-        /// <summary>
-        /// Disconnects from the remote server.
-        /// </summary>
-        public bool Disconnect()
-        {
-            if (IsSocketConnected)
-            {
-                TcpClient.Disconnect();
-                onDisconnect();
-                return true;
-            }
-            return false;
-        }
+       
 
-        /// <summary>
-        /// Begins the sending process
-        /// </summary>
-        public BinaryWriter BeginSend(Packet packet)
-        {
-            TempBuffer = Buffer.Create();
-            return TempBuffer.BeginPacket(packet);
-        }
+        
 
-        /// <summary>
-        /// Ends the sending process
-        /// </summary>
-        public void EndSend(bool reliable)
-        {
-            TempBuffer.EndPacket();
-            if (IsSocketConnected)
-            {
-                if (reliable || !IsUdpSetup || ServerUdpEndpoint == null || !UdpClient.isActive)
-                {
-                    TcpClient.SendTcpPacket(TempBuffer);
-                }
-                else UdpClient.Send(TempBuffer, ServerUdpEndpoint);
-            }
-        }
-
-        public void ResponseClientSetup(BinaryReader reader)
-        {
-            if (reader.ReadByte() == 0)
-            {
-                TcpClient.Disconnect();
-                Tools.Print("Server - Client version mismatch");
-            }
-            else
-            {
-                TcpClient.ClientGuid = (Guid)reader.ReadObject();           
-                IPEndPoint remoteIp = TcpClient.socket.RemoteEndPoint as IPEndPoint;
-                ServerUdpEndpoint = new IPEndPoint(remoteIp.Address, reader.ReadInt32());
-                BinaryWriter writer = BeginSend(Packet.SetupUDP);
-                writer.WriteObject(TcpClient.ClientGuid);
-                EndSend(false);
-                TcpClient.stage = TNTcpProtocol.Stage.Connected;
-            }
-        }
-
-        /// <summary>
-        /// Handles the arrival of an NetworkObject (either a new one or just an update)
-        /// </summary>
-        public bool ReceiveObject(NetworkObject obj)
-        {
-            if (obj == null) return false;
-            if (obj.GUID == Guid.Empty) return false;
-            if (NetworkedObjects.ContainsKey(obj.GUID))
-            {
-                NetworkedObjects[obj.GUID] = obj;
-            }
-            else
-            {
-                NetworkedObjects.Add(obj.GUID, obj);
-                onObjectUpdate(obj);
-                Tools.Print(obj.GUID.ToString());
-            }
-            
-            Tools.Print(obj.GUID);
-            return true;
-        }
+        
     }
 }

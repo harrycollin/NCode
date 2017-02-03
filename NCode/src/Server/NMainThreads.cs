@@ -192,7 +192,7 @@ namespace NCode.Server
                     MainThreadTimeInMs = watch.ElapsedTicks;
                     ticks++;
                     if (ticks != 30000) continue;
-                    UpdateView();
+                    //UpdateView();
                     ticks = 0;
                 }
             }

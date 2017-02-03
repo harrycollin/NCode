@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2015
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NCode Unity", "NCode Unity.csproj", "{266EEAF3-8096-318A-D584-4E40B2C6981B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NCode Unity.Editor", "NCode Unity.Editor.csproj", "{8890E252-6D14-9EDE-3B21-BF249AF612F9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{266EEAF3-8096-318A-D584-4E40B2C6981B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{266EEAF3-8096-318A-D584-4E40B2C6981B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{266EEAF3-8096-318A-D584-4E40B2C6981B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{266EEAF3-8096-318A-D584-4E40B2C6981B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8890E252-6D14-9EDE-3B21-BF249AF612F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8890E252-6D14-9EDE-3B21-BF249AF612F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8890E252-6D14-9EDE-3B21-BF249AF612F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8890E252-6D14-9EDE-3B21-BF249AF612F9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
