@@ -6,7 +6,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using NCode.Core;
-using NCode.Core.BaseClasses;
 using NCode.Core.Protocols;
 using NCode.Core.Utilities;
 using NCode.Server.Core;

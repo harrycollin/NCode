@@ -8,6 +8,7 @@ using NCode.Core;
 using NCode.Core.Protocols;
 using NCode.Core.TypeLibrary;
 using NCode.Core.Utilities;
+using Buffer = NCode.Core.Buffer;
 
 namespace NCode.Server.Core
 {
@@ -73,6 +74,19 @@ namespace NCode.Server.Core
         /// </summary>
         public IPEndPoint RemoteTcpEndPoint => _tcpProtocol.tcpEndPoint;
 
+        public long LastReceiveTime => _tcpProtocol.lastReceivedTime;
+
+        public long TimeoutTime => _tcpProtocol.timeoutTime;
+
+        public bool NextPacket(out Buffer buffer)
+        {
+            lock (_lock)
+            {
+                if (_tcpProtocol.ReceivePacket(out buffer)) return true;
+            }
+            return false;
+        }
+
         #endregion
 
         #region private     
@@ -95,20 +109,45 @@ namespace NCode.Server.Core
 
         public static void AddPlayer(Socket socket)
         {
-            NPlayer newPlayer = new NPlayer(socket);
-            PlayerIdDictionary.AddOrUpdate(newPlayer.ClientId, newPlayer);
-            Console.WriteLine(newPlayer.RemoteTcpEndPoint + " connecting...");
+            lock (PlayerIdDictionary)
+            {
+                NPlayer newPlayer = new NPlayer(socket);
+                PlayerIdDictionary.Add(newPlayer.ClientId, newPlayer);
+                Console.WriteLine(newPlayer.RemoteTcpEndPoint + " connecting...");
+            }
         }
 
         public static bool RemovePlayer(int playerId)
         {
-            if (!PlayerIdDictionary.Exists(playerId)) return false;
-            PlayerIdDictionary.Remove(playerId);
-            return true;
+            lock (PlayerIdDictionary)
+            {
+                if (!PlayerIdDictionary.ContainsKey(playerId)) return false;
+                PlayerIdDictionary.Remove(playerId);
+                return true;
+            }
+        }
+
+        public static Tuple<bool, NPlayer> GetPlayer(int playerId)
+        {
+            lock (PlayerIdDictionary)
+            {
+                return !PlayerIdDictionary.ContainsKey(playerId) ? new Tuple<bool, NPlayer>(false, null) : new Tuple<bool, NPlayer>(true, PlayerIdDictionary[playerId]);
+            }
         }
 
 
-        public static readonly SynchronizedCache<int, NPlayer> PlayerIdDictionary = new SynchronizedCache<int, NPlayer>();
+        public static NPlayer GetPlayer(IPEndPoint playerUdpEndPoint)
+        {
+            lock (PlayerUdpEnpointDictionary)
+            {
+                return !PlayerUdpEnpointDictionary.ContainsKey(playerUdpEndPoint)
+                    ? PlayerUdpEnpointDictionary[playerUdpEndPoint]
+                    : null;
+            }
+        }
+
+        public static readonly Dictionary<int, NPlayer> PlayerIdDictionary = new Dictionary<int, NPlayer>();
+        public static readonly Dictionary<IPEndPoint, NPlayer> PlayerUdpEnpointDictionary = new Dictionary<IPEndPoint, NPlayer>();
 
         #endregion
 

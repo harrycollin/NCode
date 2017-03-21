@@ -44,9 +44,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BaseClasses\NetworkObject.cs" />
     <Compile Include="TypeLibrary\NVector3.cs" />
-    <Compile Include="BaseClasses\VirtualObject.cs" />
     <Compile Include="Entity\DynamicEntity.cs" />
     <Compile Include="Entity\NEntityCache.cs" />
     <Compile Include="Entity\NNetworkEntity.cs" />
@@ -69,7 +67,9 @@
     <Compile Include="Utilities\ThreadSafeCache\SynchronizedCache.cs" />
     <Compile Include="Utilities\TNList.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="BaseClasses" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -33,6 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="MySql.Data, Version=6.9.8.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\MySQL\Connector.NET 6.9\Assemblies\v4.5\MySql.Data.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -43,15 +46,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Addons\MySQL\DatabaseRequest.cs" />
     <Compile Include="Core\NPacketProcessor.cs" />
-    <Compile Include="Systems\Channel\Channel.cs" />
+    <None Include="Systems\Channel\Channel.cs" />
     <Compile Include="Addons\MySQL\DatabaseManager.cs" />
     <Compile Include="NCodeServerMain.cs" />
     <Compile Include="Systems\Entity\NEntityMain.cs" />
     <Compile Include="Systems\Entity\NEntityTracker.cs" />
     <Compile Include="Core\NGameServer.cs" />
     <Compile Include="Core\NMainFunctions.cs" />
-    <Compile Include="Core\NMainThreads.cs" />
+    <None Include="Core\NMainThreads.cs" />
     <Compile Include="Addons\RCon\NRConClient.cs" />
     <Compile Include="Core\NPlayer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -61,12 +65,10 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NCode.Core\NCode.Core.csproj">
-      <Project>{ede13e43-b243-460e-b048-1af55de1e3ad}</Project>
+      <Project>{EDE13E43-B243-460E-B048-1AF55DE1E3AD}</Project>
       <Name>NCode.Core</Name>
-      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

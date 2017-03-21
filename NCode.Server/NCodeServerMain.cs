@@ -6,6 +6,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using NCode.Core.Utilities;
+using NCode.Server.Addons.MySQL;
+using NCode.Server.Core;
 
 namespace NCode.Server
 {
@@ -56,9 +58,10 @@ namespace NCode.Server
             else { Tools.Print("Database connection established! IP:" + info.databaseip + " Port:" + info.databaseport); }
 
             //Makes a new instance of the server. 
-            NMainThreads app = new NMainThreads();
-            app.Start(info.servername, info.tcpport, info.udpport, info.rconport, info.password, info.autostart);
+//            NMainThreads app = new NMainThreads();
+//            app.Start(info.servername, info.tcpport, info.udpport, info.rconport, info.password, info.autostart);
 
+            NGameServer gameServer = new NGameServer(info.servername, info.tcpport, info.udpport, info.rconport,info.password, info.autostart);
             
         }
 

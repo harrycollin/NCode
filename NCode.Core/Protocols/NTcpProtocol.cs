@@ -11,7 +11,7 @@ using NCode.Core.Utilities;
 
 namespace NCode.Core.Protocols
 {
-    public class NTcpProtocol : NPlayer
+    public class NTcpProtocol
     {
         /// <summary>
         /// The current version of the Protocol

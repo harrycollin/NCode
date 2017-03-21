@@ -7,6 +7,7 @@ using System.Threading;
 using NCode.Core;
 using NCode.Core.Protocols;
 using NCode.Core.Utilities;
+using Buffer = NCode.Core.Buffer;
 
 namespace NCode.Server.Core
 {
@@ -25,8 +26,7 @@ namespace NCode.Server.Core
         private Dictionary<int, NPlayer> _playerDictionary = new Dictionary<int, NPlayer>();
         private NPacketProcessor _packetProcessor = new NPacketProcessor();
 
-        private Thread _tcpThread;
-        private Thread _udpThread;
+        private Thread _coreThread;
 
         public readonly int TcpListenPort = 0;
         public readonly int UdpListenPort = 0;
@@ -37,11 +37,11 @@ namespace NCode.Server.Core
         private Dictionary<Packet, OnPacket> _packetHandlers = new Dictionary<Packet, OnPacket>();
         public delegate void OnPacket(Packet response, BinaryReader reader);
 
-        public NGameServer(string name, int tcpport, int udpport, int rconport, string password, bool AutoStart)
+        public NGameServer(string name, int tcpport, int udpport, int rconport, string password, bool autoStart)
         {
             TcpListenPort = tcpport;
             UdpListenPort = udpport;
-            if (!AutoStart) return;
+            if (!autoStart) return;
             Start();
         }
 
@@ -53,8 +53,8 @@ namespace NCode.Server.Core
             //Checks to see if the Tcp listener started without error. 
             if (!StartListeningGameServer()) return;
             _runThreads = true;
-            _tcpThread = new Thread(TcpProcesses);
-            _udpThread = new Thread();
+            _coreThread = new Thread(CoreProcesses) {Priority = ThreadPriority.Highest};
+            _coreThread.Start();
             Tools.Print("Game Server started on port: " + TcpListenPort);
         }
 
@@ -103,24 +103,104 @@ namespace NCode.Server.Core
             return true;
         }
 
-        private void TcpProcesses()
+        private void CoreProcesses()
         {
-            for (;;)
-            {
+
                 //Loop forever until server is stopped.
                 while (_runThreads)
                 {
+                    if (!UdpProcessor()) _runThreads = false;
+                    if (!ProcessTcpPackets()) _runThreads = false;
+                    if (!CheckForPendingConnections()) _runThreads = false;
 
                     //The tick time divided by 10000 as a counter (used to calculate ping, thread times, etc.)
                     TickTime = DateTime.UtcNow.Ticks / 10000;
-
-
-
-                    
                 }
-            }
         }
 
+
+
+        private bool ProcessTcpPackets()
+        {
+            //Loops through each player in the player list.
+            foreach (var keyValuePair in NPlayer.PlayerIdDictionary)
+            {
+                // Remove disconnected players (Checks the player's TcpProtocol to see if the socket is still connected)
+                if (!keyValuePair.Value.IsPlayerTcpConnected)
+                {
+                    //SendPlayerDisconnected(player);
+                    NPlayer.RemovePlayer(keyValuePair.Key);
+                    //Breaks the current iterartion instead of break; which breaks the whole 'for' statement.
+                    continue;
+                }
+
+                // If the player doesn't send any packets in a while, disconnect him
+                if (keyValuePair.Value.TimeoutTime > 0 && keyValuePair.Value.LastReceiveTime + keyValuePair.Value.TimeoutTime < TickTime)
+                {
+                    //SendPlayerDisconnected(player);
+                    NPlayer.RemovePlayer(keyValuePair.Key);
+                    continue;
+                }
+
+                Buffer packet;
+
+                // Process up to 100 packets from this player's InQueue at a time. (This is processed after checking for disconnected sockets. 
+                for (int e = 0; e < 100 && keyValuePair.Value.NextPacket(out packet); e++)
+                {
+                    _packetProcessor.ProcessPacket(keyValuePair.Value, packet, true);
+                }
+            }
+            return true;
+        }
+
+        private bool UdpProcessor()
+        {
+            //Loop forever until server is stopped.
+
+            //Reassigned to the remote udp packet's sender's endpoint. Temporary assignment.
+
+            if (!_mainUdpProtocol.isActive) return false;
+
+            Buffer buffer;
+            //Process up to 1000 udp packets each time (Tweak for performance if needed. Will be added to cfg if needed).
+            IPEndPoint udpEndpoint;
+            for (var e = 0; e < 200 && _mainUdpProtocol.ReceivePacket(out buffer, out udpEndpoint); e++)
+            {
+                var player = NPlayer.GetPlayer(udpEndpoint);
+                if (player != null)
+                {
+                    _packetProcessor.ProcessPacket(player, buffer, false);
+                    continue;
+                }
+
+                var reader = buffer.BeginReading();
+
+                if ((Packet) reader.ReadByte() != Packet.SetupUDP) continue;
+                /* player = NPlayer.GetPlayer((Guid)reader.ReadObject());
+                 if (player != null)
+                 {
+                     Tools.Print(player.RemoteTcpEndPoint + " has setup their udp connection");
+
+                     //Add the player to the UdpEndpoint Dictionary
+                     PlayerUdpEPDictionary.Add(udpEndpoint, player);
+                     //Set the Udp Endpoint
+                     player.UdpEndpoint = udpEndpoint;
+                     //Set the UDP setup as true
+                     player.IsPlayerUdpConnected = true;
+
+                     //Send the response packet to the player
+                     var writer = player.BeginSend(Packet.SetupUDP);
+                     writer.Write(true);
+                     player.EndSend();
+                 }
+                 else
+                 {
+                     Tools.Print("GetPlayer null");
+                 }*/
+            }
+            return true;
+
+        }
         public bool CheckForPendingConnections()
         {
             //Add any game server pending connections (Pending connections on the Game server's tcp listener).
@@ -134,7 +214,7 @@ namespace NCode.Server.Core
                     IPEndPoint remoteClient = (IPEndPoint)socket.RemoteEndPoint;
                     if (remoteClient == null)
                     {
-                        //Close the socket if the ip is null. 
+                        //Close the socket if the ip is null.
                         socket.Close(); socket = null;
                     }
                     else
@@ -150,42 +230,6 @@ namespace NCode.Server.Core
                 }
             }
             return true;
-        }
-
-        bool IteratePlayerTcpPackets()
-        {
-            //Loops through each player in the player list.
-            foreach (KeyValuePair<int, NPlayer> player in NPlayer.PlayerIdDictionary)
-            {
-                
-            }
-            {
-                //Access a player by index
-                Core.NPlayer player = MainPlayerList[i];
-
-                // Remove disconnected players (Checks the player's TcpProtocol to see if the socket is still connected)
-                if (!player.isSocketConnected)
-                {
-                    //SendPlayerDisconnected(player);
-                    RemovePlayer(player);
-                    //Breaks the current iterartion instead of break; which breaks the whole 'for' statement.
-                    continue;
-                }
-
-                // If the player doesn't send any packets in a while, disconnect him
-                if (player.timeoutTime > 0 && player.lastReceivedTime + player.timeoutTime < TickTime)
-                {
-                    //SendPlayerDisconnected(player);
-                    RemovePlayer(player, true);
-                    continue;
-                }
-
-                // Process up to 100 packets from this player's InQueue at a time. (This is processed after checking for disconnected sockets. 
-                for (int e = 0; e < 100 && player.ReceivePacket(out packet); e++)
-                {
-                    ProcessPlayerPacket(player, packet, true);
-                }
-            }
         }
     }
 }

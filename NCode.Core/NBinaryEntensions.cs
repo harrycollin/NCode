@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using NCode.Core.BaseClasses;
 using NCode.Core.TypeLibrary;
 using NCode.Core.Utilities;
 
@@ -96,7 +95,6 @@ namespace NCode.Core
             writer.Write(prefix);
             switch (prefix)
             {
-                case 99: writer.Write((NetworkObject)obj); break;
                 case 1: writer.Write((Guid)obj); break;
 #if UNITY_EDITOR || UNITY_STANDALONE
                 case 2: writer.Write((Vector2)obj); break;
@@ -118,7 +116,6 @@ namespace NCode.Core
             if (prefix == 0) return null;
             switch (prefix)
             {
-                case 99: return reader.ReadNetworkObject();
                 case 1: return reader.ReadGUID();
 #if UNITY_EDITOR || UNITY_STANDALONE
                 case 2: return reader.ReadVector2(); 
@@ -136,7 +133,6 @@ namespace NCode.Core
         /// </summary>
         static int GetPrefix(Type type)
         {
-            if (type == typeof(NetworkObject)) return 99;
             if (type == typeof(Guid)) return 1;
 #if UNITY_EDITOR || UNITY_STANDALONE
             if (type == typeof(Vector2)) return 2;
@@ -156,7 +152,6 @@ namespace NCode.Core
         {
             switch (prefix)
             {
-                case 99: return typeof(NetworkObject);
                 case 1: return typeof(Guid);
 #if UNITY_EDITOR || UNITY_STANDALONE
                 case 2: return typeof(Vector2);
@@ -218,13 +213,7 @@ namespace NCode.Core
         
 
 #endif  // -------- Unity Dependant Above ------// 
-        public static void Write(this BinaryWriter writer, NetworkObject o)
-        {
-            if (o != null)
-            {
-                writer.WriteByteArray(NConverters.ConvertObjectToByteArray(o));
-            }
-        }
+
         public static void Write(this BinaryWriter writer, Guid v)
         {
             if (v != null)
@@ -232,13 +221,7 @@ namespace NCode.Core
                 writer.WriteByteArray(NConverters.ConvertObjectToByteArray(v));
             }
         }
-        public static void Write(this BinaryWriter writer, NPlayer player)
-        {
-            if (player != null)
-            {
-                writer.WriteByteArray(NConverters.ConvertObjectToByteArray(player));
-            }
-        }
+
         public static void Write(this BinaryWriter writer, NVector3 nVector3)
         {
             if (nVector3 != null)
@@ -300,12 +283,7 @@ namespace NCode.Core
             return new Quaternion(x, y, z, w);
         }
 #endif
-        public static NetworkObject ReadNetworkObject(this BinaryReader reader)
-        {
-            NetworkObject o = (NetworkObject)NConverters.ConvertByteArrayToObject(reader.ReadByteArray());
-            if (o == null) return null;
-            return o;
-        }
+
         public static Guid ReadGUID(this BinaryReader reader)
         {
             Guid guid = (Guid)NConverters.ConvertByteArrayToObject(reader.ReadByteArray());
@@ -313,12 +291,7 @@ namespace NCode.Core
             Guid empty = Guid.Empty;
             return empty;
         }
-        public static NPlayer ReadNPlayer(this BinaryReader reader)
-        {
-            NPlayer player = (NPlayer)NConverters.ConvertByteArrayToObject(reader.ReadByteArray());
-            if (player != null) return player;
-            return null;
-        }
+
         public static NVector3 ReadV3(this BinaryReader reader)
         {
             NVector3 nVector3 = new NVector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
