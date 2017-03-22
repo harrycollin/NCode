@@ -6,7 +6,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using NCode.Core.Utilities;
+#if MySQL_Active
 using NCode.Server.Addons.MySQL;
+#endif
 using NCode.Server.Core;
 
 namespace NCode.Server
@@ -50,13 +52,14 @@ namespace NCode.Server
             try { lines = File.ReadAllLines(Path.Combine(systemPath, "Config/server.cfg")); } catch (Exception e) { Tools.Print("Unable to access the server.cfg", Tools.MessageType.error, e); }
             ConfigInfo info = ConfigReader(lines);
 
+#if MySQL_Active
             //Initialize the database connections
             DatabaseConnection.ConnectionsInit("datasource = " + info.databaseip + "; database = " + info.databasename + "; port = " + info.databaseport + "; username = " + info.databaseuser + "; password = " + info.databasepassword + ";");
             //Test the connections
             Tools.Print("Database connection testing!");
             if (!DatabaseConnection.ConnectionTester()) { Tools.Print("Failed to establish a connection to the database. Please check settings in 'server.cfg' and make sure all ports are forwarded", Tools.MessageType.error); Console.ReadLine(); return; }
             else { Tools.Print("Database connection established! IP:" + info.databaseip + " Port:" + info.databaseport); }
-
+#endif
             //Makes a new instance of the server. 
 //            NMainThreads app = new NMainThreads();
 //            app.Start(info.servername, info.tcpport, info.udpport, info.rconport, info.password, info.autostart);

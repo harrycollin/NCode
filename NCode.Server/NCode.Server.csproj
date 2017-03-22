@@ -33,14 +33,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MySql.Data, Version=6.9.8.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\MySQL\Connector.NET 6.9\Assemblies\v4.5\MySql.Data.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
@@ -49,7 +45,7 @@
     <None Include="Addons\MySQL\DatabaseRequest.cs" />
     <Compile Include="Core\NPacketProcessor.cs" />
     <None Include="Systems\Channel\Channel.cs" />
-    <Compile Include="Addons\MySQL\DatabaseManager.cs" />
+    <None Include="Addons\MySQL\DatabaseManager.cs" />
     <Compile Include="NCodeServerMain.cs" />
     <Compile Include="Systems\Entity\NEntityMain.cs" />
     <Compile Include="Systems\Entity\NEntityTracker.cs" />
