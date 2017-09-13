@@ -51,6 +51,8 @@ namespace NCode.Server.Core
             }
         }
 
+        public bool IsPlayerSocketConnected => _tcpProtocol.isSocketConnected;
+
         public bool IsPlayerTcpConnected => _tcpProtocol.isConnected;
 
         public bool IsPlayerUdpConnected { get; set; } = false; //Find a better way of confirming this other than manually marking it.
@@ -107,6 +109,9 @@ namespace NCode.Server.Core
 
         #region public static
 
+        public delegate void PlayerRemoved(NPlayer player);
+        public static PlayerRemoved playerRemoved;
+
         public static void AddPlayer(Socket socket)
         {
             lock (PlayerIdDictionary)
@@ -122,16 +127,18 @@ namespace NCode.Server.Core
             lock (PlayerIdDictionary)
             {
                 if (!PlayerIdDictionary.ContainsKey(playerId)) return false;
+                Tools.Print($"Player {playerId} has disconnected...");
+                playerRemoved(PlayerIdDictionary[playerId]);
                 PlayerIdDictionary.Remove(playerId);
                 return true;
             }
         }
 
-        public static Tuple<bool, NPlayer> GetPlayer(int playerId)
+        public static NPlayer GetPlayer(int playerId)
         {
             lock (PlayerIdDictionary)
             {
-                return !PlayerIdDictionary.ContainsKey(playerId) ? new Tuple<bool, NPlayer>(false, null) : new Tuple<bool, NPlayer>(true, PlayerIdDictionary[playerId]);
+                return PlayerIdDictionary.ContainsKey(playerId) ? PlayerIdDictionary[playerId] : null;
             }
         }
 
@@ -140,9 +147,7 @@ namespace NCode.Server.Core
         {
             lock (PlayerUdpEnpointDictionary)
             {
-                return !PlayerUdpEnpointDictionary.ContainsKey(playerUdpEndPoint)
-                    ? PlayerUdpEnpointDictionary[playerUdpEndPoint]
-                    : null;
+                return PlayerUdpEnpointDictionary.ContainsKey(playerUdpEndPoint) ? PlayerUdpEnpointDictionary[playerUdpEndPoint] : null;
             }
         }
 

@@ -23,8 +23,7 @@ namespace NCode.Server.Core
         private TcpListener _mainTcpListener;
         private TNUdpProtocol _mainUdpProtocol;
 
-        private Dictionary<int, NPlayer> _playerDictionary = new Dictionary<int, NPlayer>();
-        private NPacketProcessor _packetProcessor = new NPacketProcessor();
+        private readonly NPacketProcessor _packetProcessor = new NPacketProcessor();
 
         private Thread _coreThread;
 
@@ -68,7 +67,7 @@ namespace NCode.Server.Core
                 _mainTcpListener.Stop();
                 _mainTcpListener = null;
             }
-            if (TcpListenPort != 0)
+            if (TcpListenPort != -1)
             {
                 try
                 {
@@ -77,9 +76,9 @@ namespace NCode.Server.Core
                     _mainTcpListener.Start();
                     Tools.Print("TCP Listening on port " + TcpListenPort);
                 }
-                catch (System.Exception ex)
+                catch (Exception e)
                 {
-                    Tools.Print("@NMainThreads.StartListening", Tools.MessageType.error, ex);
+                    Tools.Print("StartListening on TCP", Tools.MessageType.error, e);
                     return false;
                 }
             }
@@ -95,6 +94,7 @@ namespace NCode.Server.Core
                 }
                 catch (Exception e)
                 {
+                    Tools.Print("StartListening on UDP", Tools.MessageType.error, e);
                     return false;
                 }
             }
@@ -105,7 +105,6 @@ namespace NCode.Server.Core
 
         private void CoreProcesses()
         {
-
                 //Loop forever until server is stopped.
                 while (_runThreads)
                 {
@@ -115,6 +114,8 @@ namespace NCode.Server.Core
 
                     //The tick time divided by 10000 as a counter (used to calculate ping, thread times, etc.)
                     TickTime = DateTime.UtcNow.Ticks / 10000;
+
+                    //Implement shutdown action
                 }
         }
 
@@ -122,37 +123,35 @@ namespace NCode.Server.Core
 
         private bool ProcessTcpPackets()
         {
-            
-                //Loops through each player in the player list.
-                foreach (var keyValuePair in NPlayer.PlayerIdDictionary)
+            //Loops through each player in the player list.
+            foreach (var keyValuePair in NPlayer.PlayerIdDictionary)
+            {
+                // Remove disconnected players (Checks the player's TcpProtocol to see if the socket is still connected)
+                if (!keyValuePair.Value.IsPlayerSocketConnected)
                 {
-                    // Remove disconnected players (Checks the player's TcpProtocol to see if the socket is still connected)
-                    if (!keyValuePair.Value.IsPlayerTcpConnected)
-                    {
-                        //SendPlayerDisconnected(player);
-                        NPlayer.RemovePlayer(keyValuePair.Key);
+                    //SendPlayerDisconnected(player);
+                    NPlayer.RemovePlayer(keyValuePair.Key);
 
-                        //Breaks the current iterartion instead of break; which breaks the whole 'for' statement.
-                        continue;
-                    }
-
-                    // If the player doesn't send any packets in a while, disconnect him
-                    if (keyValuePair.Value.TimeoutTime > 0 && keyValuePair.Value.LastReceiveTime + keyValuePair.Value.TimeoutTime < TickTime)
-                    {
-                        //SendPlayerDisconnected(player);
-                        NPlayer.RemovePlayer(keyValuePair.Key);
-                        continue;
-                    }
-
-                    Buffer packet;
-
-                    // Process up to 100 packets from this player's InQueue at a time. (This is processed after checking for disconnected sockets. 
-                    for (int e = 0; e < 100 && keyValuePair.Value.NextPacket(out packet); e++)
-                    {
-                        _packetProcessor.ProcessPacket(keyValuePair.Value, packet, true);
-                    }
+                    //Breaks the current iterartion instead of break; which breaks the whole 'for' statement.
+                    continue;
                 }
-            
+
+                // If the player doesn't send any packets in a while, disconnect him
+                if (keyValuePair.Value.TimeoutTime > 0 &&
+                    keyValuePair.Value.LastReceiveTime + keyValuePair.Value.TimeoutTime < TickTime)
+                {
+                    //SendPlayerDisconnected(player);
+                    NPlayer.RemovePlayer(keyValuePair.Key);
+                    continue;
+                }
+
+                Buffer packet;
+
+                // Process up to 100 packets from this player's InQueue at a time. (This is processed after checking for disconnected sockets. 
+                for (var e = 0; e < 100 && keyValuePair.Value.NextPacket(out packet); e++)
+                    _packetProcessor.ProcessPacket(keyValuePair.Value, packet, true);
+            }
+
             return true;
         }
 

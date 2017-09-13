@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Systems\IPlayerManagementSystem.cs" />
     <None Include="Addons\MySQL\DatabaseRequest.cs" />
     <Compile Include="Core\NPacketProcessor.cs" />
     <None Include="Systems\Channel\Channel.cs" />
