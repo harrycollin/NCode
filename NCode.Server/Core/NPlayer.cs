@@ -21,7 +21,7 @@ namespace NCode.Server.Core
         {
             _idIncrementor++;
             ClientId = _idIncrementor;
-            ClientGuid = new Guid();
+            ClientGuid = Guid.NewGuid();
             _tcpProtocol.StartReceiving(tcpSocket);
         }
 
@@ -146,8 +146,8 @@ namespace NCode.Server.Core
             }
         }
 
-        public static readonly Dictionary<int, NPlayer> PlayerIdDictionary = new Dictionary<int, NPlayer>();
-        public static readonly Dictionary<IPEndPoint, NPlayer> PlayerUdpEnpointDictionary = new Dictionary<IPEndPoint, NPlayer>();
+        public static Dictionary<int, NPlayer> PlayerIdDictionary = new Dictionary<int, NPlayer>();
+        public static Dictionary<IPEndPoint, NPlayer> PlayerUdpEnpointDictionary = new Dictionary<IPEndPoint, NPlayer>();
 
         #endregion
 

@@ -109,9 +109,9 @@ namespace NCode.Server.Core
                 //Loop forever until server is stopped.
                 while (_runThreads)
                 {
+                    if (!CheckForPendingConnections()) _runThreads = false;
                     if (!UdpProcessor()) _runThreads = false;
                     if (!ProcessTcpPackets()) _runThreads = false;
-                    if (!CheckForPendingConnections()) _runThreads = false;
 
                     //The tick time divided by 10000 as a counter (used to calculate ping, thread times, etc.)
                     TickTime = DateTime.UtcNow.Ticks / 10000;
@@ -122,46 +122,46 @@ namespace NCode.Server.Core
 
         private bool ProcessTcpPackets()
         {
-            //Loops through each player in the player list.
-            foreach (var keyValuePair in NPlayer.PlayerIdDictionary)
-            {
-                // Remove disconnected players (Checks the player's TcpProtocol to see if the socket is still connected)
-                if (!keyValuePair.Value.IsPlayerTcpConnected)
+            
+                //Loops through each player in the player list.
+                foreach (var keyValuePair in NPlayer.PlayerIdDictionary)
                 {
-                    //SendPlayerDisconnected(player);
-                    NPlayer.RemovePlayer(keyValuePair.Key);
-                    //Breaks the current iterartion instead of break; which breaks the whole 'for' statement.
-                    continue;
-                }
+                    // Remove disconnected players (Checks the player's TcpProtocol to see if the socket is still connected)
+                    if (!keyValuePair.Value.IsPlayerTcpConnected)
+                    {
+                        //SendPlayerDisconnected(player);
+                        NPlayer.RemovePlayer(keyValuePair.Key);
 
-                // If the player doesn't send any packets in a while, disconnect him
-                if (keyValuePair.Value.TimeoutTime > 0 && keyValuePair.Value.LastReceiveTime + keyValuePair.Value.TimeoutTime < TickTime)
-                {
-                    //SendPlayerDisconnected(player);
-                    NPlayer.RemovePlayer(keyValuePair.Key);
-                    continue;
-                }
+                        //Breaks the current iterartion instead of break; which breaks the whole 'for' statement.
+                        continue;
+                    }
 
-                Buffer packet;
+                    // If the player doesn't send any packets in a while, disconnect him
+                    if (keyValuePair.Value.TimeoutTime > 0 && keyValuePair.Value.LastReceiveTime + keyValuePair.Value.TimeoutTime < TickTime)
+                    {
+                        //SendPlayerDisconnected(player);
+                        NPlayer.RemovePlayer(keyValuePair.Key);
+                        continue;
+                    }
 
-                // Process up to 100 packets from this player's InQueue at a time. (This is processed after checking for disconnected sockets. 
-                for (int e = 0; e < 100 && keyValuePair.Value.NextPacket(out packet); e++)
-                {
-                    _packetProcessor.ProcessPacket(keyValuePair.Value, packet, true);
+                    Buffer packet;
+
+                    // Process up to 100 packets from this player's InQueue at a time. (This is processed after checking for disconnected sockets. 
+                    for (int e = 0; e < 100 && keyValuePair.Value.NextPacket(out packet); e++)
+                    {
+                        _packetProcessor.ProcessPacket(keyValuePair.Value, packet, true);
+                    }
                 }
-            }
+            
             return true;
         }
 
         private bool UdpProcessor()
         {
-            //Loop forever until server is stopped.
-
-            //Reassigned to the remote udp packet's sender's endpoint. Temporary assignment.
-
             if (!_mainUdpProtocol.isActive) return false;
 
             Buffer buffer;
+
             //Process up to 1000 udp packets each time (Tweak for performance if needed. Will be added to cfg if needed).
             IPEndPoint udpEndpoint;
             for (var e = 0; e < 200 && _mainUdpProtocol.ReceivePacket(out buffer, out udpEndpoint); e++)

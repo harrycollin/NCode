@@ -47,11 +47,8 @@
     <None Include="Systems\Channel\Channel.cs" />
     <None Include="Addons\MySQL\DatabaseManager.cs" />
     <Compile Include="NCodeServerMain.cs" />
-    <Compile Include="Systems\Entity\NEntityMain.cs" />
-    <Compile Include="Systems\Entity\NEntityTracker.cs" />
+    <Compile Include="Systems\Channel\NChannel.cs" />
     <Compile Include="Core\NGameServer.cs" />
-    <Compile Include="Core\NMainFunctions.cs" />
-    <None Include="Core\NMainThreads.cs" />
     <Compile Include="Addons\RCon\NRConClient.cs" />
     <Compile Include="Core\NPlayer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

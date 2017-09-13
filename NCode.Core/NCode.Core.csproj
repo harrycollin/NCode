@@ -48,7 +48,6 @@
     <Compile Include="Entity\DynamicEntity.cs" />
     <Compile Include="Entity\NEntityCache.cs" />
     <Compile Include="Entity\NNetworkEntity.cs" />
-    <Compile Include="Entity\StaticEntity.cs" />
     <Compile Include="NBinaryEntensions.cs" />
     <Compile Include="NBuffer.cs" />
     <Compile Include="NPacket.cs" />
@@ -67,9 +66,7 @@
     <Compile Include="Utilities\ThreadSafeCache\SynchronizedCache.cs" />
     <Compile Include="Utilities\TNList.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="BaseClasses" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NCode.Core;
 using Buffer = NCode.Core.Buffer;
+using NCode.Core.Utilities;
 
 namespace NCode.Server.Core
 {
@@ -37,19 +38,13 @@ namespace NCode.Server.Core
             }
             switch (packetType)
             {
-                    
+                default:
+                    {
+                        Tools.Print($"Packet with the ID:{packetType} has not been defined for processing.", Tools.MessageType.error);
+                        return false;
+                    }
             }
             return true;
-        }
-
-        public void i()
-        {
-            _packetHandlers.Add(Packet.Disconnect, custom);
-        }
-
-        public void custom(Packet p, BinaryReader r)
-        {
-            
         }
     }
 }

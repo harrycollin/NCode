@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using NCode.Core;
-using NCode.Core.BaseClasses;
 using NCode.Core.Utilities;
 using UnityEngine;
 
@@ -22,7 +21,6 @@ namespace NCode.Client
         /// <summary>
         /// The staticInstance of the MainClient. This is the core of the networking. 
         /// </summary>
-        [System.NonSerialized]
         NMainClient mainClient = new NMainClient();
 
         /// <summary>

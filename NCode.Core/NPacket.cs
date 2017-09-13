@@ -115,24 +115,6 @@
         /// </summary>
         ForwardToChannels,
 
-        // Kleos Packets Below //
-
-        /// <summary>
-        /// The first packet sent after the initial setup of the client. Should send any required information such as SteamID so the server can identify you. 
-        /// </summary>
-        RequestPlayerInfo,
-
-        /// <summary>
-        /// The response to RequestPlayerInfo. This will contain any information needed for the client so that it can decide what to do next. For example if you're a new player then 
-        /// the server will reply with information requesting you send your character data.
-        /// </summary>
-        ResponsePlayerInfo,
-
-        /// <summary>
-        /// Request to save your characters data. This should be sent as a serialised PlayerInfo object. 
-        /// </summary>
-        SavePlayerData,
-
-       
+           
     }
 }
