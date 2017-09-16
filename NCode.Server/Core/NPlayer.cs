@@ -109,8 +109,7 @@ namespace NCode.Server.Core
 
         #region public static
 
-        public delegate void PlayerRemoved(NPlayer player);
-        public static PlayerRemoved playerRemoved;
+        
 
         public static void AddPlayer(Socket socket)
         {
@@ -118,6 +117,7 @@ namespace NCode.Server.Core
             {
                 NPlayer newPlayer = new NPlayer(socket);
                 PlayerIdDictionary.Add(newPlayer.ClientId, newPlayer);
+                NCoreEvents.playerConnected(newPlayer);
                 Console.WriteLine(newPlayer.RemoteTcpEndPoint + " connecting...");
             }
         }
@@ -128,7 +128,7 @@ namespace NCode.Server.Core
             {
                 if (!PlayerIdDictionary.ContainsKey(playerId)) return false;
                 Tools.Print($"Player {playerId} has disconnected...");
-                playerRemoved(PlayerIdDictionary[playerId]);
+                NCoreEvents.playerDisconnected(PlayerIdDictionary[playerId]);
                 PlayerIdDictionary.Remove(playerId);
                 return true;
             }

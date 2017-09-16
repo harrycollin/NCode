@@ -9,6 +9,6 @@ namespace NCode.Server.Systems
 {
     interface IPlayerManagementSystem
     {
-        event NPlayer.PlayerRemoved playerRemoved;
+
     }
 }

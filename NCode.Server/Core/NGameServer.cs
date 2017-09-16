@@ -18,7 +18,7 @@ namespace NCode.Server.Core
         /// </summary>
         public long TickTime = 0;
 
-        private bool _runThreads = false;
+        private bool _runThreads;
 
         private TcpListener _mainTcpListener;
         private TNUdpProtocol _mainUdpProtocol;
@@ -105,18 +105,26 @@ namespace NCode.Server.Core
 
         private void CoreProcesses()
         {
-                //Loop forever until server is stopped.
-                while (_runThreads)
+            //Loop forever until server is stopped.
+            for (; ; )
+            {
+                if (!CheckForPendingConnections())
                 {
-                    if (!CheckForPendingConnections()) _runThreads = false;
-                    if (!UdpProcessor()) _runThreads = false;
-                    if (!ProcessTcpPackets()) _runThreads = false;
-
-                    //The tick time divided by 10000 as a counter (used to calculate ping, thread times, etc.)
-                    TickTime = DateTime.UtcNow.Ticks / 10000;
-
-                    //Implement shutdown action
+                    _runThreads = false;
+                    Tools.Print("Error occured in Pending Connections");
                 }
+
+                if (!UdpProcessor()) _runThreads = false;
+                if (!ProcessTcpPackets()) _runThreads = false;
+
+                //The tick time divided by 10000 as a counter (used to calculate ping, thread times, etc.)
+                TickTime = DateTime.UtcNow.Ticks / 10000;
+
+                //Implement shutdown action
+
+                //if (!_runThreads) break;
+            }
+
         }
 
 
@@ -214,7 +222,9 @@ namespace NCode.Server.Core
                     if (remoteClient == null)
                     {
                         //Close the socket if the ip is null.
-                        socket.Close(); socket = null;
+                        socket.Close();
+                        socket = null;
+                        Tools.Print("Remote client socket couldn't be accepted");
                     }
                     else
                     {

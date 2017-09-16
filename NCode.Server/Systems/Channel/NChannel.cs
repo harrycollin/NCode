@@ -23,7 +23,7 @@ namespace NCode.Server.Systems.Channel
         /// </summary>
         public readonly int ID = -1;
 
-        public event NPlayer.PlayerRemoved playerRemoved;
+        
 
         public System.Collections.Generic.List<NPlayer> Players = new System.Collections.Generic.List<NPlayer>(); 
 
@@ -35,7 +35,7 @@ namespace NCode.Server.Systems.Channel
             {
                 Channels.Add(this);
             }
-            playerRemoved += RemovePlayer;
+            NCoreEvents.playerDisconnected += RemovePlayer;
         }
 
         ~NChannel()
