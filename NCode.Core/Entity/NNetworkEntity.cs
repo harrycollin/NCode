@@ -19,6 +19,8 @@ namespace NCode.Core.Entity
         /// </summary>
         public readonly Guid Guid;
 
+        public int Owner;
+
         /// <summary>
         /// Changes the spawn priority for this entity.
         /// </summary>

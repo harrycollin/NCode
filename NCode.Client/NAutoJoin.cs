@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using NCode.Core.Client;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace NCode.Client
@@ -12,8 +13,6 @@ namespace NCode.Client
         // Use this for initialization
         void Start ()
         {       
-            NetworkManager.CreateInstance();
-            NetworkManager.onConnect += JoinAndLoad;
             NetworkManager.Connect(ServerIPAddress, ServerPort);
         }
 

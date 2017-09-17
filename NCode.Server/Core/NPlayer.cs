@@ -8,6 +8,7 @@ using NCode.Core;
 using NCode.Core.Protocols;
 using NCode.Core.TypeLibrary;
 using NCode.Core.Utilities;
+using static NCode.Server.Core.NCoreEvents;
 using Buffer = NCode.Core.Buffer;
 
 namespace NCode.Server.Core
@@ -51,9 +52,9 @@ namespace NCode.Server.Core
             }
         }
 
-        public bool IsPlayerSocketConnected => _tcpProtocol.isSocketConnected;
+        public bool IsPlayerSocketConnected => _tcpProtocol.IsSocketConnected;
 
-        public bool IsPlayerTcpConnected => _tcpProtocol.isConnected;
+        public bool IsPlayerTcpConnected => _tcpProtocol.IsConnected;
 
         public bool IsPlayerUdpConnected { get; set; } = false; //Find a better way of confirming this other than manually marking it.
 
@@ -113,32 +114,32 @@ namespace NCode.Server.Core
 
         public static void AddPlayer(Socket socket)
         {
-            lock (PlayerIdDictionary)
+            lock (PlayerDictionary)
             {
                 NPlayer newPlayer = new NPlayer(socket);
-                PlayerIdDictionary.Add(newPlayer.ClientId, newPlayer);
-                NCoreEvents.playerConnected(newPlayer);
-                Console.WriteLine(newPlayer.RemoteTcpEndPoint + " connecting...");
+                PlayerDictionary.Add(newPlayer.ClientId, newPlayer);
+                playerConnected?.Invoke(newPlayer);
+                Tools.Print(newPlayer.RemoteTcpEndPoint + " connecting...");
             }
         }
 
         public static bool RemovePlayer(int playerId)
         {
-            lock (PlayerIdDictionary)
+            lock (PlayerDictionary)
             {
-                if (!PlayerIdDictionary.ContainsKey(playerId)) return false;
-                Tools.Print($"Player {playerId} has disconnected...");
-                NCoreEvents.playerDisconnected(PlayerIdDictionary[playerId]);
-                PlayerIdDictionary.Remove(playerId);
+                if (!PlayerDictionary.ContainsKey(playerId)) return false;
+                Tools.Print($"Player {playerId} has disconnected.");
+                playerDisconnected?.Invoke(PlayerDictionary[playerId]);
+                PlayerDictionary.Remove(playerId);
                 return true;
             }
         }
 
         public static NPlayer GetPlayer(int playerId)
         {
-            lock (PlayerIdDictionary)
+            lock (PlayerDictionary)
             {
-                return PlayerIdDictionary.ContainsKey(playerId) ? PlayerIdDictionary[playerId] : null;
+                return PlayerDictionary.ContainsKey(playerId) ? PlayerDictionary[playerId] : null;
             }
         }
 
@@ -151,7 +152,7 @@ namespace NCode.Server.Core
             }
         }
 
-        public static Dictionary<int, NPlayer> PlayerIdDictionary = new Dictionary<int, NPlayer>();
+        public static Dictionary<int, NPlayer> PlayerDictionary = new Dictionary<int, NPlayer>();
         public static Dictionary<IPEndPoint, NPlayer> PlayerUdpEnpointDictionary = new Dictionary<IPEndPoint, NPlayer>();
 
         #endregion

@@ -21,11 +21,6 @@
         Disconnect,   
 
         /// <summary>
-        /// Sends udp port to clients.
-        /// </summary>
-        SetupUDP,   
-        
-        /// <summary>
         /// Sends and Receives Pings between server and client.
         /// </summary>
         Ping,
@@ -39,6 +34,16 @@
         /// Response to RequestClientSetup. Sends back some infomation about you or disconnects you depending on your information. 
         /// </summary>
         ResponseClientSetup,
+
+        /// <summary>
+        /// Sent by the client requesting to setup a UDP connection
+        /// </summary>
+        RequestSetupUdp,
+
+        /// <summary>
+        /// Response from the server to setting up a UDP connection. 
+        /// </summary>
+        ResponseSetupUdp,
 
         /// <summary>
         /// Request to create an NetworkObject. 

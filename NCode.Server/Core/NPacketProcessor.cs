@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -36,8 +37,45 @@ namespace NCode.Server.Core
                 callback(packetType, reader);
                 return true;
             }
+            Tools.Print($"Packet {packetType.ToString()}");
             switch (packetType)
             {
+
+#if NCODE_SERVER
+                case Packet.Ping:
+                {
+                    
+                    break;
+                }
+                case Packet.RequestClientSetup:
+                {
+                    try
+                    {
+                        int protocolVersion = reader.ReadInt32();
+                        BinaryWriter writer = player.BeginSend(Packet.ResponseClientSetup);
+
+                        if (NGameServer.ServerProtocolVersion == protocolVersion)
+                        {
+                            writer.Write(player.ClientId);
+                            writer.Write(NGameServer.UdpListenPort);
+                            Tools.Print($"Player {player.ClientId} has connected.");
+                        }
+                        else
+                        {
+                            writer.Write(-1);
+                            Tools.Print($"Player {player.ClientId} has failed to connect.");
+                        }
+                        player.EndSend();
+                    }
+                    catch (Exception e)
+                    {
+                        Tools.Print($"Cannot parse {packetType} packet to type 'int'. Client setup failed.", Tools.MessageType.error, e);
+                        throw;
+                    }
+                    break;
+                }
+#endif
+                
                 default:
                     {
                         Tools.Print($"Packet with the ID:{packetType} has not been defined for processing.", Tools.MessageType.error);

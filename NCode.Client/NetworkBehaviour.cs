@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using NCode.Core;
-using NCode.Core.BaseClasses;
+using NCode.Core.Entity;
 using UnityEngine;
 
 namespace NCode.Client
@@ -17,40 +17,33 @@ namespace NCode.Client
         public static Dictionary<Guid, NetworkBehaviour> NetworkObjects = new Dictionary<Guid, NetworkBehaviour>();
 
         //Local variables
-        public bool rebuildMethodList = true;
+        private bool rebuildMethodList = true;
 
-        public Guid guid
+        public Guid guid => Entity.Guid;
+
+        public int Owner
         {
-            get { return networkObject.GUID; }
-        }
-        public string owner
-        {
-            get { return networkObject.owner; }
-            set { networkObject.owner = value; }
-        }     
-        public Guid NetworkOwner
-        {
-            get { return networkObject.NetworkOwnerGUID; }
-            set { networkObject.NetworkOwnerGUID = value; } 
+            get { return Entity.Owner; }
+            set { Entity.Owner = value; } 
         }
        
-        public NetworkObject networkObject;
+        public NNetworkEntity Entity;
 
         public string ObjectGuid;
-        
-        
-        void Start()
-        {
-            ObjectGuid = guid.ToString();
-        }
+
         /// <summary>
         /// Checks if this NetworkBehaviour is owned by this client.
         /// </summary>
         /// <returns></returns>
-        public bool IsMine { get { return NetworkOwner == NetworkManager.LocalPlayer().ClientGuid; } }
+        public bool IsMine => Owner == NetworkManager.ClientID;
+
+        void Start()
+        {
+            ObjectGuid = guid.ToString();
+        }
 
         [System.NonSerialized]
-        public System.Collections.Generic.List<int> ConnectedChannels = new System.Collections.Generic.List<int>();
+        public List<int> ConnectedChannels = new List<int>();
         
         //A local dictionary of cached RFCs
         private Dictionary<int, CachedFunc> RFCList = new Dictionary<int, CachedFunc>();
@@ -83,7 +76,7 @@ namespace NCode.Client
         /// </summary>
         public void SendRFC(int rfcID, Packet target, bool reliable, params object[] objs)
         {
-            if (NetworkManager.isConnected)
+            if (NetworkManager.IsConnected)
             {
                 BinaryWriter writer = NetworkManager.BeginSend(target);
                 writer.WriteObject(guid); //Network Behaviour Guid

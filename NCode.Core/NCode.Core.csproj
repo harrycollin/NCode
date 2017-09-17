@@ -9,17 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NCode.Core</RootNamespace>
     <AssemblyName>NCode.Core</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -28,6 +20,24 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Unity_Debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Unity_Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;UNITY_EDITOR, UNITY_STANDALONE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Standalone_Debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Standalone_Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NCODE_SERVER</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -44,8 +54,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TypeLibrary\NVector4.cs" />
     <Compile Include="TypeLibrary\NVector3.cs" />
-    <Compile Include="Entity\DynamicEntity.cs" />
     <Compile Include="Entity\NEntityCache.cs" />
     <Compile Include="Entity\NNetworkEntity.cs" />
     <Compile Include="NBinaryEntensions.cs" />
@@ -63,7 +73,6 @@
     <Compile Include="Utilities\NConverters.cs" />
     <Compile Include="Utilities\NLogger.cs" />
     <Compile Include="Utilities\NTools.cs" />
-    <Compile Include="Utilities\ThreadSafeCache\SynchronizedCache.cs" />
     <Compile Include="Utilities\TNList.cs" />
   </ItemGroup>
   <ItemGroup />

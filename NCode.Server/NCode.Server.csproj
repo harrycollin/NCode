@@ -13,16 +13,6 @@
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
@@ -31,6 +21,16 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Standalone_Debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Standalone_Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NCODE_SERVER</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -43,15 +43,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\NCoreEvents.cs" />
+    <Compile Include="Core\NPacketProcessor.cs" />
+    <Compile Include="Core\NPlayer.cs" />
     <Compile Include="Systems\IPlayerManagementSystem.cs" />
     <None Include="Addons\MySQL\DatabaseRequest.cs" />
-    <Compile Include="Core\NPacketProcessor.cs" />
     <None Include="Systems\Channel\Channel.cs" />
     <None Include="Addons\MySQL\DatabaseManager.cs" />
     <Compile Include="NCodeServerMain.cs" />
     <Compile Include="Systems\Channel\NChannel.cs" />
     <Compile Include="Core\NGameServer.cs" />
-    <Compile Include="Core\NPlayer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

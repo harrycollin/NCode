@@ -28,7 +28,7 @@ namespace NCode.Core.Protocols
         /// <summary>
         /// The current version of the Protocol
         /// </summary>
-        public int ProtocolVersion = 12062016;
+        public static int ProtocolVersion = 12062016;
 
         /// <summary>
         /// Whether the hosted server will respond to HTTP GET requests.
@@ -89,26 +89,25 @@ namespace NCode.Core.Protocols
         IPEndPoint mFallback;
         Utilities.List<Socket> mConnecting = new Utilities.List<Socket>();
 
-        // Static as it's temporary
-        static Buffer mBuffer;
+        private Buffer mBuffer;
 
         /// <summary>
         /// Whether the connection is currently active.
         /// </summary>
 
-        public bool isConnected { get { return stage == Stage.Connected; } }
+        public bool IsConnected => stage == Stage.Connected;
 
         /// <summary>
         /// Socket used for communication.
         /// </summary>
 
-        public Socket socket { get { return mSocket; } }
+        public Socket Socket => mSocket;
 
         /// <summary>
         /// If sockets are not used, an outgoing queue can be specified instead.
         /// </summary>
 
-        public Queue<Buffer> sendQueue = null;
+        public Queue<Buffer> SendQueue;
 
         /// <summary>
         /// Direct access to the incoming buffer to deposit messages in. Don't forget to lock it before using it.
@@ -121,7 +120,7 @@ namespace NCode.Core.Protocols
         /// In most cases you should use 'isConnected' instead.
         /// </summary>
 
-        public bool isSocketConnected => mSocket != null && mSocket.Connected;
+        public bool IsSocketConnected => mSocket != null && mSocket.Connected;
 
         /// <summary>
         /// Whether we are currently trying to establish a new connection.
@@ -346,10 +345,10 @@ namespace NCode.Core.Protocols
                 {
                     Close(notify || mSocket.Connected);
                 }
-                else if (sendQueue != null)
+                else if (SendQueue != null)
                 {
                     Close(true);
-                    sendQueue = null;
+                    SendQueue = null;
                 }
             }
             catch (System.Exception)
@@ -398,9 +397,9 @@ namespace NCode.Core.Protocols
                 }
                 else lock (mIn) Buffer.Recycle(mIn);
             }
-            else if (notify && sendQueue != null)
+            else if (notify && SendQueue != null)
             {
-                sendQueue = null;
+                SendQueue = null;
                 Buffer buffer = Buffer.Create();
                 buffer.BeginPacket(Packet.Disconnect);
                 buffer.EndTcpPacketWithOffset(4);
@@ -505,7 +504,7 @@ namespace NCode.Core.Protocols
                 return;
             }
 
-            if (sendQueue != null)
+            if (SendQueue != null)
             {
                 if (buffer.position != 0)
                 {
@@ -522,12 +521,12 @@ namespace NCode.Core.Protocols
                 if (size == buffer.size)
                 {
                     // Note that after this the buffer can no longer be used again as its offset is +4
-                    lock (sendQueue) sendQueue.Enqueue(buffer);
+                    lock (SendQueue) SendQueue.Enqueue(buffer);
                     return;
                 }
 
                 // Multi-part packet -- split it up into separate ones
-                lock (sendQueue)
+                lock (SendQueue)
                 {
                     for (;;)
                     {
@@ -539,7 +538,7 @@ namespace NCode.Core.Protocols
                         writer.Write(bytes);
                         temp.BeginReading(4);
                         temp.EndWriting();
-                        sendQueue.Enqueue(temp);
+                        SendQueue.Enqueue(temp);
 
                         if (buffer.size > 0) size = reader.ReadInt32();
                         else break;

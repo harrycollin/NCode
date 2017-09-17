@@ -1,11 +1,9 @@
 ﻿using UnityEngine;
-using System;
-using NCode;
-using NCode.Utilities;
-using NCode.Core;
 using System.IO;
-using NCode.Core.BaseClasses;
+using NCode.Client;
+using NCode.Core;
 using NCode.Core.Client;
+using NCode.Core.Utilities;
 
 [RequireComponent(typeof(NNetworkEntityLink))]
 public class PlayerSync : PlayerController

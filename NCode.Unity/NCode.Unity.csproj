@@ -76,20 +76,16 @@
     <Reference Include="UnityEngine.HoloLens">
       <HintPath>Library\UnityAssemblies\UnityEngine.HoloLens.dll</HintPath>
     </Reference>
-    <Reference Include="NCode Client">
-      <HintPath>Assets\Plugins\NCode Client.dll</HintPath>
+    <Reference Include="NCode.Client">
+      <HintPath>Assets\Plugins\NCode\NCode.Client.dll</HintPath>
     </Reference>
-    <Reference Include="NCode">
-      <HintPath>Assets\Plugins\NCode.dll</HintPath>
+    <Reference Include="NCode.Core">
+      <HintPath>Assets\Plugins\NCode\NCode.Core.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Classes\Core\Controllers\PlayerController.cs" />
     <Compile Include="Assets\Classes\Core\Controllers\PlayerSync.cs" />
-    <Compile Include="Assets\Classes\NCode\Client\NAutoConnect.cs" />
-    <Compile Include="Assets\Classes\NCode\Client\NetworkBehaviour.cs" />
-    <Compile Include="Assets\Classes\NCode\Client\NetworkManager.cs" />
-    <Compile Include="Assets\Classes\NCode\Client\NNetworkEntityLink.cs" />
     <Compile Include="Assets\Resources\Standard Assets\Cameras\Scripts\AbstractTargetFollower.cs" />
     <Compile Include="Assets\Resources\Standard Assets\Cameras\Scripts\AutoCam.cs" />
     <Compile Include="Assets\Resources\Standard Assets\Cameras\Scripts\FreeLookCam.cs" />
@@ -209,7 +205,6 @@
     <Compile Include="Assets\Resources\Standard Assets\Vehicles\Car\Scripts\SkidTrail.cs" />
     <Compile Include="Assets\Resources\Standard Assets\Vehicles\Car\Scripts\Suspension.cs" />
     <Compile Include="Assets\Resources\Standard Assets\Vehicles\Car\Scripts\WheelEffects.cs" />
-    <Compile Include="Assets\Scenes\AutoConnect\AutoConnect.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Resources\Standard Assets\Cameras\CameraGuidelines.txt" />

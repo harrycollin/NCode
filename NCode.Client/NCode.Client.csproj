@@ -9,22 +9,11 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NCode.Client</RootNamespace>
     <AssemblyName>NCode.Client</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>..\NCode.Unity\Assets\Plugins\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -38,6 +27,15 @@
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Unity_Debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\NCode.Unity\Assets\Plugins\NCode\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NCODE_CLIENT, UNITY_EDITOR, UNITY_STANDALONE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -56,10 +54,10 @@
   <ItemGroup>
     <Compile Include="ClientEvents.cs" />
     <Compile Include="NAutoJoin.cs" />
-    <Compile Include="NetworkBehaviour.cs" />
+    <None Include="NetworkBehaviour.cs" />
     <Compile Include="NetworkManager.cs" />
     <Compile Include="NMainClient.cs" />
-    <Compile Include="NMainFunctionsClient.cs" />
+    <Compile Include="NNetworkEntityLink.cs" />
     <Compile Include="NRFC.cs" />
     <Compile Include="NTarget.cs" />
     <Compile Include="NUnityTools.cs" />
@@ -72,7 +70,7 @@
     <ProjectReference Include="..\NCode.Core\NCode.Core.csproj">
       <Project>{ede13e43-b243-460e-b048-1af55de1e3ad}</Project>
       <Name>NCode.Core</Name>
-      <Private>False</Private>
+      <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

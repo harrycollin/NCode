@@ -3,10 +3,11 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using NCode.Core;
-using NCode.Core.BaseClasses;
 using NCode.Core.Protocols;
 using NCode.Core.Utilities;
+using UnityEngine;
 using Buffer = NCode.Core.Buffer;
+using Random = UnityEngine.Random;
 
 namespace NCode.Client
 {
@@ -16,9 +17,11 @@ namespace NCode.Client
         #region Public Variables
 
         /// <summary>
-        /// The client's Guid. Assigned by the server.
+        /// The client's ID. Assigned by the server.
         /// </summary>
-        public Guid ClientGuid { get; private set; }
+        public int ClientID { get; private set; }
+
+        public EndPoint RemoteEndPoint => _tcpClient.Socket.RemoteEndPoint;
 
         /// <summary>
         /// Whether the player is trying to connect to a server
@@ -28,12 +31,12 @@ namespace NCode.Client
         /// <summary>
         /// Whether the player is connected to a server (verified aswell)
         /// </summary>
-        public bool IsConnected => _tcpClient.isConnected;
+        public bool IsConnected => _tcpClient.IsConnected;
 
         /// <summary>
         /// Whether the player's socket is connected to the server.
         /// </summary>
-        public bool IsSocketConnected => _tcpClient.isSocketConnected;
+        public bool IsSocketConnected => _tcpClient.IsSocketConnected;
 
         /// <summary>
         /// Whether the Udp Client is setup
@@ -49,10 +52,6 @@ namespace NCode.Client
 
         #region Private Vars
 
-        /// <summary>
-        /// The main thread?
-        /// </summary>
-        private Thread _mainThread;
 
         /// <summary>
         /// A temporary buffer to write to.
@@ -86,44 +85,11 @@ namespace NCode.Client
 
         #endregion
 
-        #region Misc Vars
-
-        
-
-        #endregion
-
-        public bool StartUpdateThread()
-        {
-            if (_mainThread != null) return false;
-            try
-            {
-                ContinueUpdateThread = true;
-                _mainThread = new Thread(_clientUpdate);
-                _mainThread.Start();
-                Tools.Print("Client Update Thread Started..");
-            }
-            catch (ThreadStateException threadStateException)
-            {
-                Tools.Print("ERROR::CLIENT::UPDATE|THREAD|START::THREAD|STATE", Tools.MessageType.error, threadStateException);
-                throw;
-            }
-            catch (OutOfMemoryException outOfMemoryException)
-            {
-                Tools.Print("ERROR::CLIENT::UPDATE|THREAD|START::OUT|OF|MEMORY", Tools.MessageType.error, outOfMemoryException);
-                throw;
-            }
-            return true;
-        }
-
-        public void StopUpdateThread()
-        {
-            ContinueUpdateThread = false;
-        }
-
         public void Connect(IPAddress ipAddress, int port)
         {
             IPEndPoint ipEndPoint = new IPEndPoint(ipAddress, port);
             _tcpClient.Connect(ipEndPoint);
+            _udpClient.Start(Random.Range(30000,50000));
             Tools.Print("Trying to connect to:"+ipEndPoint);
         }
 
@@ -154,60 +120,59 @@ namespace NCode.Client
         {
             _tempBuffer.EndPacket();
             if (!IsSocketConnected) return;
-            if (reliable || !IsUdpSetup || _serverUdpEndpoint == null || !_udpClient.isActive)
+            if (reliable || _serverUdpEndpoint == null || !_udpClient.isActive)
             {
                 _tcpClient.SendTcpPacket(_tempBuffer);
             }
-            else _udpClient.Send(_tempBuffer, _serverUdpEndpoint);
+            else
+            {
+                _udpClient.Send(_tempBuffer, _serverUdpEndpoint);
+                Tools.Print("Buffer sent via UDP");
+            }
         }
 
-        public void ResponseClientSetup(BinaryReader reader)
-        {
-            
-        }
+        
 
         /// <summary>
         /// Checks for queued packet and carries out routine functions. 
         /// </summary>
-        private void _clientUpdate()
+        public void ClientUpdate()
         {
-            while (ContinueUpdateThread)
+            if (!_tcpClient.IsSocketConnected && !_tcpClient.isTryingToConnect)
             {
-                Thread.Sleep(1);
-
-                if (!_tcpClient.isSocketConnected && !_tcpClient.isTryingToConnect) { onDisconnect(); return; }
-
-                //Set the client time
-                _clientTime = DateTime.UtcNow.Ticks / 10000;
-
-                //Temporary variables for packets
-                Buffer tempBuffer;
-                IPEndPoint tempIp;
-
-                var keepProcessing = true;
-
-                //Process all Udp packets first.
-                while (keepProcessing && _udpClient.ReceivePacket(out tempBuffer, out tempIp))
-                {
-                    keepProcessing = ProcessPacket(tempBuffer, tempIp);
-                    tempBuffer.Recycle();
-                }
-
-                //Process Tcp packets
-                while (keepProcessing && _tcpClient.ReceivePacket(out tempBuffer))
-                {
-                    ProcessPacket(tempBuffer, null);
-                    tempBuffer.Recycle();
-                }
-                
-                //Check if we need to ping (failing to ping regularly will result in the server disconnecting this player).
-                if (_lastPingTime + 3000 >= _clientTime || _tcpClient.stage != TNTcpProtocol.Stage.Connected) continue;
-
-                _lastPingTime = _clientTime;
-                BinaryWriter writer = _tcpClient.BeginSend(Packet.Ping);
-                _tcpClient.EndSend();
-
+                onDisconnect();
+                return;
             }
+
+            //Set the client time
+            _clientTime = DateTime.UtcNow.Ticks / 10000;
+
+            //Temporary variables for packets
+            Buffer tempBuffer;
+            IPEndPoint tempIp;
+
+            var keepProcessing = true;
+
+            //Process all Udp packets first.
+            while (keepProcessing && _udpClient.ReceivePacket(out tempBuffer, out tempIp))
+            {
+                keepProcessing = ProcessPacket(tempBuffer, tempIp);
+                tempBuffer.Recycle();
+            }
+
+            //Process Tcp packets
+            while (keepProcessing && _tcpClient.ReceivePacket(out tempBuffer))
+            {
+                ProcessPacket(tempBuffer, null);
+                tempBuffer.Recycle();
+            }
+
+            //Check if we need to ping (failing to ping regularly will result in the server disconnecting this player).
+            if (_lastPingTime + 3000 >= _clientTime || _tcpClient.stage != TNTcpProtocol.Stage.Connected) return;
+
+            _lastPingTime = _clientTime;
+            _tcpClient.BeginSend(Packet.Ping);
+            _tcpClient.EndSend();
         }
 
         #region Packet Processor
@@ -232,54 +197,51 @@ namespace NCode.Client
             Tools.Print(response.ToString());
             switch (response)
             {
-                case Packet.ForwardToChannels:
-                    {                     
-                        Guid guid = (Guid)reader.ReadObject();
-                        int RFCID = reader.ReadInt32();
-                        object[] parameters = reader.ReadObjectArrayEx();
-                        onRFC(guid, RFCID, parameters);
-                        break;
-                    }               
+                           
                 case Packet.Ping:
                     {
                         _tcpClient.lastReceivedTime = _clientTime;
                         break;
                     }
                 case Packet.ResponseClientSetup:
+                {
+                    var responseID = reader.ReadInt32();
+                    if (responseID == -1)
                     {
-                        if (reader.ReadByte() == 0)
-                        {
-                            _tcpClient.Disconnect();
-                            Tools.Print("Server - Client version mismatch");
-                        }
-                        else
-                        {
-                            _tcpClient.ClientGuid = (Guid)reader.ReadObject();
-                            IPEndPoint remoteIp = _tcpClient.socket.RemoteEndPoint as IPEndPoint;
-                            _serverUdpEndpoint = new IPEndPoint(remoteIp.Address, reader.ReadInt32());
-                            BinaryWriter writer = BeginSend(Packet.SetupUDP);
-                            writer.WriteObject(_tcpClient.ClientGuid);
-                            EndSend(false);
-                            _tcpClient.stage = TNTcpProtocol.Stage.Connected;
-                        }
-                        break;
-                    }                                       
-                case Packet.ResponseSpawnPlayerObject:
-                    {
-                        Tools.Print("Response for spawn");
-                        if (reader.ReadBoolean())
-                        {
-                            onSpawnPlayerResponse((NetworkObject)reader.ReadObject());
-                        }
-                        break;
+                        _tcpClient.Disconnect();
+                        Tools.Print("Server - Client version mismatch");
                     }
-                case Packet.SetupUDP:
+                    else
+                    {
+                        ClientID = responseID;
+                        Tools.Print(ClientID);
+                        var remoteIp = _tcpClient.Socket.RemoteEndPoint as IPEndPoint;
+                        _serverUdpEndpoint = new IPEndPoint(remoteIp.Address, reader.ReadInt32());
+                        Tools.Print(_serverUdpEndpoint);
+                        var writer = BeginSend(Packet.RequestSetupUdp);
+                        writer.Write(ClientID);
+                        EndSend(false);
+                    }
+                    break;
+                }                                       
+                
+                case Packet.ResponseSetupUdp:
                     {
                         if (reader.ReadBoolean())
                         {
                             Tools.Print("UDP Setup!");
+                            _tcpClient.stage = TNTcpProtocol.Stage.Connected;
                             onConnect();
                         }
+                        break;
+                    }
+
+                case Packet.ForwardToChannels:
+                    {
+                        Guid guid = (Guid)reader.ReadObject();
+                        int RFCID = reader.ReadInt32();
+                        object[] parameters = reader.ReadObjectArrayEx();
+                        onRFC(guid, RFCID, parameters);
                         break;
                     }
                 default:

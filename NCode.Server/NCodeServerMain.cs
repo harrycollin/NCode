@@ -15,22 +15,6 @@ namespace NCode.Server
 {
     class NCodeServerMain 
     {
-
-        private const int MF_BYCOMMAND = 0x00000000;
-        public const int SC_CLOSE = 0xF060;
-        public const int SC_MAXIMIZE = 0xF030;
-        public const int SC_SIZE = 0xF000;
-
-        [DllImport("user32.dll")]
-        public static extern int DeleteMenu(IntPtr hMenu, int nPosition, int wFlags);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
-
-        [DllImport("kernel32.dll", ExactSpelling = true)]
-        private static extern IntPtr GetConsoleWindow();
-
-
         /// <summary>
         /// Server Entry point.
         /// </summary>
@@ -67,57 +51,6 @@ namespace NCode.Server
             NGameServer gameServer = new NGameServer(info.servername, info.tcpport, info.udpport, info.rconport,info.password, info.autostart);
             
         }
-
-        static void SetLayout()
-        {
-            Console.SetWindowSize(120, 30);
-            Console.BufferHeight = Console.WindowHeight;
-
-            IntPtr handle = GetConsoleWindow();
-            IntPtr sysMenu = GetSystemMenu(handle, false);
-
-            DeleteMenu(sysMenu, SC_MAXIMIZE, MF_BYCOMMAND);
-            DeleteMenu(sysMenu, SC_SIZE, MF_BYCOMMAND);
-
-            for (int i = 1; i < Console.WindowWidth; i++)
-            {
-                Console.SetCursorPosition(i, 0);
-                Console.Write("\u2550");
-                Console.SetCursorPosition(i, Console.WindowHeight - 2);
-                Console.Write("\u2550");
-            }
-
-            for (int i = 0; i < Console.WindowHeight - 1; i++)
-            {
-                //Left Vertical
-                Console.SetCursorPosition(1, i);
-                if (i == 0)  Console.Write("\u2554"); 
-                else if(i == Console.WindowHeight - 2)
-                    Console.Write("\u255A");
-                else Console.Write("\u2551");
-
-                //Center Vertical
-                Console.SetCursorPosition(Console.WindowWidth / 2, i);
-                if (i == 0) Console.Write("\u2566");
-                else if (i == Console.WindowHeight - 2)
-                    Console.Write("\u2569");
-                else Console.Write("\u2551");
-
-                //Right Vertical
-                Console.SetCursorPosition(Console.WindowWidth - 1, i);
-                if (i == 0) Console.Write("\u2557");
-                else if (i == Console.WindowHeight - 2)
-                    Console.Write("\u255D");
-                else Console.Write("\u2551");
-            }
-
-            
-            Console.SetCursorPosition(2, 2);
-
-        }
-
-        
-
 
         public static string CurrentCPUusage
         {

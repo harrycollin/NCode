@@ -40,22 +40,22 @@ namespace NCode.Client
             return new Vector3(nVector3.X, nVector3.Y, nVector3.Z);
         }
 
-        public static V4 Vector4ToV4(Vector4 v4)
+        public static NVector4 Vector4ToV4(Vector4 v4)
         {
-            return new V4(v4.x, v4.y, v4.z, v4.w);
+            return new NVector4(v4.x, v4.y, v4.z, v4.w);
         }
 
-        public static Vector4 V4ToVector4(V4 v4)
+        public static Vector4 V4ToVector4(NVector4 v4)
         {
             return new Vector4(v4.X, v4.Y, v4.Z, v4.W);
         }
 
-        public static V4 QuaternionToV4(Quaternion Q)
+        public static NVector4 QuaternionToV4(Quaternion Q)
         {
-            return new V4(Q.x, Q.y, Q.z, Q.w);
+            return new NVector4(Q.x, Q.y, Q.z, Q.w);
         }
 
-        public static Quaternion V4ToQuaternion(V4 v4)
+        public static Quaternion V4ToQuaternion(NVector4 v4)
         {
             return new Quaternion(v4.X, v4.Y, v4.Z, v4.W);
 

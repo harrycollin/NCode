@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -13,6 +14,8 @@ namespace NCode.Server.Core
 {
     public class NGameServer
     {
+        public static int ServerProtocolVersion => TNTcpProtocol.ProtocolVersion;
+
         /// <summary>
         /// Time in ticks
         /// </summary>
@@ -27,8 +30,8 @@ namespace NCode.Server.Core
 
         private Thread _coreThread;
 
-        public readonly int TcpListenPort = 0;
-        public readonly int UdpListenPort = 0;
+        public static int TcpListenPort = 0;
+        public static int UdpListenPort = 0;
 
         /// <summary>
         /// A dictionary of custom packet listeners. The key is the packet. 
@@ -106,7 +109,7 @@ namespace NCode.Server.Core
         private void CoreProcesses()
         {
             //Loop forever until server is stopped.
-            for (; ; )
+            for (; ;)
             {
                 if (!CheckForPendingConnections())
                 {
@@ -114,8 +117,16 @@ namespace NCode.Server.Core
                     Tools.Print("Error occured in Pending Connections");
                 }
 
-                if (!UdpProcessor()) _runThreads = false;
-                if (!ProcessTcpPackets()) _runThreads = false;
+                if (!UdpProcessor())
+                {
+                    _runThreads = false;
+                    Tools.Print("Error occured in UDP Processing");
+                }
+                if (!ProcessTcpPackets())
+                {
+                    _runThreads = false;
+                    Tools.Print("Error occured in TCP Processing");
+                }
 
                 //The tick time divided by 10000 as a counter (used to calculate ping, thread times, etc.)
                 TickTime = DateTime.UtcNow.Ticks / 10000;
@@ -132,32 +143,28 @@ namespace NCode.Server.Core
         private bool ProcessTcpPackets()
         {
             //Loops through each player in the player list.
-            foreach (var keyValuePair in NPlayer.PlayerIdDictionary)
+            foreach (var player in NPlayer.PlayerDictionary.Values.ToList())
             {
                 // Remove disconnected players (Checks the player's TcpProtocol to see if the socket is still connected)
-                if (!keyValuePair.Value.IsPlayerSocketConnected)
+                if (!player.IsPlayerSocketConnected)
                 {
-                    //SendPlayerDisconnected(player);
-                    NPlayer.RemovePlayer(keyValuePair.Key);
-
-                    //Breaks the current iterartion instead of break; which breaks the whole 'for' statement.
+                    NPlayer.RemovePlayer(player.ClientId);
                     continue;
                 }
 
                 // If the player doesn't send any packets in a while, disconnect him
-                if (keyValuePair.Value.TimeoutTime > 0 &&
-                    keyValuePair.Value.LastReceiveTime + keyValuePair.Value.TimeoutTime < TickTime)
+                if (player.TimeoutTime > 0 &&
+                    player.LastReceiveTime + player.TimeoutTime < TickTime)
                 {
-                    //SendPlayerDisconnected(player);
-                    NPlayer.RemovePlayer(keyValuePair.Key);
+                    NPlayer.RemovePlayer(player.ClientId);
                     continue;
                 }
 
                 Buffer packet;
 
                 // Process up to 100 packets from this player's InQueue at a time. (This is processed after checking for disconnected sockets. 
-                for (var e = 0; e < 100 && keyValuePair.Value.NextPacket(out packet); e++)
-                    _packetProcessor.ProcessPacket(keyValuePair.Value, packet, true);
+                for (var e = 0; e < 100 && player.NextPacket(out packet); e++)
+                    _packetProcessor.ProcessPacket(player, packet, true);
             }
 
             return true;
@@ -173,37 +180,39 @@ namespace NCode.Server.Core
             IPEndPoint udpEndpoint;
             for (var e = 0; e < 200 && _mainUdpProtocol.ReceivePacket(out buffer, out udpEndpoint); e++)
             {
+                
                 var player = NPlayer.GetPlayer(udpEndpoint);
                 if (player != null)
                 {
+                    Tools.Print("Player wasn't null");
                     _packetProcessor.ProcessPacket(player, buffer, false);
                     continue;
                 }
 
                 var reader = buffer.BeginReading();
 
-                if ((Packet) reader.ReadByte() != Packet.SetupUDP) continue;
-                /* player = NPlayer.GetPlayer((Guid)reader.ReadObject());
-                 if (player != null)
-                 {
-                     Tools.Print(player.RemoteTcpEndPoint + " has setup their udp connection");
+                if ((Packet)reader.ReadByte() != Packet.RequestSetupUdp) continue;
+                player = NPlayer.GetPlayer(reader.ReadInt32());
+                if (player != null)
+                {
+                    Tools.Print($"Player {player.ClientId} ({player.RemoteTcpEndPoint}) has setup UDP connectivity.");
 
-                     //Add the player to the UdpEndpoint Dictionary
-                     PlayerUdpEPDictionary.Add(udpEndpoint, player);
-                     //Set the Udp Endpoint
-                     player.UdpEndpoint = udpEndpoint;
-                     //Set the UDP setup as true
-                     player.IsPlayerUdpConnected = true;
+                    //Add the player to the UdpEndpoint Dictionary
+                    NPlayer.PlayerUdpEnpointDictionary.Add(udpEndpoint, player);
+                    //Set the Udp Endpoint
+                    player.UdpEndpoint = udpEndpoint;
+                    //Set the UDP setup as true
+                    player.IsPlayerUdpConnected = true;
 
-                     //Send the response packet to the player
-                     var writer = player.BeginSend(Packet.SetupUDP);
-                     writer.Write(true);
-                     player.EndSend();
-                 }
-                 else
-                 {
-                     Tools.Print("GetPlayer null");
-                 }*/
+                    //Send the response packet to the player
+                    var writer = player.BeginSend(Packet.ResponseSetupUdp);
+                    writer.Write(true);
+                    player.EndSend();
+                }
+                else
+                {
+                    Tools.Print("GetPlayer null");
+                }
             }
             return true;
 
@@ -223,7 +232,6 @@ namespace NCode.Server.Core
                     {
                         //Close the socket if the ip is null.
                         socket.Close();
-                        socket = null;
                         Tools.Print("Remote client socket couldn't be accepted");
                     }
                     else

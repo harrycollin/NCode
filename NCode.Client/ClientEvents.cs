@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using NCode.Core;
-using NCode.Core.BaseClasses;
+using NCode.Core.Entity;
 
 namespace NCode.Client
 {
@@ -34,12 +34,12 @@ namespace NCode.Client
         /// When the player receives an update for an network object.
         /// </summary>
         public OnObjectUpdate onObjectUpdate;
-        public delegate void OnObjectUpdate(NetworkObject obj);
+        public delegate void OnObjectUpdate(NNetworkEntity obj);
 
         public OnDestroyObject onDestroyObject;
         public delegate void OnDestroyObject(Guid guid);
 
         public OnSpawnPlayerResponse onSpawnPlayerResponse;
-        public delegate void OnSpawnPlayerResponse(NetworkObject playerObject);
+        public delegate void OnSpawnPlayerResponse(NNetworkEntity playerObject);
     }
 }

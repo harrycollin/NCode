@@ -21,7 +21,7 @@ namespace NCode.Server.Systems.Channel
         /// <summary>
         /// The unique channel ID. This is unique for each channel and automatically assigned on creation. This cannot be changed. 
         /// </summary>
-        public readonly int ID = -1;
+        public readonly int ID;
 
         
 

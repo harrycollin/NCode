@@ -115,11 +115,11 @@
     <Reference Include="SyntaxTree.VisualStudio.Unity.Bridge">
       <HintPath>Library\UnityAssemblies\SyntaxTree.VisualStudio.Unity.Bridge.dll</HintPath>
     </Reference>
-    <Reference Include="NCode Client">
-      <HintPath>Assets\Plugins\NCode Client.dll</HintPath>
+    <Reference Include="NCode.Client">
+      <HintPath>Assets\Plugins\NCode\NCode.Client.dll</HintPath>
     </Reference>
-    <Reference Include="NCode">
-      <HintPath>Assets\Plugins\NCode.dll</HintPath>
+    <Reference Include="NCode.Core">
+      <HintPath>Assets\Plugins\NCode\NCode.Core.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
