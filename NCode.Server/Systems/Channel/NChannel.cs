@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NCode.Core.Utilities;
 using NCode.Server.Core;
+using System.Collections.Generic;
 
 namespace NCode.Server.Systems.Channel
 {
@@ -14,7 +15,9 @@ namespace NCode.Server.Systems.Channel
         public static int ChannelCount;
 
         //Static list of all channels 
-        public static System.Collections.Generic.List<NChannel> Channels = new System.Collections.Generic.List<NChannel>();
+        public static Dictionary<int, NChannel> Channels = new Dictionary<int, NChannel>();
+
+        public static readonly uint MaxChannels = 1000;
 
 #endregion
 
@@ -22,41 +25,108 @@ namespace NCode.Server.Systems.Channel
         /// The unique channel ID. This is unique for each channel and automatically assigned on creation. This cannot be changed. 
         /// </summary>
         public readonly int ID;
+                
+        /// <summary>
+        /// A list of players by their ID's
+        /// </summary>
+        private System.Collections.Generic.List<int> Players = new System.Collections.Generic.List<int>();
 
-        
 
-        public System.Collections.Generic.List<NPlayer> Players = new System.Collections.Generic.List<NPlayer>(); 
-
-        private NChannel()
+        private NChannel(int ChannelID = -1)
         {
             ChannelCount++;
-            ID = ChannelCount;
-            lock (Channels)
+
+            if (ChannelID != -1)
             {
-                Channels.Add(this);
+                if (!Channels.ContainsKey(ChannelID))
+                {
+                    ID = ChannelID;
+                    Channels.Add(ID, this);
+                }
+                else
+                {
+                    Tools.Print($"Couldn't create a channel with the ID {ChannelID} as it already exists.", Tools.MessageType.ERROR);
+                }
             }
-            NCoreEvents.playerDisconnected += RemovePlayer;
+            else if (ChannelID == -1)
+            {
+                for (var i = 0; i < MaxChannels; i++)
+                {
+                    if (!Channels.ContainsKey(i))
+                    {
+                        ID = i;
+                        Channels.Add(i, this);
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                Tools.Print("A new channel couldn't be created. Max channels reached", Tools.MessageType.ERROR);
+            }
+            
+            NCoreEvents.playerDisconnected += LeaveChannel;
         }
+
+        
 
         ~NChannel()
         {
             ChannelCount--;
         }
 
-        public bool AddPlayer(ref NPlayer player)
+        public static bool JoinChannel(NPlayer player, int ChannelID)
+        {
+            if (Channels.ContainsKey(ChannelID))
+            {
+                if (!Channels[ChannelID].JoinChannel(player))
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                NChannel newChannel = new NChannel(ChannelID);
+                newChannel.JoinChannel(player);
+            }
+            return false;
+        }
+
+        public static bool LeaveChannel(NPlayer player, int ChannelID)
+        {
+            if (Channels.ContainsKey(ChannelID))
+            {
+                if (Channels[ChannelID].Players.Contains(player.ClientId))
+                {
+                    Channels[ChannelID].Players.Remove(player.ClientId);
+                    return true;
+                }
+                else
+                {
+                    Tools.Print("STR_CHANNEL_PLAYERLEAVENULLCHANNEL", player.ClientGuid, ChannelID);
+                }
+            }
+            return false;
+        }
+
+        public bool JoinChannel(NPlayer player)
         {
             lock (Players)
             {
-                if (!Players.Contains(player))
+                if (!Players.Contains(player.ClientId))
                 {
-                    Players.Add(player);
+                    Players.Add(player.ClientId);
                     return true;
+                }
+                else
+                {
+                    Tools.Print($"Player {player.ClientId} couldn't join channel {ID}. Player is already apart of this channel.", Tools.MessageType.ERROR);
                 }
                 return false;
             }
         }
 
-        public void RemovePlayer(NPlayer player)
+        public void LeaveChannel(NPlayer player)
         {
             Tools.Print($"Player {player.ClientId} has been removed from channel {ID}.");
         }
@@ -70,18 +140,19 @@ namespace NCode.Server.Systems.Channel
         {
             lock (Channels)
             {
-                foreach (var channel in Channels)
+                if (Channels.ContainsKey(channelId))
                 {
-                    if (channel.ID == channelId)
+                    lock (Channels)
                     {
-                        Channels.Remove(channel);
+                        Channels.Remove(channelId);
+#if DEBUG 
+                        Tools.Print($"Channel {channelId} has been closed.", Tools.MessageType.WARNING);
+#endif
                         return true;
                     }
                 }
             }
             return false;
         }
-
-        
     }
 }

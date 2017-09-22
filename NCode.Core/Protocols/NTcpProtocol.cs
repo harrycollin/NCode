@@ -119,7 +119,7 @@ namespace NCode.Core.Protocols
             }
             catch (Exception e)
             {
-                Tools.Print("@NTcpProtocol.Connect", Tools.MessageType.error, e, true);
+                Tools.Print("@NTcpProtocol.Connect", Tools.MessageType.ERROR, e, true);
                 return false;
             }
         }
@@ -173,7 +173,7 @@ namespace NCode.Core.Protocols
             }
             catch (Exception e)
             {
-                Tools.Print("@NTcpProtocol:ConnectCallback", Tools.MessageType.error, e);
+                Tools.Print("@NTcpProtocol:ConnectCallback", Tools.MessageType.ERROR, e);
             }
         }
 
@@ -194,7 +194,7 @@ namespace NCode.Core.Protocols
                 }
                 catch (Exception e)
                 {
-                    Tools.Print("@NTcpProtocol:BeginListening", Tools.MessageType.error, e, true);
+                    Tools.Print("@NTcpProtocol:BeginListening", Tools.MessageType.ERROR, e, true);
                     return false;
                 }
             }
@@ -218,7 +218,7 @@ namespace NCode.Core.Protocols
             }
             catch (Exception e)
             {
-                Tools.Print("@NTcpProtocol:ReceiveCallback 'socket.EndReceive'", Tools.MessageType.error, e, true);
+                Tools.Print("@NTcpProtocol:ReceiveCallback 'socket.EndReceive'", Tools.MessageType.ERROR, e, true);
                 if (socket != thisSocket) return;                
                 Disconnect();
                 return;
@@ -243,7 +243,7 @@ namespace NCode.Core.Protocols
                 }
                 catch (Exception e)
                 {
-                    Tools.Print("@NTcpProtocol:ReceiveCallback 'Queue up next receive operation' ", Tools.MessageType.error, e, true);
+                    Tools.Print("@NTcpProtocol:ReceiveCallback 'Queue up next receive operation' ", Tools.MessageType.ERROR, e, true);
                     Close();
                 }
             }
@@ -272,7 +272,7 @@ namespace NCode.Core.Protocols
                 }
                 catch(Exception e)
                 {
-                    Tools.Print("@NTcpProtocol.ProcessPacket", Tools.MessageType.error, e, true);
+                    Tools.Print("@NTcpProtocol.ProcessPacket", Tools.MessageType.ERROR, e, true);
                     return false;
                 }
             }
@@ -302,7 +302,7 @@ namespace NCode.Core.Protocols
                 {
                     lock (thisSocket)
                     {
-                        Tools.Print(thisSocket.RemoteEndPoint.ToString() + ": disconnected", Tools.MessageType.notification, null, true);
+                        Tools.Print(thisSocket.RemoteEndPoint.ToString() + ": disconnected", Tools.MessageType.NOTIFICATION, null, true);
                         thisSocket.Shutdown(SocketShutdown.Both);
                         thisSocket.Close();
                         thisSocket = null;
@@ -311,7 +311,7 @@ namespace NCode.Core.Protocols
                 }
                 catch (Exception e)
                 {
-                    Tools.Print("@NTcpProtocol.Disconnect", Tools.MessageType.error, e, true);
+                    Tools.Print("@NTcpProtocol.Disconnect", Tools.MessageType.ERROR, e, true);
                 }
                 return true;
             }
@@ -368,7 +368,7 @@ namespace NCode.Core.Protocols
                 }
                 catch (Exception e)
                 {
-                    Tools.Print("@NTcpProtocol.Send", Tools.MessageType.error, e, true);
+                    Tools.Print("@NTcpProtocol.Send", Tools.MessageType.ERROR, e, true);
                 }
             }
         }
@@ -388,7 +388,7 @@ namespace NCode.Core.Protocols
             }
             catch (Exception e)
             {
-                Tools.Print("@NTcpProtocol:SendCallback", Tools.MessageType.error, e, true);
+                Tools.Print("@NTcpProtocol:SendCallback", Tools.MessageType.ERROR, e, true);
             }
         }    
 

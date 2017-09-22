@@ -45,6 +45,11 @@
     <Compile Include="Core\NCoreEvents.cs" />
     <Compile Include="Core\NPacketProcessor.cs" />
     <Compile Include="Core\NPlayer.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Systems\IPlayerManagementSystem.cs" />
     <None Include="Addons\MySQL\DatabaseRequest.cs" />
     <None Include="Systems\Channel\Channel.cs" />
@@ -62,6 +67,17 @@
       <Project>{EDE13E43-B243-460E-B048-1AF55DE1E3AD}</Project>
       <Name>NCode.Core</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\NCode.Core\Resources\stringtable.xml">
+      <Link>Resources\stringtable.xml</Link>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -33,12 +33,6 @@ namespace NCode.Server.Core
         public static int TcpListenPort = 0;
         public static int UdpListenPort = 0;
 
-        /// <summary>
-        /// A dictionary of custom packet listeners. The key is the packet. 
-        /// </summary>
-        private Dictionary<Packet, OnPacket> _packetHandlers = new Dictionary<Packet, OnPacket>();
-        public delegate void OnPacket(Packet response, BinaryReader reader);
-
         public NGameServer(string name, int tcpport, int udpport, int rconport, string password, bool autoStart)
         {
             TcpListenPort = tcpport;
@@ -81,7 +75,7 @@ namespace NCode.Server.Core
                 }
                 catch (Exception e)
                 {
-                    Tools.Print("StartListening on TCP", Tools.MessageType.error, e);
+                    Tools.Print("StartListening on TCP", Tools.MessageType.ERROR, e);
                     return false;
                 }
             }
@@ -97,13 +91,18 @@ namespace NCode.Server.Core
                 }
                 catch (Exception e)
                 {
-                    Tools.Print("StartListening on UDP", Tools.MessageType.error, e);
+                    Tools.Print("StartListening on UDP", Tools.MessageType.ERROR, e);
                     return false;
                 }
             }
             else { return false; }
 
             return true;
+        }
+
+        public void AddCustomPacketHandler(Packet packet, NPacketProcessor.OnPacket handler)
+        {
+            _packetProcessor.AddCustomHandler(packet, handler);
         }
 
         private void CoreProcesses()
@@ -122,6 +121,7 @@ namespace NCode.Server.Core
                     _runThreads = false;
                     Tools.Print("Error occured in UDP Processing");
                 }
+
                 if (!ProcessTcpPackets())
                 {
                     _runThreads = false;
@@ -133,7 +133,7 @@ namespace NCode.Server.Core
 
                 //Implement shutdown action
 
-                //if (!_runThreads) break;
+                if (!_runThreads) break;
             }
 
         }
@@ -211,7 +211,7 @@ namespace NCode.Server.Core
                 }
                 else
                 {
-                    Tools.Print("GetPlayer null");
+                    Tools.Print("Unable to find player. Udp setup failed.");
                 }
             }
             return true;
@@ -242,7 +242,7 @@ namespace NCode.Server.Core
                 }
                 catch (Exception e)
                 {
-                    Tools.Print("@MainLoop - add game server pending connection", Tools.MessageType.error, e);
+                    Tools.Print("@MainLoop - add game server pending connection", Tools.MessageType.ERROR, e);
                     return false;
                 }
             }

@@ -57,7 +57,7 @@ namespace NCode.Core.Utilities
             }
             catch (Exception e)
             {
-                Tools.Print("", Tools.MessageType.error, e);
+                Tools.Print("", Tools.MessageType.ERROR, e);
             }
         }
     }

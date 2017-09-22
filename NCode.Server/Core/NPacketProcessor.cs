@@ -20,6 +20,11 @@ namespace NCode.Server.Core
 
         public delegate void OnPacket(Packet response, BinaryReader reader);
 
+        public void AddCustomHandler(Packet packet, OnPacket handler)
+        {
+            _packetHandlers.Add(packet, handler);
+        }
+
         public bool ProcessPacket(NPlayer player, Buffer buffer, bool reliable)
         {
             //Begin reading the packet. Returns the BinaryReader loaded with the memorystream to be read. 
@@ -69,7 +74,7 @@ namespace NCode.Server.Core
                     }
                     catch (Exception e)
                     {
-                        Tools.Print($"Cannot parse {packetType} packet to type 'int'. Client setup failed.", Tools.MessageType.error, e);
+                        Tools.Print($"Cannot parse {packetType} packet to type 'int'. Client setup failed.", Tools.MessageType.ERROR, e);
                         throw;
                     }
                     break;
@@ -78,7 +83,7 @@ namespace NCode.Server.Core
                 
                 default:
                     {
-                        Tools.Print($"Packet with the ID:{packetType} has not been defined for processing.", Tools.MessageType.error);
+                        Tools.Print($"Packet with the ID:{packetType} has not been defined for processing.", Tools.MessageType.ERROR);
                         return false;
                     }
             }

@@ -90,7 +90,7 @@ namespace NCode.Client
             IPEndPoint ipEndPoint = new IPEndPoint(ipAddress, port);
             _tcpClient.Connect(ipEndPoint);
             _udpClient.Start(Random.Range(30000,50000));
-            Tools.Print("Trying to connect to:"+ipEndPoint);
+            Tools.Print("Trying to connect to:" + ipEndPoint);
         }
 
         /// <summary>
@@ -182,6 +182,8 @@ namespace NCode.Client
         /// </summary>
         private bool ProcessPacket(Buffer packet, IPEndPoint source)
         {
+
+            
             BinaryReader reader = packet.BeginReading();
             int packetId = reader.ReadByte();
             Packet response = (Packet)packetId;

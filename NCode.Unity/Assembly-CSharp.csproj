@@ -48,10 +48,6 @@
   <ItemGroup>
      <Compile Include="Assets\Classes\Core\Controllers\PlayerController.cs" />
      <Compile Include="Assets\Classes\Core\Controllers\PlayerSync.cs" />
-     <Compile Include="Assets\Classes\NCode\Client\NAutoConnect.cs" />
-     <Compile Include="Assets\Classes\NCode\Client\NNetworkEntityLink.cs" />
-     <Compile Include="Assets\Classes\NCode\Client\NetworkBehaviour.cs" />
-     <Compile Include="Assets\Classes\NCode\Client\NetworkManager.cs" />
      <Compile Include="Assets\Resources\Standard Assets\Cameras\Scripts\AbstractTargetFollower.cs" />
      <Compile Include="Assets\Resources\Standard Assets\Cameras\Scripts\AutoCam.cs" />
      <Compile Include="Assets\Resources\Standard Assets\Cameras\Scripts\FreeLookCam.cs" />
@@ -171,7 +167,6 @@
      <Compile Include="Assets\Resources\Standard Assets\Vehicles\Car\Scripts\SkidTrail.cs" />
      <Compile Include="Assets\Resources\Standard Assets\Vehicles\Car\Scripts\Suspension.cs" />
      <Compile Include="Assets\Resources\Standard Assets\Vehicles\Car\Scripts\WheelEffects.cs" />
-     <Compile Include="Assets\Scenes\AutoConnect\AutoConnect.cs" />
      <None Include="Assets\Resources\Standard Assets\Cameras\CameraGuidelines.txt" />
      <None Include="Assets\Resources\Standard Assets\Effects\ImageEffects\Shaders\ColorCorrectionSelective.shader" />
      <None Include="Assets\Resources\Standard Assets\Effects\ImageEffects\Shaders\_DepthOfField\Bokeh34.shader" />
@@ -286,11 +281,11 @@
  <Reference Include="UnityEngine.VR">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/UnityVR/RuntimeEditor/UnityEngine.VR.dll</HintPath>
  </Reference>
- <Reference Include="NCode Client">
- <HintPath>C:/Users/harry/Documents/Git Repositories/NCode/NCode.Unity/Assets/Plugins/NCode Client.dll</HintPath>
+ <Reference Include="NCode.Client">
+ <HintPath>C:/Users/harry/Documents/Github/NCode/NCode.Unity/Assets/Plugins/NCode/NCode.Client.dll</HintPath>
  </Reference>
- <Reference Include="NCode">
- <HintPath>C:/Users/harry/Documents/Git Repositories/NCode/NCode.Unity/Assets/Plugins/NCode.dll</HintPath>
+ <Reference Include="NCode.Core">
+ <HintPath>C:/Users/harry/Documents/Github/NCode/NCode.Unity/Assets/Plugins/NCode/NCode.Core.dll</HintPath>
  </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
