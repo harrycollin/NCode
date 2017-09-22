@@ -3,6 +3,7 @@
 // Copyright © 2012-2016 Tasharen Entertainment Inc
 //-------------------------------------------------
 
+using NCode.Core.Properties;
 using System;
 using System.IO;
 using System.Net;
@@ -10,6 +11,9 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Xml;
+using System.Xml.Linq;
+using System.Xml.XPath;
 
 #if UNITY_EDITOR || UNITY_STANDALONE
 using UnityEngine;
@@ -19,6 +23,8 @@ namespace NCode.Core.Utilities
 {
     public static class Tools
     {
+        
+
         static string mChecker = null;
 
         /// <summary>
@@ -950,7 +956,7 @@ namespace NCode.Core.Utilities
 		UnityEngine.Debug.Log(msg);
 #else
             msg = "[" + System.DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") + "] " + msg;
-            Tools.Print(msg, MessageType.notification, null, logInFile);
+            Tools.Print(msg, MessageType.NOTIFICATION, null, logInFile);
 #if STANDALONE
 		if (logInFile) LogFile(msg);
 #endif
@@ -1147,44 +1153,91 @@ namespace NCode.Core.Utilities
 
         public enum MessageType
         {
-            notification,
-            warning,
-            error,
+            NOTIFICATION,
+            WARNING,
+            ERROR,
+        }
+
+        public static void Print(string XmlKey, params object[] dynamicData)
+        {
+            Print(XmlKey, null, dynamicData);
+        }
+
+        public static void Print(string XmlKey, Exception exception, params object[] dynamicData)
+        {
+            XDocument doc = XDocument.Parse(Resources.stringtable);
+
+            string path = string.Format("Messages/Key[@ID='{0}']", XmlKey);
+            string message = null;
+
+            System.Collections.Generic.List<XNode> childNodes = null;
+            try
+            {
+                childNodes = (System.Collections.Generic.List<XNode>)doc.XPathSelectElement(path).Nodes();
+            }
+            catch (NullReferenceException e)
+            {
+                Print(string.Format("XML Reading error. Element with attribute '{0}' doesn't exist. Could not print original message.", message), MessageType.ERROR, e, true);
+                return;
+            }
+
+            foreach(XNode node in childNodes)
+            {
+                XDocument 
+            }
+
+            Print(string.Format(message, dynamicData), MessageType.NOTIFICATION, null, false);
         }
 
         /// <summary>
         /// Used to print various types of messages. 
         /// </summary>
-
-        public static void Print(object msg, MessageType type = MessageType.notification, Exception e = null, bool Log = true, bool Print = true)
+        public static void Print(string message, MessageType type = MessageType.NOTIFICATION, Exception exception = null, bool Log = false)
         {
-            if (!Log && !Print) return;
-
             StringBuilder logBuilder = new StringBuilder();
 
-            DateTime now = DateTime.Now;
-            logBuilder.Append("[" + now + "]: ");
+            logBuilder.Append("[" + DateTime.Now + "]: ");
 
-            //The message type here.
             switch (type)
             {
-                case MessageType.warning: { logBuilder.Append("[[WARNING]]: "); break; }
-                case MessageType.error: { logBuilder.Append("[[ERROR]]: "); break; }
+                case MessageType.WARNING: { logBuilder.Append("[WARNING]: "); break; }
+                case MessageType.ERROR: { logBuilder.Append("[ERROR]: "); break; }
             }
 
-            logBuilder.Append(msg.ToString());
+            logBuilder.Append(message.ToString());
+
             logBuilder.Append(Environment.NewLine);
-            if (e != null) { logBuilder.Append("| Exception: " + e.ToString()); }
-
-            //Do we want to print this to the console?
-            if (Print)
+            if (exception != null)
             {
-#if UNITY_EDITOR || UNITY_STANDALONE
-                            Debug.Log(logBuilder.ToString());
-#else
-                Console.Write(logBuilder.ToString());
-#endif
+                logBuilder.Append("| Exception: " + exception.ToString());
+                logBuilder.Append(Environment.NewLine);
             }
+
+
+#if UNITY_EDITOR || UNITY_STANDALONE
+            switch(type)
+            {
+                case MessageType.notification: { Debug.Log(logBuilder.ToString()); break; }
+                case MessageType.warning: { Debug.LogWarning(logBuilder.ToString()); break; }
+                case MessageType.error: { Debug.LogError(logBuilder.ToString()); break; }
+            }
+#else
+            switch (type)
+            {
+                    case MessageType.WARNING:
+                    {
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        break;
+                    }
+                case MessageType.ERROR:
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        break;
+                    }
+            }
+            Console.Write(logBuilder.ToString());
+            Console.ForegroundColor = ConsoleColor.White;
+#endif
 
             //We aren't logging in Unity yet.
 #if !UNITY_EDITOR && !UNITY_STANDALONE

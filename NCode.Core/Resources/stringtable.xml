@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<Messages>
+  
+  <Key ID = "STR_CHANNEL_PLAYERJOIN">
+    <Type>Notification</Type>
+    <Message>Player {0} has joined Channel {1}.</Message>
+  </Key>
+ 
+  <Key ID = "STR_CHANNEL_PLAYERLEAVE">
+    <Type>Notification</Type>
+    <Message>Player {0} has left Channel {1}.</Message>
+  </Key>
+
+  <Key ID = "STR_CHANNEL_PLAYERLEAVENULLCHANNEL">
+    <Type>Warning</Type>
+    <Message>Player {0} requested to leave Channel {1} which doesn't exist.</Message>
+  </Key>
+  
+</Messages>
