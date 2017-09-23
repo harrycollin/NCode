@@ -29,7 +29,7 @@ namespace NCode.Server.Systems.Channel
         /// <summary>
         /// A list of players by their ID's
         /// </summary>
-        private System.Collections.Generic.List<int> Players = new System.Collections.Generic.List<int>();
+        private readonly System.Collections.Generic.List<int> Players = new System.Collections.Generic.List<int>();
 
 
         private NChannel(int ChannelID = -1)
@@ -45,7 +45,7 @@ namespace NCode.Server.Systems.Channel
                 }
                 else
                 {
-                    Tools.Print($"Couldn't create a channel with the ID {ChannelID} as it already exists.", Tools.MessageType.ERROR);
+                    Tools.Print($"Couldn't create a channel with the ID {ChannelID} as it already exists.", Tools.MessageType.Error);
                 }
             }
             else if (ChannelID == -1)
@@ -62,7 +62,7 @@ namespace NCode.Server.Systems.Channel
             }
             else
             {
-                Tools.Print("A new channel couldn't be created. Max channels reached", Tools.MessageType.ERROR);
+                Tools.Print("A new channel couldn't be created. Max channels reached", Tools.MessageType.Error);
             }
             
             NCoreEvents.playerDisconnected += LeaveChannel;
@@ -103,7 +103,7 @@ namespace NCode.Server.Systems.Channel
                 }
                 else
                 {
-                    Tools.Print("STR_CHANNEL_PLAYERLEAVENULLCHANNEL", player.ClientGuid, ChannelID);
+                    Tools.Print("STR_CHANNEL_PLAYERLEAVENULLCHANNEL", null ,player.ClientGuid, ChannelID);
                 }
             }
             return false;
@@ -118,17 +118,14 @@ namespace NCode.Server.Systems.Channel
                     Players.Add(player.ClientId);
                     return true;
                 }
-                else
-                {
-                    Tools.Print($"Player {player.ClientId} couldn't join channel {ID}. Player is already apart of this channel.", Tools.MessageType.ERROR);
-                }
+                Tools.Print("EC1003", Tools.MessageType.Error, null, player.ClientId, ID);
                 return false;
             }
         }
 
         public void LeaveChannel(NPlayer player)
         {
-            Tools.Print($"Player {player.ClientId} has been removed from channel {ID}.");
+            Tools.Print("MC1002", null, player.ClientId, ID);
         }
 
         public static int CreateChannel()
@@ -144,13 +141,12 @@ namespace NCode.Server.Systems.Channel
                 {
                     lock (Channels)
                     {
-                        Channels.Remove(channelId);
-#if DEBUG 
-                        Tools.Print($"Channel {channelId} has been closed.", Tools.MessageType.WARNING);
-#endif
+                        Channels.Remove(channelId); 
+                        Tools.Print("STR_CHANNEL_CLOSED", Tools.MessageType.Warning, null, channelId);
                         return true;
                     }
                 }
+
             }
             return false;
         }

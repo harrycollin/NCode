@@ -196,7 +196,7 @@ namespace NCode.Core.Protocols
                         }
                         catch (Exception ex)
                         {
-                            Tools.Print("Error on sending udp", Tools.MessageType.ERROR, ex);
+                            Tools.Print("Error on sending udp", Tools.MessageType.Error, ex);
                         }
                     //}
                 //}

@@ -74,7 +74,7 @@ namespace NCode.Server.Core
                     }
                     catch (Exception e)
                     {
-                        Tools.Print($"Cannot parse {packetType} packet to type 'int'. Client setup failed.", Tools.MessageType.ERROR, e);
+                        Tools.Print($"Cannot parse {packetType} packet to type 'int'. Client setup failed.", Tools.MessageType.Error, e);
                         throw;
                     }
                     break;
@@ -83,7 +83,7 @@ namespace NCode.Server.Core
                 
                 default:
                     {
-                        Tools.Print($"Packet with the ID:{packetType} has not been defined for processing.", Tools.MessageType.ERROR);
+                        Tools.Print($"Packet with the ID:{packetType} has not been defined for processing.", Tools.MessageType.Error);
                         return false;
                     }
             }

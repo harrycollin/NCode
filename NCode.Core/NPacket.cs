@@ -79,37 +79,7 @@
         /// Global packet for Remote Function Calls. Set as first priority on all switch cases. 
         /// </summary>
         RFC,
-
-        /// <summary>
-        /// Server to client packet notifying of a newly connected player
-        /// </summary>
-        PlayerUpdate,
-
-        /// <summary>
-        /// Sets the position of the current player object. This is required to categories the player into a channel
-        /// </summary>
-        PlayerPositionUpdate,
-
-        /// <summary>
-        /// Request to set the player object. This is tracked so that the player is synchronising with the right players.
-        /// </summary>
-        RequestSetPlayerObject,
-
-        /// <summary>
-        /// Response to whether the object can be set as the player's 'playerObject'.
-        /// </summary>
-        ResponseSetPlayerObject,
-
-        /// <summary>
-        /// Request to spawn. This is using the playerobject set by the client.s
-        /// </summary>
-        RequestSpawnPlayerObject,
-
-        /// <summary>
-        /// The response to the spawn request. This response will trigger the spawn. 
-        /// </summary>
-        ResponseSpawnPlayerObject,
-
+   
         /// <summary>
         /// Data to be forwarded to everyone. This is usually going to be an RFC.
         /// </summary>

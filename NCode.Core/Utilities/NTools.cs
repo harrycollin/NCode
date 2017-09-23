@@ -956,7 +956,7 @@ namespace NCode.Core.Utilities
 		UnityEngine.Debug.Log(msg);
 #else
             msg = "[" + System.DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") + "] " + msg;
-            Tools.Print(msg, MessageType.NOTIFICATION, null, logInFile);
+            Tools.Print(msg, MessageType.Notification, null, logInFile);
 #if STANDALONE
 		if (logInFile) LogFile(msg);
 #endif
@@ -1153,46 +1153,50 @@ namespace NCode.Core.Utilities
 
         public enum MessageType
         {
-            NOTIFICATION,
-            WARNING,
-            ERROR,
+            Notification,
+            Warning,
+            Error,
         }
 
-        public static void Print(string XmlKey, params object[] dynamicData)
-        {
-            Print(XmlKey, null, dynamicData);
-        }
+        
 
-        public static void Print(string XmlKey, Exception exception, params object[] dynamicData)
+        public static string TryGetXmlMessage(string xmlKey)
         {
             XDocument doc = XDocument.Parse(Resources.stringtable);
 
-            string path = string.Format("Messages/Key[@ID='{0}']", XmlKey);
-            string message = null;
+            string path = $"Messages/Key[@ID='{xmlKey}']";
 
-            System.Collections.Generic.List<XNode> childNodes = null;
             try
             {
-                childNodes = (System.Collections.Generic.List<XNode>)doc.XPathSelectElement(path).Nodes();
+                var message = doc.XPathSelectElement(path).Value;
+                return message;
             }
-            catch (NullReferenceException e)
+            catch (Exception)
             {
-                Print(string.Format("XML Reading error. Element with attribute '{0}' doesn't exist. Could not print original message.", message), MessageType.ERROR, e, true);
-                return;
+                return null;
             }
-
-            foreach(XNode node in childNodes)
-            {
-                XDocument 
-            }
-
-            Print(string.Format(message, dynamicData), MessageType.NOTIFICATION, null, false);
         }
 
         /// <summary>
         /// Used to print various types of messages. 
         /// </summary>
-        public static void Print(string message, MessageType type = MessageType.NOTIFICATION, Exception exception = null, bool Log = false)
+        public static void Print(object message)
+        {
+            Print(message, null);
+        }
+
+        /// <summary>
+        /// Used to print various types of messages. 
+        /// </summary>
+        public static void Print(object message, Exception exception = null, params object[] xmlMessageParameters)
+        {
+            Print(message, MessageType.Notification, exception, xmlMessageParameters);
+        }
+
+        /// <summary>
+        /// Used to print various types of messages. 
+        /// </summary>
+        public static void Print(object message, MessageType type = MessageType.Notification, Exception exception = null, params object[] xmlMessageParameters)
         {
             StringBuilder logBuilder = new StringBuilder();
 
@@ -1200,13 +1204,30 @@ namespace NCode.Core.Utilities
 
             switch (type)
             {
-                case MessageType.WARNING: { logBuilder.Append("[WARNING]: "); break; }
-                case MessageType.ERROR: { logBuilder.Append("[ERROR]: "); break; }
+                case MessageType.Warning: { logBuilder.Append("[WARNING]: "); break; }
+                case MessageType.Error: { logBuilder.Append("[ERROR]: "); break; }
             }
 
-            logBuilder.Append(message.ToString());
+            string xmlMessage = TryGetXmlMessage(message.ToString());
+            if (xmlMessage != null)
+            {
+                try
+                {
+                    logBuilder.Append(string.Format(xmlMessage, xmlMessageParameters));
+
+                }
+                catch (Exception e)
+                {
+                    
+                }
+            }
+            else
+            {
+                logBuilder.Append(message);
+            }
 
             logBuilder.Append(Environment.NewLine);
+
             if (exception != null)
             {
                 logBuilder.Append("| Exception: " + exception.ToString());
@@ -1224,12 +1245,12 @@ namespace NCode.Core.Utilities
 #else
             switch (type)
             {
-                    case MessageType.WARNING:
+                    case MessageType.Warning:
                     {
                         Console.ForegroundColor = ConsoleColor.Yellow;
                         break;
                     }
-                case MessageType.ERROR:
+                case MessageType.Error:
                     {
                         Console.ForegroundColor = ConsoleColor.Red;
                         break;
@@ -1240,12 +1261,12 @@ namespace NCode.Core.Utilities
 #endif
 
             //We aren't logging in Unity yet.
-#if !UNITY_EDITOR && !UNITY_STANDALONE
-            if (Log)
-            {
-                //NLogger.LogToFile(logBuilder.ToString());
-            }
-#endif
+//#if !UNITY_EDITOR && !UNITY_STANDALONE
+//            if (Log)
+//            {
+//                //NLogger.LogToFile(logBuilder.ToString());
+//            }
+//#endif
         }
     }
 }

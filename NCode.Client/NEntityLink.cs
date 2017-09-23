@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using NCode.Client;
+using NCode.Core;
 using UnityEngine;
 
-namespace NCode.Core.Client
+namespace NCode.Client
 {
-    public class NNetworkEntityLink : MonoBehaviour
+    public class NEntityLink : MonoBehaviour
     {
         #region Private
 
-        private Dictionary<int, CachedFunc> _rfcList = new Dictionary<int, CachedFunc>();
+        private readonly Dictionary<int, CachedFunc> _rfcList = new Dictionary<int, CachedFunc>();
 
         #endregion
 
@@ -23,7 +23,7 @@ namespace NCode.Core.Client
 
         #endregion
 
-        public NNetworkEntityLink(Guid linkedEntityGuid)
+        public NEntityLink(Guid linkedEntityGuid)
         {
             Guid = linkedEntityGuid;
             GuidString = linkedEntityGuid.ToString();
@@ -96,9 +96,11 @@ namespace NCode.Core.Client
 
                     if (method.IsDefined(typeof(RFC), true))
                     {
-                        CachedFunc ent = new CachedFunc();
-                        ent.obj = monoBehaviour;
-                        ent.func = method;
+                        var ent = new CachedFunc
+                        {
+                            obj = monoBehaviour,
+                            func = method
+                        };
 
                         RFC tnc = (RFC)ent.func.GetCustomAttributes(typeof(RFC), true)[0];
 

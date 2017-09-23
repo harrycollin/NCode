@@ -75,7 +75,7 @@ namespace NCode.Server.Core
                 }
                 catch (Exception e)
                 {
-                    Tools.Print("StartListening on TCP", Tools.MessageType.ERROR, e);
+                    Tools.Print("StartListening on TCP", Tools.MessageType.Error, e);
                     return false;
                 }
             }
@@ -91,7 +91,7 @@ namespace NCode.Server.Core
                 }
                 catch (Exception e)
                 {
-                    Tools.Print("StartListening on UDP", Tools.MessageType.ERROR, e);
+                    Tools.Print("StartListening on UDP", Tools.MessageType.Error, e);
                     return false;
                 }
             }
@@ -242,7 +242,7 @@ namespace NCode.Server.Core
                 }
                 catch (Exception e)
                 {
-                    Tools.Print("@MainLoop - add game server pending connection", Tools.MessageType.ERROR, e);
+                    Tools.Print("@MainLoop - add game server pending connection", Tools.MessageType.Error, e);
                     return false;
                 }
             }

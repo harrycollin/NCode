@@ -1,5 +1,4 @@
-﻿using NCode.Core.Client;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace NCode.Client

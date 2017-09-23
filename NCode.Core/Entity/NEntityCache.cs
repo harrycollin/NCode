@@ -35,7 +35,7 @@ namespace NCode.Core.Entity
         {
             lock (Dictionary)
             {
-                return !Dictionary.ContainsKey(nNetworkEntityGuid) ? null : Dictionary[nNetworkEntityGuid];
+                return Dictionary.ContainsKey(nNetworkEntityGuid) ? Dictionary[nNetworkEntityGuid] : null;
             }
         }
 

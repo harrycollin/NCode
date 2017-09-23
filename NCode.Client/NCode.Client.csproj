@@ -57,7 +57,7 @@
     <None Include="NetworkBehaviour.cs" />
     <Compile Include="NetworkManager.cs" />
     <Compile Include="NMainClient.cs" />
-    <Compile Include="NNetworkEntityLink.cs" />
+    <Compile Include="NEntityLink.cs" />
     <Compile Include="NRFC.cs" />
     <Compile Include="NTarget.cs" />
     <Compile Include="NUnityTools.cs" />

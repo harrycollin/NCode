@@ -2,19 +2,33 @@
 
 <Messages>
   
-  <Key ID = "STR_CHANNEL_PLAYERJOIN">
-    <Type>Notification</Type>
+  <Key ID = "M1001">
     <Message>Player {0} has joined Channel {1}.</Message>
   </Key>
  
-  <Key ID = "STR_CHANNEL_PLAYERLEAVE">
-    <Type>Notification</Type>
+  <Key ID = "M1002">
     <Message>Player {0} has left Channel {1}.</Message>
   </Key>
-
-  <Key ID = "STR_CHANNEL_PLAYERLEAVENULLCHANNEL">
-    <Type>Warning</Type>
+  
+  <Key ID = "E1003">
+    <Message>Player {0} requested to join Channel {1} but is already a member.</Message>
+  </Key>
+  
+  <Key ID = "E1004">
     <Message>Player {0} requested to leave Channel {1} which doesn't exist.</Message>
   </Key>
+
+  <Key ID = "M1005">
+    <Message>Channel {0} has been closed.</Message>
+  </Key>
+
+  <Key ID = "M1006">
+    <Message>Channel {0} has been closed.</Message>
+  </Key>
+
+  <Key ID = "E1007">
+    <Message></Message>
+  </Key>
+  
   
 </Messages>

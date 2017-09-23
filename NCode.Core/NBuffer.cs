@@ -67,7 +67,7 @@ namespace NCode.Core
             }
             catch (Exception e)
             {
-                Tools.Print("Exception recycling NBuffer.", Tools.MessageType.ERROR, e);
+                Tools.Print("Exception recycling NBuffer.", Tools.MessageType.Error, e);
             }
             return false;
         }

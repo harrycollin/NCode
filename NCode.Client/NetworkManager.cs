@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using NCode.Core;
 using UnityEngine;
-using NCode.Client;
-using NCode.Core.Utilities;
 
-namespace NCode.Core.Client
+namespace NCode.Client
 {
     /// <summary>
     /// Acts as a more friendly way to carry out network functions. Derives from monobehaviour so needs to have an instance of itself in-game. 
@@ -29,9 +28,9 @@ namespace NCode.Core.Client
         /// <summary>
         /// The entire list of all network entities
         /// </summary>
-        private static System.Collections.Generic.List<NNetworkEntityLink> _networkEntityList = new System.Collections.Generic.List<NNetworkEntityLink>();
+        private static System.Collections.Generic.List<NEntityLink> _networkEntityList = new System.Collections.Generic.List<NEntityLink>();
 
-        private static Dictionary<Guid, NNetworkEntityLink> _networkEntityDictionary = new Dictionary<Guid, NNetworkEntityLink>();
+        private static Dictionary<Guid, NEntityLink> _networkEntityDictionary = new Dictionary<Guid, NEntityLink>();
 
         #endregion
 
@@ -197,7 +196,7 @@ namespace NCode.Core.Client
         /// Finds a NetworkBehaviour by GUID
         /// </summary>
         /// <returns></returns>
-        private static NNetworkEntityLink Find(Guid guid)
+        private static NEntityLink Find(Guid guid)
         {
             if (_networkEntityDictionary.ContainsKey(guid))
             {
