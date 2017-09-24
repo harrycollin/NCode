@@ -30,16 +30,17 @@ namespace NCode.Client
         public OnRFC onRFC;
         public delegate void OnRFC(Guid guid, int RFCID, params object[] parameters);
 
+        public OnCreateEntity onCreateEntity;
+        public delegate void OnCreateEntity(NNetworkEntity entity);
+
         /// <summary>
         /// When the player receives an update for an network object.
         /// </summary>
-        public OnObjectUpdate onObjectUpdate;
-        public delegate void OnObjectUpdate(NNetworkEntity obj);
+        public OnEntityUpdate onEntityUpdate;
+        public delegate void OnEntityUpdate(NNetworkEntity obj);
 
-        public OnDestroyObject onDestroyObject;
-        public delegate void OnDestroyObject(Guid guid);
+        public OnDestroyEntity onDestroyEntity;
+        public delegate void OnDestroyEntity(Guid guid);
 
-        public OnSpawnPlayerResponse onSpawnPlayerResponse;
-        public delegate void OnSpawnPlayerResponse(NNetworkEntity playerObject);
     }
 }

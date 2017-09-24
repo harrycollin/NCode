@@ -16,19 +16,34 @@ namespace NCode.Client
 
         #region Public
 
-        public readonly Guid Guid;
-        public readonly string GuidString;
-        public bool IsMine;
+        public  Guid Guid;
+
+        public int Owner
+        {
+            get { return NetworkManager.GetEntity(Guid).Owner; }
+            set { NetworkManager.GetEntity(Guid).Owner = value; }
+        }
+
+        public bool IsMine => Owner == NetworkManager.ClientID;
         public bool RebuildMethodList = true;
+
+        //Global list of all NetworkObjects
+        public static Dictionary<Guid, NEntityLink> NetworkObjects = new Dictionary<Guid, NEntityLink>();
 
         #endregion
 
-        public NEntityLink(Guid linkedEntityGuid)
+        /// Finds a NetworkBehaviour by GUID
+        /// </summary>
+        /// <returns></returns>
+        public static NEntityLink Find(Guid guid)
         {
-            Guid = linkedEntityGuid;
-            GuidString = linkedEntityGuid.ToString();
+            if (NetworkObjects.ContainsKey(guid))
+            {
+                return NetworkObjects[guid];
+            }
+            return null;
         }
-    
+
         public void SendRfc(int rfcID, Packet target, bool reliable, params object[] objs)
         {
             if (!NetworkManager.IsConnected) return;

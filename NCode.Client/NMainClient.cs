@@ -8,6 +8,7 @@ using NCode.Core.Utilities;
 using UnityEngine;
 using Buffer = NCode.Core.Buffer;
 using Random = UnityEngine.Random;
+using NCode.Core.Entity;
 
 namespace NCode.Client
 {
@@ -238,6 +239,21 @@ namespace NCode.Client
                         break;
                     }
 
+                case Packet.CreateEntity:
+                    {
+                        onCreateEntity((NNetworkEntity)reader.ReadObject());
+                        break;
+                    }
+                case Packet.UpdateEntity:
+                    {
+                        onEntityUpdate((NNetworkEntity)reader.ReadObject());
+                        break;
+                    }
+                case Packet.DestroyEntity:
+                    {
+                        onDestroyEntity((Guid)reader.ReadObject());
+                        break;
+                    }
                 case Packet.ForwardToChannels:
                     {
                         Guid guid = (Guid)reader.ReadObject();
@@ -248,7 +264,7 @@ namespace NCode.Client
                     }
                 default:
                     {
-                        Tools.Print("No defined Packet");
+                        Tools.Print($"Packet with the ID:{response} has not been defined for processing.", Tools.MessageType.Error);
                         break;
                     }
             }

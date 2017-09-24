@@ -5,6 +5,10 @@ using System.Net;
 using NCode.Core;
 using UnityEngine;
 
+using NCode.Core.Entity;
+using NCode.Core.Utilities;
+using UnityEditor;
+
 namespace NCode.Client
 {
     /// <summary>
@@ -25,13 +29,7 @@ namespace NCode.Client
         /// </summary>
         private readonly NMainClient _mainClient = new NMainClient();
 
-        /// <summary>
-        /// The entire list of all network entities
-        /// </summary>
-        private static System.Collections.Generic.List<NEntityLink> _networkEntityList = new System.Collections.Generic.List<NEntityLink>();
-
-        private static Dictionary<Guid, NEntityLink> _networkEntityDictionary = new Dictionary<Guid, NEntityLink>();
-
+        private static readonly Dictionary<Guid, NNetworkEntity> _networkEntityDictionary = new Dictionary<Guid, NNetworkEntity>();
         #endregion
 
         #region Publics
@@ -73,17 +71,17 @@ namespace NCode.Client
         /// <summary>
         /// Event triggered upon receiving an Network Object update.
         /// </summary>
-        public static ClientEvents.OnObjectUpdate OnObjectUpdate { get { return Instance != null ? Instance._mainClient.onObjectUpdate : null; } set { if (Instance != null && Application.isPlaying) Instance._mainClient.onObjectUpdate = value; } }
+        public static ClientEvents.OnCreateEntity OnCreateEntity { get { return Instance != null ? Instance._mainClient.onCreateEntity : null; } set { if (Instance != null && Application.isPlaying) Instance._mainClient.onCreateEntity = value; } }
+
+        /// <summary>
+        /// Event triggered upon receiving an Network Object update.
+        /// </summary>
+        public static ClientEvents.OnEntityUpdate OnEntityUpdate { get { return Instance != null ? Instance._mainClient.onEntityUpdate : null; } set { if (Instance != null && Application.isPlaying) Instance._mainClient.onEntityUpdate = value; } }
 
         /// <summary>
         /// Event triggered upon receiving an destroy command from the server.
         /// </summary>
-        public static ClientEvents.OnDestroyObject OnDestroyObject { get { return Instance != null ? Instance._mainClient.onDestroyObject : null; } set { if (Instance != null && Application.isPlaying) Instance._mainClient.onDestroyObject = value; } }
-
-        /// <summary>
-        /// Event triggered upon receiving a positive response for a player spawn request.
-        /// </summary>
-        public static ClientEvents.OnSpawnPlayerResponse OnSpawnPlayerResponse { get { return Instance != null ? Instance._mainClient.onSpawnPlayerResponse : null; } set { if (Instance != null && Application.isPlaying) Instance._mainClient.onSpawnPlayerResponse = value; } }
+        public static ClientEvents.OnDestroyEntity OnDestroyEntity { get { return Instance != null ? Instance._mainClient.onDestroyEntity : null; } set { if (Instance != null && Application.isPlaying) Instance._mainClient.onDestroyEntity = value; } }
 
         /// <summary>
         /// Event triggered upon receiving an Remote Function call.
@@ -182,27 +180,75 @@ namespace NCode.Client
             }
         }
 
-        /// <summary>
-        /// The static method to find a execute an RFC on any NetworkBehaviour
-        /// </summary>
-        public static void FindAndExecute(Guid guid, int RFCID, params object[] parameters)
+        private void CreateEntity(NNetworkEntity entity)
         {
-            var obj = Find(guid);
-            if (obj != null)
-                obj.ExecuteRfc(RFCID, parameters);
+            if (!_networkEntityDictionary.ContainsKey(entity.Guid))
+            {
+                _networkEntityDictionary.Add(entity.Guid, entity);
+                Instantiate((GameObject)AssetDatabase.LoadAssetAtPath(entity.PathToPrefab, typeof(GameObject)), NUnityTools.V3ToVector3(entity.position), NUnityTools.V4ToQuaternion(entity.rotation));
+            }
         }
 
-        /// <summary>
-        /// Finds a NetworkBehaviour by GUID
-        /// </summary>
-        /// <returns></returns>
-        private static NEntityLink Find(Guid guid)
+        private void UpdateEntity(NNetworkEntity entity)
+        {
+            if (_networkEntityDictionary.ContainsKey(entity.Guid))
+            {
+                _networkEntityDictionary[entity.Guid] = entity; 
+            }
+        }
+
+        private void DestroyEntity(Guid entity)
+        {
+            if (_networkEntityDictionary.ContainsKey(entity))
+            {
+                _networkEntityDictionary.Remove(entity);
+                Destroy(NEntityLink.Find(entity).gameObject);
+            }
+        }
+
+
+        public static NNetworkEntity GetEntity(Guid guid)
         {
             if (_networkEntityDictionary.ContainsKey(guid))
             {
                 return _networkEntityDictionary[guid];
             }
             return null;
+        }
+
+        /// <summary>
+        /// The static method to find a execute an RFC on any NetworkBehaviour
+        /// </summary>
+        public static void FindAndExecute(Guid guid, int RFCID, params object[] parameters)
+        {
+            var obj = NEntityLink.Find(guid);
+            if (obj != null)
+                obj.ExecuteRfc(RFCID, parameters);
+        }
+  
+        public static void Instantiate(GameObject gameObject, Vector3 Position, Quaternion Rotation)
+        {
+            if(AssetDatabase.GetAssetPath(gameObject) == null)
+            {
+                Core.Utilities.Tools.Print("Specified GameObject isn't a prefab.",null, MessageType.Error);
+                return;
+            }
+
+            NNetworkEntity entity = new NNetworkEntity()
+            {
+                position = NUnityTools.Vector3ToV3(Position),
+                rotation = NUnityTools.QuaternionToV4(Rotation),
+                Owner = ClientID,
+                PathToPrefab = AssetDatabase.GetAssetPath(gameObject)
+            };
+
+            GameObject obj = UnityEngine.Object.Instantiate(gameObject, Position, Rotation);
+            obj.GetComponent<NEntityLink>().Guid = entity.Guid;
+
+            BinaryWriter writer = BeginSend(Packet.CreateEntity);
+            writer.WriteObject(entity);
+            EndSend(true);
+
         }
     }
 }

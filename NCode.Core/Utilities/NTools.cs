@@ -1158,8 +1158,8 @@ namespace NCode.Core.Utilities
             Error,
         }
 
-        
 
+#if !UNITY_STANDALONE
         public static string TryGetXmlMessage(string xmlKey)
         {
             XDocument doc = XDocument.Parse(Resources.stringtable);
@@ -1176,7 +1176,7 @@ namespace NCode.Core.Utilities
                 return null;
             }
         }
-
+#endif
         /// <summary>
         /// Used to print various types of messages. 
         /// </summary>
@@ -1208,6 +1208,7 @@ namespace NCode.Core.Utilities
                 case MessageType.Error: { logBuilder.Append("[ERROR]: "); break; }
             }
 
+#if !UNITY_STANDALONE
             string xmlMessage = TryGetXmlMessage(message.ToString());
             if (xmlMessage != null)
             {
@@ -1223,8 +1224,13 @@ namespace NCode.Core.Utilities
             }
             else
             {
+#endif
                 logBuilder.Append(message);
+#if !UNITY_STANDALONE
+
             }
+#endif
+
 
             logBuilder.Append(Environment.NewLine);
 
@@ -1238,9 +1244,9 @@ namespace NCode.Core.Utilities
 #if UNITY_EDITOR || UNITY_STANDALONE
             switch(type)
             {
-                case MessageType.notification: { Debug.Log(logBuilder.ToString()); break; }
-                case MessageType.warning: { Debug.LogWarning(logBuilder.ToString()); break; }
-                case MessageType.error: { Debug.LogError(logBuilder.ToString()); break; }
+                case MessageType.Notification: { Debug.Log(logBuilder.ToString()); break; }
+                case MessageType.Warning: { Debug.LogWarning(logBuilder.ToString()); break; }
+                case MessageType.Error: { Debug.LogError(logBuilder.ToString()); break; }
             }
 #else
             switch (type)

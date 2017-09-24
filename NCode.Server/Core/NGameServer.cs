@@ -37,6 +37,7 @@ namespace NCode.Server.Core
         {
             TcpListenPort = tcpport;
             UdpListenPort = udpport;
+            _packetProcessor.mainUdp = _mainUdpProtocol;
             if (!autoStart) return;
             Start();
         }

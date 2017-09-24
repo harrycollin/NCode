@@ -46,41 +46,6 @@
         ResponseSetupUdp,
 
         /// <summary>
-        /// Request to create an NetworkObject. 
-        /// </summary>
-        RequestCreateObject,
-
-        /// <summary>
-        /// Response to RequestCreateObject. Either declines or sends back your object data to be spawned. 
-        /// </summary>
-        ResponseCreateObject,
-
-        /// <summary>
-        /// Requests to delete an object. 
-        /// </summary>
-        RequestDestroyObject,
-
-        /// <summary>
-        /// Response to RequestDestroyObject. 
-        /// </summary>
-        ResponseDestroyObject,   
-
-        /// <summary>
-        /// Server to client packet for updating network objects. Also used to initially send a object. 
-        /// </summary>
-        ClientObjectUpdate,
-
-        /// <summary>
-        /// Client to server packet for updating network objects. 
-        /// </summary>
-        ServerObjectUpdate,   
-
-        /// <summary>
-        /// Global packet for Remote Function Calls. Set as first priority on all switch cases. 
-        /// </summary>
-        RFC,
-   
-        /// <summary>
         /// Data to be forwarded to everyone. This is usually going to be an RFC.
         /// </summary>
         ForwardToAll,
@@ -90,6 +55,11 @@
         /// </summary>
         ForwardToChannels,
 
+        CreateEntity,
+
+        UpdateEntity,
+
+        DestroyEntity,
            
     }
 }

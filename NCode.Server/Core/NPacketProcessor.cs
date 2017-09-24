@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using NCode.Core;
 using Buffer = NCode.Core.Buffer;
 using NCode.Core.Utilities;
+using NCode.Core.Entity;
+using NCode.Core.Protocols;
 
 namespace NCode.Server.Core
 {
@@ -17,6 +19,8 @@ namespace NCode.Server.Core
         /// A dictionary of custom packet listeners. The key is the packet. 
         /// </summary>
         private readonly Dictionary<Packet, OnPacket> _packetHandlers = new Dictionary<Packet, OnPacket>();
+
+        public TNUdpProtocol mainUdp;
 
         public delegate void OnPacket(Packet response, BinaryReader reader);
 
@@ -79,8 +83,92 @@ namespace NCode.Server.Core
                     }
                     break;
                 }
+                case Packet.CreateEntity:
+                    {
+                        NNetworkEntity entity = null;
+                        try
+                        {
+                            entity = (NNetworkEntity)reader.ReadObject();
+                        }
+                        catch (NullReferenceException) { }
+
+                        if (entity != null)
+                        {
+                            NEntityCache.AddOrUpdate(entity);
+                            foreach (var otherPlayer in NPlayer.PlayerDictionary.Values.ToList())
+                            {
+                                if (otherPlayer == player) continue;
+                                BinaryWriter writer = otherPlayer.BeginSend(Packet.CreateEntity);
+                                writer.WriteObject(entity);
+                                otherPlayer.EndSend();
+                            }
+                        }
+                        break;
+                    }
 #endif
-                
+
+                case Packet.UpdateEntity:
+                    {
+                        NNetworkEntity entity = null;
+                        try
+                        {
+                            entity = (NNetworkEntity)reader.ReadObject();
+                        }
+                        catch (NullReferenceException) { }
+
+                        if (entity != null)
+                        {
+                            NEntityCache.AddOrUpdate(entity);
+                            foreach (var otherPlayer in NPlayer.PlayerDictionary.Values.ToList())
+                            {
+                                if (otherPlayer == player) continue;
+                                BinaryWriter writer = otherPlayer.BeginSend(Packet.UpdateEntity);
+                                writer.WriteObject(entity);
+                                otherPlayer.EndSend();
+                            }
+                        }
+                        break;
+                    }
+                case Packet.DestroyEntity:
+                    {
+                        Guid entity = Guid.Empty;
+                        try
+                        {
+                            entity = (Guid)reader.ReadObject();
+                        }
+                        catch (NullReferenceException) { }
+
+                        if(entity != null)
+                        {
+                            NEntityCache.Remove(entity);
+                            foreach(var otherPlayer in NPlayer.PlayerDictionary.Values.ToList())
+                            {
+                                if (otherPlayer == player) continue;
+                                BinaryWriter writer = otherPlayer.BeginSend(Packet.DestroyEntity);
+                                writer.WriteObject(entity);
+                                otherPlayer.EndSend();
+                            }
+                        }
+
+                        break;
+                    }
+                case Packet.ForwardToAll:
+                    {
+                        foreach(var otherPlayer in NPlayer.PlayerDictionary.Values.ToList())
+                        {
+                            if (otherPlayer == player) continue;
+                            if (reliable)
+                            {
+                                otherPlayer.SendTcpPacket(buffer);
+                            }
+                            else
+                            {
+                                var udpEndpoint = NPlayer.PlayerUdpEnpointDictionary.FirstOrDefault(x => x.Value == otherPlayer).Key;
+                                mainUdp.Send(buffer, udpEndpoint);
+                            }
+                        }                  
+                        break;
+                    }
                 default:
                     {
                         Tools.Print($"Packet with the ID:{packetType} has not been defined for processing.", Tools.MessageType.Error);

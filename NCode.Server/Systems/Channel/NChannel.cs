@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 using NCode.Core.Utilities;
 using NCode.Server.Core;
 using System.Collections.Generic;
+using NCode.Core.Entity;
+using System.IO;
+using NCode.Core;
 
 namespace NCode.Server.Systems.Channel
 {
@@ -31,6 +34,7 @@ namespace NCode.Server.Systems.Channel
         /// </summary>
         private readonly System.Collections.Generic.List<int> Players = new System.Collections.Generic.List<int>();
 
+        private readonly System.Collections.Generic.List<Guid> Entities = new System.Collections.Generic.List<Guid>();
 
         private NChannel(int ChannelID = -1)
         {
@@ -67,9 +71,7 @@ namespace NCode.Server.Systems.Channel
             
             NCoreEvents.playerDisconnected += LeaveChannel;
         }
-
-        
-
+     
         ~NChannel()
         {
             ChannelCount--;
@@ -116,6 +118,16 @@ namespace NCode.Server.Systems.Channel
                 if (!Players.Contains(player.ClientId))
                 {
                     Players.Add(player.ClientId);
+
+                    //Send each object in the channel to the newly joined player. 
+                    foreach(var entity in Entities)
+                    {
+                        BinaryWriter writer = player.BeginSend(Packet.CreateEntity);
+                        writer.WriteObject(NEntityCache.GetEntity(entity));
+                        player.EndSend();
+                        Tools.Print($"Entity: {entity} has been sent to Player {player.ClientId}.", null);
+                    }
+
                     return true;
                 }
                 Tools.Print("EC1003", Tools.MessageType.Error, null, player.ClientId, ID);
@@ -125,7 +137,56 @@ namespace NCode.Server.Systems.Channel
 
         public void LeaveChannel(NPlayer player)
         {
-            Tools.Print("MC1002", null, player.ClientId, ID);
+            lock (Players)
+            {
+                if (Players.Contains(player.ClientId))
+                {
+                    Players.Remove(player.ClientId);
+
+                    //Send each object in the channel to the newly joined player. 
+                    foreach (var entity in Entities)
+                    {
+                        BinaryWriter writer = player.BeginSend(Packet.DestroyEntity);
+                        writer.WriteObject(entity);
+                        player.EndSend();
+                        Tools.Print($"Entity: {entity} has been removed from Player {player.ClientId}.", null);
+                    }
+
+                }
+            }
+        }
+
+        public bool AddEntity(Guid entity)
+        {
+            if (!Entities.Contains(entity))
+            {
+                Entities.Add(entity);
+                foreach(var player in Players)
+                {
+                    BinaryWriter writer = NPlayer.GetPlayer(player).BeginSend(Packet.CreateEntity);
+                    writer.WriteObject(NEntityCache.GetEntity(entity));
+                    NPlayer.GetPlayer(player).EndSend();
+                }
+                return true;
+            }
+            Tools.Print($"Channel {ID} already contains Entity: {entity}.");
+            return false;
+        }
+
+        public bool RemoveEntity(Guid entity)
+        {
+            if (Entities.Contains(entity))
+            {
+                Entities.Remove(entity);
+                foreach (var player in Players)
+                {
+                    BinaryWriter writer = NPlayer.GetPlayer(player).BeginSend(Packet.DestroyEntity);
+                    writer.WriteObject(entity);
+                    NPlayer.GetPlayer(player).EndSend();
+                }
+                return true;
+            }
+            return false;
         }
 
         public static int CreateChannel()

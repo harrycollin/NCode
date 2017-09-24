@@ -9,16 +9,16 @@ namespace NCode.Core.Entity
     {
         private static readonly Dictionary<Guid, NNetworkEntity> Dictionary = new Dictionary<Guid, NNetworkEntity>();
 
-        public static void AddOrUpdate(NNetworkEntity nNetworkEntity)
+        public static void AddOrUpdate(NNetworkEntity entity)
         {
             lock (Dictionary)
             {
-                if (!Dictionary.ContainsKey(nNetworkEntity.Guid))
+                if (!Dictionary.ContainsKey(entity.Guid))
                 {
-                    Dictionary.Add(nNetworkEntity.Guid, nNetworkEntity);
+                    Dictionary.Add(entity.Guid, entity);
                     return;
                 }
-                Dictionary[nNetworkEntity.Guid] = nNetworkEntity;
+                Dictionary[entity.Guid] = entity;
             }
         }
 

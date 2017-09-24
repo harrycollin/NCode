@@ -52,6 +52,11 @@ namespace NCode.Server.Core
             }
         }
 
+        public void SendTcpPacket(Buffer buffer)
+        {
+            _tcpProtocol.SendTcpPacket(buffer);
+        }
+
         public bool IsPlayerSocketConnected => _tcpProtocol.IsSocketConnected;
 
         public bool IsPlayerTcpConnected => _tcpProtocol.IsConnected;
@@ -143,6 +148,7 @@ namespace NCode.Server.Core
             }
         }
 
+       
 
         public static NPlayer GetPlayer(IPEndPoint playerUdpEndPoint)
         {

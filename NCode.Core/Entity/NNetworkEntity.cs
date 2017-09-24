@@ -1,12 +1,11 @@
-﻿using System;
+﻿using NCode.Core.TypeLibrary;
+using System;
 
 namespace NCode.Core.Entity
 {
     [Serializable]
     public class NNetworkEntity
     {
-        #region Public properties
-
         /// <summary>
         /// This entity's guid.
         /// </summary>
@@ -14,7 +13,11 @@ namespace NCode.Core.Entity
 
         public int Owner;
 
-        #endregion
+        public string PathToPrefab;
+
+        public NVector3 position;
+
+        public NVector4 rotation;
 
         public NNetworkEntity()
         {
