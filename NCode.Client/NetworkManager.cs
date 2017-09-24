@@ -242,6 +242,8 @@ namespace NCode.Client
                 PathToPrefab = AssetDatabase.GetAssetPath(gameObject)
             };
 
+            _networkEntityDictionary.Add(entity.Guid, entity);
+
             GameObject obj = UnityEngine.Object.Instantiate(gameObject, Position, Rotation);
             obj.GetComponent<NEntityLink>().Guid = entity.Guid;
 

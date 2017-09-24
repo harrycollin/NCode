@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClientEvents.cs" />
+    <Compile Include="NAutoCreate.cs" />
     <Compile Include="NAutoJoin.cs" />
     <None Include="NetworkBehaviour.cs" />
     <Compile Include="NetworkManager.cs" />

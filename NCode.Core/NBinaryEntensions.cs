@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using NCode.Core.Entity;
 using NCode.Core.TypeLibrary;
 using NCode.Core.Utilities;
 
@@ -103,6 +104,7 @@ namespace NCode.Core
                 case 5: writer.Write((Quaternion)obj); break;
 #endif
                 case 50: writer.Write((NVector3)obj); break;
+                case 51: writer.Write((NNetworkEntity)obj); break;
             }
         }
 
@@ -124,6 +126,8 @@ namespace NCode.Core
                 case 5: return reader.ReadQuaternion();
 #endif
                 case 50: return reader.ReadV3();
+                case 51:
+                    return reader.ReadNetworkEntity();
             }
             return null;
         }
@@ -142,6 +146,7 @@ namespace NCode.Core
 
 #endif
             if (type == typeof(NVector3)) return 50;
+            if (type == typeof(NNetworkEntity)) return 51;
             return 0;
         }
 
@@ -160,6 +165,7 @@ namespace NCode.Core
                 case 5: return typeof(Quaternion);
 #endif
                 case 50: return typeof(NVector3);
+                case 51: return typeof(NNetworkEntity);
             }
             return null;
         }
@@ -231,6 +237,14 @@ namespace NCode.Core
                 writer.Write(nVector3.Z);
             }
         }
+
+        public static void Write(this BinaryWriter writer, NNetworkEntity entity)
+        {
+            if (entity != null)
+            {
+                writer.WriteByteArray(NConverters.ConvertObjectToByteArray(entity));
+            }
+        }
         
 
         //--------------------------- Read extensions ---------------------------// 
@@ -297,6 +311,12 @@ namespace NCode.Core
             NVector3 nVector3 = new NVector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
             if (nVector3 != null) return nVector3;
             return NVector3.Zero();
+        }
+
+        public static NNetworkEntity ReadNetworkEntity(this BinaryReader reader)
+        {
+            var entity = (NNetworkEntity)NConverters.ConvertByteArrayToObject(reader.ReadByteArray());
+            return entity;
         }
         
     }

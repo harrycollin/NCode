@@ -254,7 +254,8 @@ namespace NCode.Client
                         onDestroyEntity((Guid)reader.ReadObject());
                         break;
                     }
-                case Packet.ForwardToChannels:
+
+                case Packet.ForwardToAll:
                     {
                         Guid guid = (Guid)reader.ReadObject();
                         int RFCID = reader.ReadInt32();

@@ -13,11 +13,12 @@ namespace NCode.Client
         void Start ()
         {       
             NetworkManager.Connect(ServerIPAddress, ServerPort);
+            JoinAndLoad();
         }
 
         void JoinAndLoad()
         {
-            SceneManager.LoadScene(SceneIndex);
+            SceneManager.LoadSceneAsync(SceneIndex);
         }
     }
 }
