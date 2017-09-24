@@ -37,7 +37,6 @@ namespace NCode.Server.Core
         {
             TcpListenPort = tcpport;
             UdpListenPort = udpport;
-            _packetProcessor.mainUdp = _mainUdpProtocol;
             if (!autoStart) return;
             Start();
         }
@@ -89,6 +88,8 @@ namespace NCode.Server.Core
                     _mainUdpProtocol = new TNUdpProtocol();
                     _mainUdpProtocol.Start(UdpListenPort);
                     Tools.Print("UDP Listening on port " + UdpListenPort);
+                    _packetProcessor.mainUdp = _mainUdpProtocol;
+
                 }
                 catch (Exception e)
                 {
