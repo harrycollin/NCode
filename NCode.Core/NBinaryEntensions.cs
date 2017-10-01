@@ -126,8 +126,7 @@ namespace NCode.Core
                 case 5: return reader.ReadQuaternion();
 #endif
                 case 50: return reader.ReadV3();
-                case 51:
-                    return reader.ReadNetworkEntity();
+                case 51: return reader.ReadNetworkEntity();
             }
             return null;
         }

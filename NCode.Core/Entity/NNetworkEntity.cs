@@ -15,6 +15,8 @@ namespace NCode.Core.Entity
 
         public string PathToPrefab;
 
+        public int PrefabIndex;
+
         public NVector3 position;
 
         public NVector4 rotation;

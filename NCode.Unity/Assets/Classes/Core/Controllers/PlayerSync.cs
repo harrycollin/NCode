@@ -115,7 +115,7 @@ namespace Assets.Classes.Core.Controllers
 
                 transform.rotation = Quaternion.Lerp(transform.rotation, syncRotation, Time.deltaTime * LerpRate);
             }
-        }
+        } 
 
         [RFC(1)]
         protected void SetAxis(Vector2 v)

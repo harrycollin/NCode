@@ -141,7 +141,7 @@ namespace NCode.Client
         {
             if (!_tcpClient.IsSocketConnected && !_tcpClient.isTryingToConnect)
             {
-                onDisconnect();
+                //onDisconnect();
                 return;
             }
 
@@ -234,7 +234,7 @@ namespace NCode.Client
                         {
                             Tools.Print("UDP Setup!");
                             _tcpClient.stage = TNTcpProtocol.Stage.Connected;
-                            onConnect();
+                            //onConnect();
                         }
                         break;
                     }

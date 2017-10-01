@@ -7,7 +7,6 @@ using UnityEngine;
 
 using NCode.Core.Entity;
 using NCode.Core.Utilities;
-using UnityEditor;
 
 namespace NCode.Client
 {
@@ -81,12 +80,12 @@ namespace NCode.Client
         /// <summary>
         /// Event triggered upon receiving an destroy command from the server.
         /// </summary>
-        public static ClientEvents.OnDestroyEntity OnDestroyEntity { get { return Instance != null ? Instance._mainClient.onDestroyEntity : null; } set { if (Instance != null && Application.isPlaying) Instance._mainClient.onDestroyEntity = value; } }
+        public static ClientEvents.OnDestroyEntity OnDestroyEntity { get { return Instance?._mainClient.onDestroyEntity; } set { if (Instance != null && Application.isPlaying) Instance._mainClient.onDestroyEntity = value; } }
 
         /// <summary>
         /// Event triggered upon receiving an Remote Function call.
         /// </summary>
-        public static ClientEvents.OnRFC onRFC { get { return Instance != null ? Instance._mainClient.onRFC : null; } set { if (Instance != null && Application.isPlaying) Instance._mainClient.onRFC = value; } }
+        public static ClientEvents.OnRFC OnRFC { get { return Instance != null ? Instance._mainClient.onRFC : null; } set { if (Instance != null && Application.isPlaying) Instance._mainClient.onRFC = value; } }
 
         #endregion
 
@@ -103,17 +102,22 @@ namespace NCode.Client
         private static NetworkManager CreateInstance()
         {
             if (_instance != null) return null;
-            GameObject newInstance = new GameObject("NetworkManager");
+            GameObject newInstance = new GameObject("Network Manager");
             DontDestroyOnLoad(newInstance);
             newInstance.AddComponent<NetworkManager>();
             return newInstance.GetComponent<NetworkManager>();
         }
 
+       
         /// <summary>
         /// Start method from monobehaviour
         /// </summary>                     
         void Start()
         {
+            OnRFC += FindAndExecute;
+            OnCreateEntity += CreateEntity;
+            OnEntityUpdate += UpdateEntity;
+            OnDestroyEntity += DestroyEntity;
         }
 
         void Update()
@@ -185,7 +189,7 @@ namespace NCode.Client
             if (!_networkEntityDictionary.ContainsKey(entity.Guid))
             {
                 _networkEntityDictionary.Add(entity.Guid, entity);
-                Instantiate((GameObject)AssetDatabase.LoadAssetAtPath(entity.PathToPrefab, typeof(GameObject)), NUnityTools.V3ToVector3(entity.position), NUnityTools.V4ToQuaternion(entity.rotation));
+                Instantiate(GetPrefab(entity.PrefabIndex), NUnityTools.V3ToVector3(entity.position), NUnityTools.V4ToQuaternion(entity.rotation));
             }
         }
 
@@ -225,26 +229,26 @@ namespace NCode.Client
             if (obj != null)
                 obj.ExecuteRfc(RFCID, parameters);
         }
-  
-        public static void Instantiate(GameObject gameObject, Vector3 Position, Quaternion Rotation)
-        {
-            if(AssetDatabase.GetAssetPath(gameObject) == null)
-            {
-                Core.Utilities.Tools.Print("Specified GameObject isn't a prefab.",null, MessageType.Error);
-                return;
-            }
 
+        public static void Instantiate(int index, Vector3 Position, Quaternion Rotation)
+        {
+            _instance.InstantiateEntity(index, Position, Rotation);
+        }
+
+        private void InstantiateEntity(int index, Vector3 Position, Quaternion Rotation)
+        {
+           
             NNetworkEntity entity = new NNetworkEntity()
             {
                 position = NUnityTools.Vector3ToV3(Position),
                 rotation = NUnityTools.QuaternionToV4(Rotation),
                 Owner = ClientID,
-                PathToPrefab = AssetDatabase.GetAssetPath(gameObject)
+                PrefabIndex = index
             };
 
             _networkEntityDictionary.Add(entity.Guid, entity);
 
-            GameObject obj = UnityEngine.Object.Instantiate(gameObject, Position, Rotation);
+            GameObject obj = UnityEngine.Object.Instantiate(GetPrefab(entity.PrefabIndex), Position, Rotation);
             obj.GetComponent<NEntityLink>().Guid = entity.Guid;
 
             BinaryWriter writer = BeginSend(Packet.CreateEntity);
@@ -252,5 +256,21 @@ namespace NCode.Client
             EndSend(true);
 
         }
+
+        public GameObject GetPrefab(int index)
+        {
+            GameObject gameObject = null;
+
+            switch (index)
+            {
+                case 0:
+                {
+                    return (GameObject)Resources.Load("Cube");
+                }
+            }
+            return gameObject;
+        }
     }
+
+     
 }

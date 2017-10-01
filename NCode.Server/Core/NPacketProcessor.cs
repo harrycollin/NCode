@@ -164,7 +164,13 @@ namespace NCode.Server.Core
                             else
                             {
                                 var udpEndpoint = NPlayer.PlayerUdpEnpointDictionary.FirstOrDefault(x => x.Value == otherPlayer).Key;
-                                mainUdp.Send(buffer, udpEndpoint);
+                                if(udpEndpoint == null)
+                                    otherPlayer.SendTcpPacket(buffer);
+                                else
+                                {
+                                    mainUdp.Send(buffer, udpEndpoint);
+
+                                }
                             }
                         }                  
                         break;

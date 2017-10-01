@@ -12,7 +12,7 @@ namespace NCode.Client
 
         void Awake()
         {
-            NetworkManager.Instantiate(Prefab, Vector3.zero, Quaternion.identity);
+            NetworkManager.Instantiate(0, Vector3.zero, Quaternion.identity);
         }
     }
 }
