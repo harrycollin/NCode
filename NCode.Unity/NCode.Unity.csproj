@@ -76,12 +76,21 @@
     <Reference Include="UnityEngine.HoloLens">
       <HintPath>Library\UnityAssemblies\UnityEngine.HoloLens.dll</HintPath>
     </Reference>
+    <Reference Include="CommandSystem">
+      <HintPath>Assets\Plugins\DevConsole\CommandSystem.dll</HintPath>
+    </Reference>
     <Reference Include="NCode.Client">
       <HintPath>Assets\Plugins\NCode\NCode.Client.dll</HintPath>
     </Reference>
     <Reference Include="NCode.Core">
       <HintPath>Assets\Plugins\NCode\NCode.Core.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="NCode.Unity.Plugins.csproj">
+      <Project>{E4B95643-87F3-7889-0045-A05F1D19DE24}</Project>
+      <Name>NCode.Unity.Plugins</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Classes\Core\Controllers\PlayerController.cs" />

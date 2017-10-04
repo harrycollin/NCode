@@ -33,7 +33,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Standalone_Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\Standalone_Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;NCODE_SERVER</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;NCODE_SERVER, STANDALONE</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>

@@ -38,12 +38,12 @@ public class MoveCube : MonoBehaviour
         {
             gameObject.transform.position += Vector3.right * 2 * Time.deltaTime; ;
         }
-        GetComponent<NEntityLink>().SendRfc(1, Packet.ForwardToChannels, false, gameObject.transform.position);
+        GetComponent<NEntityLink>().SendRfc(1, Packet.ForwardToChannels, false, transform.position);
     }
 
     [RFC(1)]
     protected void SetPosition(Vector3 v)
     {
-        gameObject.transform.position = v * Time.deltaTime;
+        gameObject.transform.position += v * Time.deltaTime;
     }
 }

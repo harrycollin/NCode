@@ -205,6 +205,7 @@ namespace NCode.Server.Core
 
                     foreach(var otherPlayer in channel.GetPlayers())
                     {
+                        if (otherPlayer == player) continue;
                         if (AlreadySentTo.Contains(otherPlayer)) continue;
                         AlreadySentTo.Add(otherPlayer);
 

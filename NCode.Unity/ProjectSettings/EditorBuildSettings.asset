@@ -6,13 +6,13 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 0
-    path: 
+    path: Assets/__DELETED_GUID_Trash/6230c40c42e9a954b919b0c8e60d74d7
     guid: 6230c40c42e9a954b919b0c8e60d74d7
   - enabled: 0
-    path: 
+    path: Assets/__DELETED_GUID_Trash/de2183f951eec144bbbaa25dee0f2ad8
     guid: de2183f951eec144bbbaa25dee0f2ad8
   - enabled: 0
-    path: 
+    path: Assets/__DELETED_GUID_Trash/d55b15e500a2acf40a84ee33a6d59c26
     guid: d55b15e500a2acf40a84ee33a6d59c26
   - enabled: 1
     path: Assets/Scenes/AutoConnect/AutoConnect.unity
