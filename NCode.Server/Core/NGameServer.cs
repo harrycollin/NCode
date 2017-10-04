@@ -186,7 +186,6 @@ namespace NCode.Server.Core
                 var player = NPlayer.GetPlayer(udpEndpoint);
                 if (player != null)
                 {
-                    Tools.Print("Player wasn't null");
                     _packetProcessor.ProcessPacket(player, buffer, false);
                     continue;
                 }

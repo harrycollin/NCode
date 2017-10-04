@@ -31,17 +31,17 @@ namespace NCode.Core.Protocols
         /// <summary>
         /// The inbound queue of packets that have been received but not processed by the main thread. 
         /// </summary>
-        public Queue<NBuffer> InQueue = new Queue<NBuffer>();
+        public Queue<Buffer> InQueue = new Queue<Buffer>();
 
         /// <summary>
         /// The outbound queue of packets that need to be sent back to the client. 
         /// </summary>
-        public Queue<NBuffer> OutQueue = new Queue<NBuffer>();
+        public Queue<Buffer> OutQueue = new Queue<Buffer>();
 
         /// <summary>
         /// A temporary packet for extracting exsiting packets into. 
         /// </summary>
-        NBuffer tempPacket;
+        Buffer tempPacket;
 
         /// <summary>
         /// The timeout of
@@ -263,7 +263,7 @@ namespace NCode.Core.Protocols
                     {
                         if (buffer.Length != 0)
                         {
-                            NBuffer packet = new NBuffer();
+                            Buffer packet = new Buffer();
                             packet.Initialize(buffer);
                             InQueue.Enqueue(packet);
                             return true;
@@ -321,7 +321,7 @@ namespace NCode.Core.Protocols
         /// <summary>
         /// Grabs the next packet in the InQueue 
         /// </summary>
-        public bool NextPacket(out NBuffer packet)
+        public bool NextPacket(out Buffer packet)
         {
             lock (InQueue)
             {
@@ -341,7 +341,7 @@ namespace NCode.Core.Protocols
         public BinaryWriter BeginSend(Packet packet)
         {
             tempPacket = null;
-            tempPacket = new NBuffer();
+            tempPacket = new Buffer();
             return tempPacket.BeginWriting(packet);
         }
 

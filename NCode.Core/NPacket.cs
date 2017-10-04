@@ -60,6 +60,10 @@
         UpdateEntity,
 
         DestroyEntity,
+
+        JoinChannel,
+
+        LeaveChannel,
            
     }
 }

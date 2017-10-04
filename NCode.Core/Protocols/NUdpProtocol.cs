@@ -18,7 +18,7 @@ namespace NCode.Core.Protocols
 
         // Buffer used for receiving incoming data
         byte[] tempBuffer = new byte[8192];
-        NBuffer tempPacket;
+        Buffer tempPacket;
 
         // End point of where the data is coming from
         EndPoint mEndPoint;
@@ -116,7 +116,7 @@ namespace NCode.Core.Protocols
                 MemoryStream ms = new MemoryStream(tempBuffer);
                 BinaryReader bufferReader = new BinaryReader(ms);
                 // This datagram is now ready to be processed
-                NBuffer buffer = new NBuffer();
+                Buffer buffer = new Buffer();
                 buffer.Initialize(bufferReader.ReadBytes(bytes));
 
 
@@ -147,7 +147,7 @@ namespace NCode.Core.Protocols
         /// <summary>
         /// Extract the next packet in the 'inQueue' is there is any.
         /// </summary>
-        public bool ReceivePacket(out NBuffer buffer, out IPEndPoint source)
+        public bool ReceivePacket(out Buffer buffer, out IPEndPoint source)
         {
 
             if (mPort == 0)
@@ -176,7 +176,7 @@ namespace NCode.Core.Protocols
         /// Send the specified datagram.
         /// </summary>
 
-        public void Send(NBuffer buffer, IPEndPoint ip)
+        public void Send(Buffer buffer, IPEndPoint ip)
         {
             if (thisSocket != null)
             {
@@ -237,7 +237,7 @@ namespace NCode.Core.Protocols
         public BinaryWriter BeginSend(Packet packet)
         {
             tempPacket = null;
-            tempPacket = new NBuffer();
+            tempPacket = new Buffer();
             return tempPacket.BeginWriting(packet);
         }     
         

@@ -7,7 +7,7 @@ using NCode.Core.Utilities;
 
 namespace NCode.Core
 {
-    public class NBuffer
+    public class Buffer
     {
 
         volatile MemoryStream ms;

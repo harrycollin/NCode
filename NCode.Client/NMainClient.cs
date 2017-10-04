@@ -234,7 +234,7 @@ namespace NCode.Client
                         {
                             Tools.Print("UDP Setup!");
                             _tcpClient.stage = TNTcpProtocol.Stage.Connected;
-                            //onConnect();
+                            onConnect?.Invoke();
                         }
                         break;
                     }
@@ -255,6 +255,7 @@ namespace NCode.Client
                         break;
                     }
 
+                case Packet.ForwardToChannels:
                 case Packet.ForwardToAll:
                     {
                         Guid guid = (Guid)reader.ReadObject();

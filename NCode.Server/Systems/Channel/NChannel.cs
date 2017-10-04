@@ -36,6 +36,8 @@ namespace NCode.Server.Systems.Channel
 
         private readonly System.Collections.Generic.List<Guid> Entities = new System.Collections.Generic.List<Guid>();
 
+        private readonly System.Collections.Generic.List<NCode.Core.Buffer> PersistantPackets = new System.Collections.Generic.List<NCode.Core.Buffer>();
+
         private NChannel(int ChannelID = -1)
         {
             ChannelCount++;
@@ -46,6 +48,8 @@ namespace NCode.Server.Systems.Channel
                 {
                     ID = ChannelID;
                     Channels.Add(ID, this);
+                    Tools.Print($"Channel {ID} has been created.", Tools.MessageType.Notification);
+
                 }
                 else
                 {
@@ -60,6 +64,7 @@ namespace NCode.Server.Systems.Channel
                     {
                         ID = i;
                         Channels.Add(i, this);
+                        Tools.Print($"Channel {ID} has been created.", Tools.MessageType.Notification);
                         break;
                     }
                 }
@@ -67,8 +72,7 @@ namespace NCode.Server.Systems.Channel
             else
             {
                 Tools.Print("A new channel couldn't be created. Max channels reached", Tools.MessageType.Error);
-            }
-            
+            }          
             NCoreEvents.playerDisconnected += LeaveChannel;
         }
      
@@ -100,12 +104,12 @@ namespace NCode.Server.Systems.Channel
             {
                 if (Channels[ChannelID].Players.Contains(player.ClientId))
                 {
-                    Channels[ChannelID].Players.Remove(player.ClientId);
+                    Channels[ChannelID].LeaveChannel(player);
                     return true;
                 }
                 else
                 {
-                    Tools.Print("STR_CHANNEL_PLAYERLEAVENULLCHANNEL", null ,player.ClientGuid, ChannelID);
+                    Tools.Print("STR_CHANNEL_PLAYERLEAVENULLCHANNEL", null, player.ClientGuid, ChannelID);
                 }
             }
             return false;
@@ -127,6 +131,8 @@ namespace NCode.Server.Systems.Channel
                         player.EndSend();
                         Tools.Print($"Entity: {entity} has been sent to Player {player.ClientId}.", null);
                     }
+                    Tools.Print($"Player:{player.ClientId} has joined Channel {ID}.");
+
 
                     return true;
                 }
@@ -152,8 +158,19 @@ namespace NCode.Server.Systems.Channel
                         Tools.Print($"Entity: {entity} has been removed from Player {player.ClientId}.", null);
                     }
 
+                    Tools.Print($"Player:{player.ClientId} has left Channel {ID}.");
+
                 }
             }
+        }
+
+        public bool HasPlayer(NPlayer player)
+        {
+            if (Players.Contains(player.ClientId))
+            {
+                return true;
+            }
+            return false;
         }
 
         public bool AddEntity(Guid entity)
@@ -167,6 +184,8 @@ namespace NCode.Server.Systems.Channel
                     writer.WriteObject(NEntityCache.GetEntity(entity));
                     NPlayer.GetPlayer(player).EndSend();
                 }
+                Tools.Print($"Entity:{entity} has joined Channel {ID}.");
+
                 return true;
             }
             Tools.Print($"Channel {ID} already contains Entity: {entity}.");
@@ -210,6 +229,17 @@ namespace NCode.Server.Systems.Channel
 
             }
             return false;
+        }
+
+        public System.Collections.Generic.List<NPlayer> GetPlayers()
+        {
+            System.Collections.Generic.List<NPlayer> players = new System.Collections.Generic.List<NPlayer>();
+
+            foreach(var ID in Players)
+            {
+                players.Add(NPlayer.GetPlayer(ID));
+            }
+            return players;
         }
     }
 }

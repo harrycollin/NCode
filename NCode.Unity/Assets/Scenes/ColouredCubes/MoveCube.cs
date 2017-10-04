@@ -14,34 +14,36 @@ public class MoveCube : MonoBehaviour
     {
 		
 	}
-	
-	// Update is called once per frame
-	void Update ()
-    {
-        if(!GetComponent<NEntityLink>().IsMine) return;
 
-        if (Input.GetKeyDown(KeyCode.W))
+    // Update is called once per frame
+    void Update()
+    {
+        //if (true) return;
+
+        if (!GetComponent<NEntityLink>().IsMine) return;
+
+        if (Input.GetKey(KeyCode.W))
         {
-            gameObject.transform.position += Vector3.forward * 2;
+            gameObject.transform.position += Vector3.forward * 2 * Time.deltaTime; ;
         }
-        if (Input.GetKeyDown(KeyCode.S))
+        if (Input.GetKey(KeyCode.S))
         {
-            gameObject.transform.position += Vector3.back * 2;
+            gameObject.transform.position += Vector3.back * 2 * Time.deltaTime; ;
         }
-        if (Input.GetKeyDown(KeyCode.A))
+        if (Input.GetKey(KeyCode.A))
         {
-            gameObject.transform.position += Vector3.left * 2;
+            gameObject.transform.position += Vector3.left * 2 * Time.deltaTime; ;
         }
-        if (Input.GetKeyDown(KeyCode.D))
+        if (Input.GetKey(KeyCode.D))
         {
-            gameObject.transform.position += Vector3.right * 2;
+            gameObject.transform.position += Vector3.right * 2 * Time.deltaTime; ;
         }
-        GetComponent<NEntityLink>().SendRfc(1, Packet.ForwardToAll, false, gameObject.transform.position);
+        GetComponent<NEntityLink>().SendRfc(1, Packet.ForwardToChannels, false, gameObject.transform.position);
     }
 
     [RFC(1)]
     protected void SetPosition(Vector3 v)
     {
-        gameObject.transform.position = v;
+        gameObject.transform.position = v * Time.deltaTime;
     }
 }

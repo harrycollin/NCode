@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using NCode.Core;
 using UnityEngine;
+using NCode.Core.Utilities;
 
 namespace NCode.Client
 {
@@ -16,7 +17,8 @@ namespace NCode.Client
 
         #region Public
 
-        public  Guid Guid;
+        public Guid Guid;
+        public string GuidString;
 
         public int Owner
         {
@@ -32,6 +34,15 @@ namespace NCode.Client
 
         #endregion
 
+
+        public void Initialize(Guid guid)
+        {
+            Guid = guid;
+            GuidString = guid.ToString();
+            NetworkObjects.Add(guid, this);
+            Tools.Print($"{NetworkObjects.Count} is the count of NObjects");
+        }
+
         /// Finds a NetworkBehaviour by GUID
         /// </summary>
         /// <returns></returns>
@@ -39,9 +50,24 @@ namespace NCode.Client
         {
             if (NetworkObjects.ContainsKey(guid))
             {
+                Tools.Print("Object FOund");
                 return NetworkObjects[guid];
             }
             return null;
+        }
+
+        /// Finds a NetworkBehaviour by GUID
+        /// </summary>
+        /// <returns></returns>
+        public static bool Destroy(Guid guid)
+        {
+            if (NetworkObjects.ContainsKey(guid))
+            {
+                Destroy(NetworkObjects[guid].gameObject);
+                NetworkObjects.Remove(guid);
+                return true;
+            }
+            return false;
         }
 
         public void SendRfc(int rfcID, Packet target, bool reliable, params object[] objs)

@@ -186,10 +186,12 @@ namespace NCode.Client
 
         private void CreateEntity(NNetworkEntity entity)
         {
+            Tools.Print("Hrerere");
             if (!_networkEntityDictionary.ContainsKey(entity.Guid))
             {
                 _networkEntityDictionary.Add(entity.Guid, entity);
-                Instantiate(GetPrefab(entity.PrefabIndex), NUnityTools.V3ToVector3(entity.position), NUnityTools.V4ToQuaternion(entity.rotation));
+                GameObject go = Instantiate(GetPrefab(entity.PrefabIndex), NUnityTools.V3ToVector3(entity.position), NUnityTools.V4ToQuaternion(entity.rotation));
+                go.GetComponent<NEntityLink>().Initialize(entity.Guid);
             }
         }
 
@@ -203,10 +205,16 @@ namespace NCode.Client
 
         private void DestroyEntity(Guid entity)
         {
+            Tools.Print(entity.ToString());
+
             if (_networkEntityDictionary.ContainsKey(entity))
             {
+                Tools.Print("Found");
+
                 _networkEntityDictionary.Remove(entity);
-                Destroy(NEntityLink.Find(entity).gameObject);
+                Tools.Print("Removed");
+
+                NEntityLink.Destroy(entity);
             }
         }
 
@@ -220,6 +228,21 @@ namespace NCode.Client
             return null;
         }
 
+        public static void JoinChannel(int ID)
+        {
+            BinaryWriter writer = BeginSend(Packet.JoinChannel);
+            writer.Write(ID);
+            EndSend(true);
+        }
+
+
+        public static void LeaveChannel(int ID)
+        {
+            BinaryWriter writer = BeginSend(Packet.LeaveChannel);
+            writer.Write(ID);
+            EndSend(true);
+        }
+
         /// <summary>
         /// The static method to find a execute an RFC on any NetworkBehaviour
         /// </summary>
@@ -230,12 +253,12 @@ namespace NCode.Client
                 obj.ExecuteRfc(RFCID, parameters);
         }
 
-        public static void Instantiate(int index, Vector3 Position, Quaternion Rotation)
+        public static void Instantiate(int channelId, int index, Vector3 Position, Quaternion Rotation)
         {
-            _instance.InstantiateEntity(index, Position, Rotation);
+            _instance.InstantiateEntity(channelId, index, Position, Rotation);
         }
 
-        private void InstantiateEntity(int index, Vector3 Position, Quaternion Rotation)
+        private void InstantiateEntity(int channelId, int index, Vector3 Position, Quaternion Rotation)
         {
            
             NNetworkEntity entity = new NNetworkEntity()
@@ -246,12 +269,13 @@ namespace NCode.Client
                 PrefabIndex = index
             };
 
-            _networkEntityDictionary.Add(entity.Guid, entity);
+            //_networkEntityDictionary.Add(entity.Guid, entity);
 
-            GameObject obj = UnityEngine.Object.Instantiate(GetPrefab(entity.PrefabIndex), Position, Rotation);
-            obj.GetComponent<NEntityLink>().Guid = entity.Guid;
+            //GameObject obj = Instantiate(GetPrefab(entity.PrefabIndex), Position, Rotation);
+            //obj.GetComponent<NEntityLink>().Guid = entity.Guid;
 
             BinaryWriter writer = BeginSend(Packet.CreateEntity);
+            writer.Write(channelId);
             writer.WriteObject(entity);
             EndSend(true);
 

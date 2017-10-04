@@ -10,6 +10,8 @@ using Buffer = NCode.Core.Buffer;
 using NCode.Core.Utilities;
 using NCode.Core.Entity;
 using NCode.Core.Protocols;
+using NCode.Server.Systems.Channel;
+using static NCode.Core.Utilities.Tools;
 
 namespace NCode.Server.Core
 {
@@ -85,23 +87,22 @@ namespace NCode.Server.Core
                 }
                 case Packet.CreateEntity:
                     {
+                        int channelID = -1;
                         NNetworkEntity entity = null;
                         try
                         {
+                            channelID = reader.ReadInt32();
                             entity = (NNetworkEntity)reader.ReadObject();
                         }
-                        catch (NullReferenceException) { }
+                        catch (NullReferenceException e)
+                        {
+                            Tools.Print("Null reference exception.", MessageType.Error);
+                        }
 
                         if (entity != null)
                         {
                             NEntityCache.AddOrUpdate(entity);
-                            foreach (var otherPlayer in NPlayer.PlayerDictionary.Values.ToList())
-                            {
-                                if (otherPlayer == player) continue;
-                                BinaryWriter writer = otherPlayer.BeginSend(Packet.CreateEntity);
-                                writer.WriteObject(entity);
-                                otherPlayer.EndSend();
-                            }
+                            NChannel.Channels[channelID].AddEntity(entity.Guid);
                         }
                         break;
                     }
@@ -152,27 +153,20 @@ namespace NCode.Server.Core
 
                         break;
                     }
-                case Packet.ForwardToAll:
+                case Packet.ForwardToAll:                  
+                case Packet.ForwardToChannels:
                     {
-                        foreach(var otherPlayer in NPlayer.PlayerDictionary.Values.ToList())
-                        {
-                            if (otherPlayer == player) continue;
-                            if (reliable)
-                            {
-                                otherPlayer.SendTcpPacket(buffer);
-                            }
-                            else
-                            {
-                                var udpEndpoint = NPlayer.PlayerUdpEnpointDictionary.FirstOrDefault(x => x.Value == otherPlayer).Key;
-                                if(udpEndpoint == null)
-                                    otherPlayer.SendTcpPacket(buffer);
-                                else
-                                {
-                                    mainUdp.Send(buffer, udpEndpoint);
-
-                                }
-                            }
-                        }                  
+                        ProcessForwardPacket(player, buffer, packetType, reader, reliable);     
+                        break;
+                    }
+                case Packet.JoinChannel:
+                    {
+                        NChannel.JoinChannel(player, reader.ReadInt32());
+                        break;
+                    }
+                case Packet.LeaveChannel:
+                    {
+                        NChannel.LeaveChannel(player, reader.ReadInt32());
                         break;
                     }
                 default:
@@ -182,6 +176,45 @@ namespace NCode.Server.Core
                     }
             }
             return true;
+        }
+
+        void ProcessForwardPacket(NPlayer player, Buffer buffer, Packet packet, BinaryReader reader, bool reliable)
+        {
+            int start = buffer.position - 5;
+            buffer.position = start;
+
+            //Simply send the packet to all players
+            if (packet == Packet.ForwardToAll)
+            {
+                foreach(var i in NPlayer.PlayerDictionary.Values.ToList())
+                {
+                    if (i == player) continue;
+                    if (reliable) i.SendTcpPacket(buffer);
+                    else if (i.IsPlayerUdpConnected) mainUdp.Send(buffer, i.UdpEndpoint);
+                    
+                }
+            }
+            //More work is needed if it is to all connected channels
+            else if (packet == Packet.ForwardToChannels)
+            {
+                System.Collections.Generic.List<NPlayer> AlreadySentTo = new System.Collections.Generic.List<NPlayer>();
+
+                foreach(var channel in NChannel.Channels.Values.ToList())
+                {
+                    if (!channel.HasPlayer(player)) continue;
+
+                    foreach(var otherPlayer in channel.GetPlayers())
+                    {
+                        if (AlreadySentTo.Contains(otherPlayer)) continue;
+                        AlreadySentTo.Add(otherPlayer);
+
+                        
+                        if (reliable) otherPlayer.SendTcpPacket(buffer);
+                        else if (otherPlayer.IsPlayerUdpConnected) mainUdp.Send(buffer, otherPlayer.UdpEndpoint);
+                       
+                    }
+                }
+            }
         }
     }
 }
