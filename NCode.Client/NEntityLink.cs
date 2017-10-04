@@ -18,14 +18,22 @@ namespace NCode.Client
         #region Public
 
         public Guid Guid;
+
+        [SerializeField]
         public string GuidString;
 
+        [SerializeField]
         public int Owner
         {
             get { return NetworkManager.GetEntity(Guid).Owner; }
-            set { NetworkManager.GetEntity(Guid).Owner = value; }
+            set
+            {
+                NetworkManager.GetEntity(Guid).Owner = value;
+                
+            }
         }
-
+        
+        [SerializeField]
         public bool IsMine => Owner == NetworkManager.ClientID;
         public bool RebuildMethodList = true;
 
