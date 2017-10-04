@@ -4,9 +4,9 @@ using System.IO;
 using System.Net;
 using NCode.Core;
 using UnityEngine;
-
 using NCode.Core.Entity;
 using NCode.Core.Utilities;
+using static NCode.Client.NUnityTools;
 
 namespace NCode.Client
 {
@@ -19,16 +19,18 @@ namespace NCode.Client
         #region Privates
 
         /// <summary>
-        /// The instance of this class. 
+        /// The instance of this class. This allows us to use the built in Start, Awake and Update methods in Monobehaviour.
         /// </summary>
         private static NetworkManager _instance;
 
         /// <summary>
         /// The staticInstance of the MainClient. This is the core of the networking. 
         /// </summary>
-        private readonly NMainClient _mainClient = new NMainClient();
+        private readonly NMainClient _client = new NMainClient();
 
-        private static readonly Dictionary<Guid, NNetworkEntity> _networkEntityDictionary = new Dictionary<Guid, NNetworkEntity>();
+
+        private static readonly Dictionary<Guid, NNetworkEntity> NetworkEntityDictionary = new Dictionary<Guid, NNetworkEntity>();
+       
         #endregion
 
         #region Publics
@@ -36,22 +38,22 @@ namespace NCode.Client
         /// <summary>
         /// Whether the player is connected and verified with the server.
         /// </summary>
-        public static bool IsConnected { get { return Instance != null && Instance._mainClient.IsConnected; } }
+        public static bool IsConnected => Instance != null && Instance._client.IsConnected;
 
         /// <summary>
         /// Whether a connect operation is in progress.
         /// </summary>
-        public static bool IsTryingToConnect { get { return Instance != null && Instance._mainClient.IsTryingToConnect; } }
+        public static bool IsTryingToConnect => Instance != null && Instance._client.IsTryingToConnect;
 
         /// <summary>
         /// Whether the client has setup a Udp connection with the remote server.
         /// </summary>
-        public static bool IsUdpSetup { get { return Instance != null && Instance._mainClient.IsUdpSetup; } }
+        public static bool IsUdpSetup => Instance != null && Instance._client.IsUdpSetup;
 
         /// <summary>
         /// Returns the client's Guid. 
         /// </summary>
-        public static int ClientID { get { return Instance._mainClient.ClientID; } }
+        public static int ClientId => Instance._client.ClientId;
 
         #endregion
 
@@ -60,32 +62,32 @@ namespace NCode.Client
         /// <summary>
         /// Event triggered when the client setup is complete.
         /// </summary>
-        public static ClientEvents.OnConnect OnConnect { get { return Instance != null ? Instance._mainClient.onConnect : null; } set { if (Instance != null && Application.isPlaying) Instance._mainClient.onConnect = value; } }
+        public static ClientEvents.OnConnect OnConnect { get { return Instance != null ? Instance._client.onConnect : null; } set { if (Instance != null && Application.isPlaying) Instance._client.onConnect = value; } }
 
         /// <summary>
         /// Event triggered when the client has disconnected from the server. 
         /// </summary>
-        public static ClientEvents.OnDisconnect OnDisconnect { get { return Instance != null ? Instance._mainClient.onDisconnect : null; } set { if (Instance != null && Application.isPlaying) Instance._mainClient.onDisconnect = value; } }
+        public static ClientEvents.OnDisconnect OnDisconnect { get { return Instance != null ? Instance._client.onDisconnect : null; } set { if (Instance != null && Application.isPlaying) Instance._client.onDisconnect = value; } }
 
         /// <summary>
         /// Event triggered upon receiving an Network Object update.
         /// </summary>
-        public static ClientEvents.OnCreateEntity OnCreateEntity { get { return Instance != null ? Instance._mainClient.onCreateEntity : null; } set { if (Instance != null && Application.isPlaying) Instance._mainClient.onCreateEntity = value; } }
+        public static ClientEvents.OnCreateEntity OnCreateEntity { get { return Instance != null ? Instance._client.onCreateEntity : null; } set { if (Instance != null && Application.isPlaying) Instance._client.onCreateEntity = value; } }
 
         /// <summary>
         /// Event triggered upon receiving an Network Object update.
         /// </summary>
-        public static ClientEvents.OnEntityUpdate OnEntityUpdate { get { return Instance != null ? Instance._mainClient.onEntityUpdate : null; } set { if (Instance != null && Application.isPlaying) Instance._mainClient.onEntityUpdate = value; } }
+        public static ClientEvents.OnEntityUpdate OnEntityUpdate { get { return Instance != null ? Instance._client.onEntityUpdate : null; } set { if (Instance != null && Application.isPlaying) Instance._client.onEntityUpdate = value; } }
 
         /// <summary>
         /// Event triggered upon receiving an destroy command from the server.
         /// </summary>
-        public static ClientEvents.OnDestroyEntity OnDestroyEntity { get { return Instance?._mainClient.onDestroyEntity; } set { if (Instance != null && Application.isPlaying) Instance._mainClient.onDestroyEntity = value; } }
+        public static ClientEvents.OnDestroyEntity OnDestroyEntity { get { return Instance?._client.onDestroyEntity; } set { if (Instance != null && Application.isPlaying) Instance._client.onDestroyEntity = value; } }
 
         /// <summary>
         /// Event triggered upon receiving an Remote Function call.
         /// </summary>
-        public static ClientEvents.OnRFC OnRFC { get { return Instance != null ? Instance._mainClient.onRFC : null; } set { if (Instance != null && Application.isPlaying) Instance._mainClient.onRFC = value; } }
+        public static ClientEvents.OnRFC OnRFC { get { return Instance != null ? Instance._client.onRFC : null; } set { if (Instance != null && Application.isPlaying) Instance._client.onRFC = value; } }
 
         #endregion
 
@@ -99,10 +101,15 @@ namespace NCode.Client
             }
         }
 
+        //public static void StartClientServer()
+        //{
+        //    Instance._clientServer = new NClientServer();
+        //    Instance._clientServer.Start("Test", 5127, 5128, 5129, "");
+        //}
+
         private static NetworkManager CreateInstance()
         {
-            if (_instance != null) return null;
-            GameObject newInstance = new GameObject("Network Manager");
+            var newInstance = new GameObject("Network Manager");
             DontDestroyOnLoad(newInstance);
             newInstance.AddComponent<NetworkManager>();
             return newInstance.GetComponent<NetworkManager>();
@@ -115,18 +122,32 @@ namespace NCode.Client
         void Start()
         {
             OnRFC += FindAndExecute;
-            OnCreateEntity += CreateEntity;
-            OnEntityUpdate += UpdateEntity;
-            OnDestroyEntity += DestroyEntity;
+            OnCreateEntity += EventCreateEntity;
+            OnEntityUpdate += EventUpdateEntity;
+            OnDestroyEntity += EventDestroyEntity;
         }
 
         void Update()
         {
-            if (Instance != null)
+            if (!Application.isPlaying)
             {
-                Instance._mainClient.ClientUpdate();
+                Disconnect();
             }
 
+            if (Instance != null)
+            {
+                Instance._client.ClientUpdate();
+            }
+        }
+
+        /// <summary>
+        /// Attempts to connect the client to the given server.
+        /// </summary>
+        public static bool Connect()
+        {
+            if (Instance == null || Instance._client.IsTryingToConnect || Instance._client.IsConnected) return false;
+            Instance._client.Connect(IPAddress.Parse("127.0.0.1"), 5127);
+            return true;
         }
 
         /// <summary>
@@ -134,8 +155,8 @@ namespace NCode.Client
         /// </summary>
         public static bool Connect(string ip, int port)
         {
-            if (Instance == null || Instance._mainClient.IsTryingToConnect || Instance._mainClient.IsConnected) return false;
-            Instance._mainClient.Connect(IPAddress.Parse(ip), port);
+            if (Instance == null || Instance._client.IsTryingToConnect || Instance._client.IsConnected) return false;
+            Instance._client.Connect(IPAddress.Parse(ip), port);
             return true;
         }
 
@@ -144,9 +165,9 @@ namespace NCode.Client
         /// </summary>
         public static void Disconnect()
         {
-            if (Instance._mainClient.IsSocketConnected)
+            if (Instance._client.IsSocketConnected)
             {
-                Instance._mainClient.Disconnect();
+                Instance._client.Disconnect();
             }
         }
 
@@ -157,7 +178,7 @@ namespace NCode.Client
         {
             if (Instance != null)
             {
-                Instance._mainClient.packetHandlers[packet] = callback;
+                Instance._client.packetHandlers[packet] = callback;
             }
         }
 
@@ -166,9 +187,9 @@ namespace NCode.Client
         /// </summary>
         public static BinaryWriter BeginSend(Packet packet)
         {
-            if (Instance != null && Instance._mainClient.IsSocketConnected)
+            if (Instance != null && Instance._client.IsSocketConnected)
             {
-                return Instance._mainClient.BeginSend(packet);
+                return Instance._client.BeginSend(packet);
             }
             return null;
         }
@@ -178,40 +199,37 @@ namespace NCode.Client
         /// </summary>
         public static void EndSend(bool reliable)
         {
-            if (Instance != null && Instance._mainClient.IsSocketConnected)
+            if (Instance != null && Instance._client.IsSocketConnected)
             {
-                Instance._mainClient.EndSend(reliable);
+                Instance._client.EndSend(reliable);
             }
         }
 
-        private void CreateEntity(NNetworkEntity entity)
+        private void EventCreateEntity(NNetworkEntity entity)
         {
-            Tools.Print("Hrerere");
-            if (!_networkEntityDictionary.ContainsKey(entity.Guid))
-            {
-                _networkEntityDictionary.Add(entity.Guid, entity);
-                GameObject go = Instantiate(GetPrefab(entity.PrefabIndex), NUnityTools.V3ToVector3(entity.position), NUnityTools.V4ToQuaternion(entity.rotation));
-                go.GetComponent<NEntityLink>().Initialize(entity.Guid);
-            }
+            if (NetworkEntityDictionary.ContainsKey(entity.Guid)) return;
+            NetworkEntityDictionary.Add(entity.Guid, entity);
+            var go = Instantiate(GetPrefab(entity.PrefabIndex), V3ToVector3(entity.Position), V4ToQuaternion(entity.Rotation));
+            go.GetComponent<NEntityLink>().Initialize(entity.Guid);
         }
 
-        private void UpdateEntity(NNetworkEntity entity)
+        private void EventUpdateEntity(NNetworkEntity entity)
         {
-            if (_networkEntityDictionary.ContainsKey(entity.Guid))
+            if (NetworkEntityDictionary.ContainsKey(entity.Guid))
             {
-                _networkEntityDictionary[entity.Guid] = entity; 
+                NetworkEntityDictionary[entity.Guid] = entity; 
             }
         }
 
-        private void DestroyEntity(Guid entity)
+        private void EventDestroyEntity(Guid entity)
         {
             Tools.Print(entity.ToString());
 
-            if (_networkEntityDictionary.ContainsKey(entity))
+            if (NetworkEntityDictionary.ContainsKey(entity))
             {
                 Tools.Print("Found");
 
-                _networkEntityDictionary.Remove(entity);
+                NetworkEntityDictionary.Remove(entity);
                 Tools.Print("Removed");
 
                 NEntityLink.Destroy(entity);
@@ -221,80 +239,88 @@ namespace NCode.Client
 
         public static NNetworkEntity GetEntity(Guid guid)
         {
-            if (_networkEntityDictionary.ContainsKey(guid))
-            {
-                return _networkEntityDictionary[guid];
-            }
-            return null;
+            return NetworkEntityDictionary.ContainsKey(guid) ? NetworkEntityDictionary[guid] : null;
         }
 
-        public static void JoinChannel(int ID)
+        public static void JoinChannel(int id)
         {
-            BinaryWriter writer = BeginSend(Packet.JoinChannel);
-            writer.Write(ID);
+            var writer = BeginSend(Packet.JoinChannel);
+            writer.Write(id);
             EndSend(true);
         }
 
 
-        public static void LeaveChannel(int ID)
+        public static void LeaveChannel(int id)
         {
-            BinaryWriter writer = BeginSend(Packet.LeaveChannel);
-            writer.Write(ID);
+            var writer = BeginSend(Packet.LeaveChannel);
+            writer.Write(id);
             EndSend(true);
         }
 
         /// <summary>
-        /// The static method to find a execute an RFC on any NetworkBehaviour
+        /// The static method to find a execute an RFC on any EntityLink
         /// </summary>
-        public static void FindAndExecute(Guid guid, int RFCID, params object[] parameters)
+        public static void FindAndExecute(Guid guid, int rfcid, params object[] parameters)
         {
             var obj = NEntityLink.Find(guid);
             if (obj != null)
-                obj.ExecuteRfc(RFCID, parameters);
-        }
+                obj.ExecuteRfc(rfcid, parameters);
+        }     
 
-        public static void Instantiate(int channelId, int index, Vector3 Position, Quaternion Rotation)
-        {
-            _instance.InstantiateEntity(channelId, index, Position, Rotation);
-        }
-
-        private void InstantiateEntity(int channelId, int index, Vector3 Position, Quaternion Rotation)
-        {
-           
-            NNetworkEntity entity = new NNetworkEntity()
+        public static void CreateEntity(int channelId, int index, Vector3 position, Quaternion rotation)
+        {        
+            var entity = new NNetworkEntity
             {
-                position = NUnityTools.Vector3ToV3(Position),
-                rotation = NUnityTools.QuaternionToV4(Rotation),
-                Owner = ClientID,
+                Position = Vector3ToV3(position),
+                Rotation = QuaternionToV4(rotation),
+                Owner = ClientId,
                 PrefabIndex = index
             };
 
-            //_networkEntityDictionary.Add(entity.Guid, entity);
-
-            //GameObject obj = Instantiate(GetPrefab(entity.PrefabIndex), Position, Rotation);
-            //obj.GetComponent<NEntityLink>().Guid = entity.Guid;
-
-            BinaryWriter writer = BeginSend(Packet.CreateEntity);
+            var writer = BeginSend(Packet.CreateEntity);
             writer.Write(channelId);
             writer.WriteObject(entity);
             EndSend(true);
+        }
 
+        public static void UpdateEntity(NNetworkEntity updatedEntity)
+        {
+            if (updatedEntity == null)
+            {
+                Tools.Print("Can't update Entity! Provided Entity is null.", Tools.MessageType.Error);
+                return;
+            }
+
+            if (!NetworkEntityDictionary.ContainsKey(updatedEntity.Guid))
+            {
+                Tools.Print("Can't update Entity! Provided Entity doesn't exist in Entity dictionary.", Tools.MessageType.Error);
+                return;
+            }
+
+            NetworkEntityDictionary[updatedEntity.Guid] = updatedEntity;
+
+            var writer = BeginSend(Packet.UpdateEntity);
+            writer.WriteObject(updatedEntity);
+            EndSend(true);
+        }
+
+        public static void DestroyEntity(Guid entityGuid)
+        {
+            
         }
 
         public GameObject GetPrefab(int index)
         {
-            GameObject gameObject = null;
-
             switch (index)
             {
                 case 0:
-                {
-                    return (GameObject)Resources.Load("Cube");
-                }
+                    {
+                        return (GameObject)Resources.Load("Cube");
+                    }
             }
-            return gameObject;
+            return null;
         }
     }
 
-     
+
 }

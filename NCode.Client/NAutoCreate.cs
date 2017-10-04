@@ -14,7 +14,7 @@ namespace NCode.Client
 
         void Instantiate()
         {
-            NetworkManager.Instantiate(ChannelId, PrefabIndex, Vector3.zero, Quaternion.identity);
+            NetworkManager.CreateEntity(ChannelId, PrefabIndex, Vector3.zero, Quaternion.identity);
         }
     }
 }

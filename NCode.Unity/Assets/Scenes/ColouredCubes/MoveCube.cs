@@ -44,6 +44,6 @@ public class MoveCube : MonoBehaviour
     [RFC(1)]
     protected void SetPosition(Vector3 v)
     {
-        gameObject.transform.position += v * Time.deltaTime;
+        gameObject.transform.position = v;
     }
 }

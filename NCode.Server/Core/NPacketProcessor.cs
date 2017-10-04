@@ -197,7 +197,7 @@ namespace NCode.Server.Core
             //More work is needed if it is to all connected channels
             else if (packet == Packet.ForwardToChannels)
             {
-                System.Collections.Generic.List<NPlayer> AlreadySentTo = new System.Collections.Generic.List<NPlayer>();
+                System.Collections.Generic.List<NPlayer> alreadySentTo = new System.Collections.Generic.List<NPlayer>();
 
                 foreach(var channel in NChannel.Channels.Values.ToList())
                 {
@@ -206,10 +206,9 @@ namespace NCode.Server.Core
                     foreach(var otherPlayer in channel.GetPlayers())
                     {
                         if (otherPlayer == player) continue;
-                        if (AlreadySentTo.Contains(otherPlayer)) continue;
-                        AlreadySentTo.Add(otherPlayer);
-
-                        
+                        if (alreadySentTo.Contains(otherPlayer)) continue;
+                        alreadySentTo.Add(otherPlayer);
+                
                         if (reliable) otherPlayer.SendTcpPacket(buffer);
                         else if (otherPlayer.IsPlayerUdpConnected) mainUdp.Send(buffer, otherPlayer.UdpEndpoint);
                        

@@ -20,8 +20,11 @@ namespace NCode.Client
         /// <summary>
         /// The client's ID. Assigned by the server.
         /// </summary>
-        public int ClientID { get; private set; }
+        public int ClientId { get; private set; }
 
+        /// <summary>
+        /// The server's remote endpoint.
+        /// </summary>
         public EndPoint RemoteEndPoint => _tcpClient.Socket.RemoteEndPoint;
 
         /// <summary>
@@ -128,7 +131,6 @@ namespace NCode.Client
             else
             {
                 _udpClient.Send(_tempBuffer, _serverUdpEndpoint);
-                Tools.Print("Buffer sent via UDP");
             }
         }
 
@@ -216,13 +218,13 @@ namespace NCode.Client
                     }
                     else
                     {
-                        ClientID = responseID;
-                        Tools.Print(ClientID);
+                        ClientId = responseID;
+                        Tools.Print(ClientId);
                         var remoteIp = _tcpClient.Socket.RemoteEndPoint as IPEndPoint;
                         _serverUdpEndpoint = new IPEndPoint(remoteIp.Address, reader.ReadInt32());
                         Tools.Print(_serverUdpEndpoint);
                         var writer = BeginSend(Packet.RequestSetupUdp);
-                        writer.Write(ClientID);
+                        writer.Write(ClientId);
                         EndSend(false);
                     }
                     break;

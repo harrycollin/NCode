@@ -34,7 +34,7 @@ namespace NCode.Client
         }
         
         [SerializeField]
-        public bool IsMine => Owner == NetworkManager.ClientID;
+        public bool IsMine => Owner == NetworkManager.ClientId;
         public bool RebuildMethodList = true;
 
         //Global list of all NetworkObjects

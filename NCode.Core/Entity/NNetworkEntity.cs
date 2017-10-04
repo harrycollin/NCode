@@ -6,24 +6,26 @@ namespace NCode.Core.Entity
     [Serializable]
     public class NNetworkEntity
     {
-        /// <summary>
-        /// This entity's guid.
-        /// </summary>
-        public readonly Guid Guid;
+        public NNetworkEntity()
+        {
+            Guid = Guid.NewGuid();
+        }
 
-        public int Owner;
+        /// <summary>
+        /// This entity's guid. Set only once. Can't be changed.
+        /// </summary>
+        public Guid Guid { get; }
+
+        public int Owner { get; set; }
+
+        public NVector3 Position { get; set; }
+
+        public NVector4 Rotation { get; set; }
 
         public string PathToPrefab;
 
         public int PrefabIndex;
 
-        public NVector3 position;
-
-        public NVector4 rotation;
-
-        public NNetworkEntity()
-        {
-            Guid = Guid.NewGuid();
-        }
+       
     }
 }
