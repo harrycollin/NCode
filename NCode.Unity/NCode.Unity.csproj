@@ -93,9 +93,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Classes\Core\Controllers\PlayerController.cs" />
-    <Compile Include="Assets\Classes\Core\Controllers\PlayerSync.cs" />
-    <Compile Include="Assets\Scenes\ColouredCubes\MoveCube.cs" />
+    <Compile Include="Assets\Resources\Core\Controllers\PlayerController.cs" />
+    <Compile Include="Assets\Resources\Core\Controllers\PlayerSync.cs" />
+    <Compile Include="Assets\Resources\Scenes\ColouredCubes\MoveCube.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />

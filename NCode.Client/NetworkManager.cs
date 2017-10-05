@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Runtime.CompilerServices;
 using NCode.Core;
 using UnityEngine;
 using NCode.Core.Entity;
@@ -36,6 +37,11 @@ namespace NCode.Client
         #region Publics
 
         /// <summary>
+        /// The array of prefabs that can be instantiated by 
+        /// </summary>
+        public GameObject[] NetworkPrefabs;
+
+        /// <summary>
         /// Whether the player is connected and verified with the server.
         /// </summary>
         public static bool IsConnected => Instance != null && Instance._client.IsConnected;
@@ -62,32 +68,32 @@ namespace NCode.Client
         /// <summary>
         /// Event triggered when the client setup is complete.
         /// </summary>
-        public static ClientEvents.OnConnect OnConnect { get { return Instance != null ? Instance._client.onConnect : null; } set { if (Instance != null && Application.isPlaying) Instance._client.onConnect = value; } }
+        public static NClientEvents.OnConnect OnConnect { get { return Instance != null ? Instance._client.onConnect : null; } set { if (Instance != null && Application.isPlaying) Instance._client.onConnect = value; } }
 
         /// <summary>
         /// Event triggered when the client has disconnected from the server. 
         /// </summary>
-        public static ClientEvents.OnDisconnect OnDisconnect { get { return Instance != null ? Instance._client.onDisconnect : null; } set { if (Instance != null && Application.isPlaying) Instance._client.onDisconnect = value; } }
+        public static NClientEvents.OnDisconnect OnDisconnect { get { return Instance != null ? Instance._client.onDisconnect : null; } set { if (Instance != null && Application.isPlaying) Instance._client.onDisconnect = value; } }
 
         /// <summary>
         /// Event triggered upon receiving an Network Object update.
         /// </summary>
-        public static ClientEvents.OnCreateEntity OnCreateEntity { get { return Instance != null ? Instance._client.onCreateEntity : null; } set { if (Instance != null && Application.isPlaying) Instance._client.onCreateEntity = value; } }
+        public static NClientEvents.OnCreateEntity OnCreateEntity { get { return Instance != null ? Instance._client.onCreateEntity : null; } set { if (Instance != null && Application.isPlaying) Instance._client.onCreateEntity = value; } }
 
         /// <summary>
         /// Event triggered upon receiving an Network Object update.
         /// </summary>
-        public static ClientEvents.OnEntityUpdate OnEntityUpdate { get { return Instance != null ? Instance._client.onEntityUpdate : null; } set { if (Instance != null && Application.isPlaying) Instance._client.onEntityUpdate = value; } }
+        public static NClientEvents.OnEntityUpdate OnEntityUpdate { get { return Instance != null ? Instance._client.onEntityUpdate : null; } set { if (Instance != null && Application.isPlaying) Instance._client.onEntityUpdate = value; } }
 
         /// <summary>
         /// Event triggered upon receiving an destroy command from the server.
         /// </summary>
-        public static ClientEvents.OnDestroyEntity OnDestroyEntity { get { return Instance?._client.onDestroyEntity; } set { if (Instance != null && Application.isPlaying) Instance._client.onDestroyEntity = value; } }
+        public static NClientEvents.OnDestroyEntity OnDestroyEntity { get { return Instance?._client.onDestroyEntity; } set { if (Instance != null && Application.isPlaying) Instance._client.onDestroyEntity = value; } }
 
         /// <summary>
         /// Event triggered upon receiving an Remote Function call.
         /// </summary>
-        public static ClientEvents.OnRFC OnRFC { get { return Instance != null ? Instance._client.onRFC : null; } set { if (Instance != null && Application.isPlaying) Instance._client.onRFC = value; } }
+        public static NClientEvents.OnRemoteFunctionCall OnRemoteFunctionCall { get { return Instance != null ? Instance._client.onRemoteFunctionCall : null; } set { if (Instance != null && Application.isPlaying) Instance._client.onRemoteFunctionCall = value; } }
 
         #endregion
 
@@ -97,8 +103,9 @@ namespace NCode.Client
             {
                 if (_instance != null) return _instance;
                 _instance = CreateInstance();
-                return _instance;
+                return null;
             }
+            set { _instance = value; }
         }
 
         //public static void StartClientServer()
@@ -111,17 +118,30 @@ namespace NCode.Client
         {
             var newInstance = new GameObject("Network Manager");
             DontDestroyOnLoad(newInstance);
-            newInstance.AddComponent<NetworkManager>();
-            return newInstance.GetComponent<NetworkManager>();
+            return newInstance.AddComponent<NetworkManager>();
         }
 
-       
+
+        void Awake()
+        {
+            if (_instance != null)
+            {
+                Destroy(gameObject);
+            }
+            else
+            {
+                _instance = this;
+                DontDestroyOnLoad(gameObject);
+            }
+
+        }
+
         /// <summary>
         /// Start method from monobehaviour
         /// </summary>                     
         void Start()
         {
-            OnRFC += FindAndExecute;
+            OnRemoteFunctionCall += FindAndExecute;
             OnCreateEntity += EventCreateEntity;
             OnEntityUpdate += EventUpdateEntity;
             OnDestroyEntity += EventDestroyEntity;
@@ -174,7 +194,7 @@ namespace NCode.Client
         /// <summary>
         /// Set the following function to handle this type of packets.
         /// </summary>
-        public static void SetPacketHandler(Packet packet, ClientEvents.OnPacket callback)
+        public static void SetPacketHandler(Packet packet, NClientEvents.OnPacket callback)
         {
             if (Instance != null)
             {
@@ -227,11 +247,7 @@ namespace NCode.Client
 
             if (NetworkEntityDictionary.ContainsKey(entity))
             {
-                Tools.Print("Found");
-
                 NetworkEntityDictionary.Remove(entity);
-                Tools.Print("Removed");
-
                 NEntityLink.Destroy(entity);
             }
         }
@@ -267,14 +283,16 @@ namespace NCode.Client
                 obj.ExecuteRfc(rfcid, parameters);
         }     
 
-        public static void CreateEntity(int channelId, int index, Vector3 position, Quaternion rotation)
+        public static void CreateEntity(int channelId, GameObject gameObject, Vector3 position, Quaternion rotation)
         {        
+            if(Instance == null) return;
+            
             var entity = new NNetworkEntity
             {
                 Position = Vector3ToV3(position),
                 Rotation = QuaternionToV4(rotation),
                 Owner = ClientId,
-                PrefabIndex = index
+                PrefabIndex = GetIndexOf(gameObject)
             };
 
             var writer = BeginSend(Packet.CreateEntity);
@@ -285,6 +303,8 @@ namespace NCode.Client
 
         public static void UpdateEntity(NNetworkEntity updatedEntity)
         {
+            if (Instance == null) return;
+
             if (updatedEntity == null)
             {
                 Tools.Print("Can't update Entity! Provided Entity is null.", Tools.MessageType.Error);
@@ -306,21 +326,36 @@ namespace NCode.Client
 
         public static void DestroyEntity(Guid entityGuid)
         {
-            
+            if (Instance == null) return;
+
+            if (NetworkEntityDictionary[entityGuid] != null)
+            {
+                var writer = BeginSend(Packet.DestroyEntity);
+                writer.WriteObject(entityGuid);
+                EndSend(true);
+            }
+
         }
 
-        public GameObject GetPrefab(int index)
+        public static GameObject GetPrefab(int index)
         {
-            switch (index)
+            if (Instance.NetworkPrefabs[index] != null)
             {
-                case 0:
-                    {
-                        return (GameObject)Resources.Load("Cube");
-                    }
+                return Instance.NetworkPrefabs[index];
             }
             return null;
         }
+
+        public static int GetIndexOf(GameObject networkPrefab)
+        {
+            if (networkPrefab != null && Instance != null && Instance.NetworkPrefabs != null)
+            {
+                for (int i = 0; i < Instance.NetworkPrefabs.Length; ++i)
+                {
+                    if (Instance.NetworkPrefabs[i] == networkPrefab) return i;
+                }
+            }
+            return -1;
+        }
     }
-
-
 }

@@ -6,7 +6,7 @@ using NCode.Core.Entity;
 
 namespace NCode.Client
 {
-    public class ClientEvents
+    public class NClientEvents
     {
         /// <summary>
         /// When the player is connected and verified (setup) with the server.
@@ -27,8 +27,8 @@ namespace NCode.Client
         public delegate void OnPacket(Packet response, BinaryReader reader);
 
 
-        public OnRFC onRFC;
-        public delegate void OnRFC(Guid guid, int RFCID, params object[] parameters);
+        public OnRemoteFunctionCall onRemoteFunctionCall;
+        public delegate void OnRemoteFunctionCall(Guid guid, int RFCID, params object[] parameters);
 
         public OnCreateEntity onCreateEntity;
         public delegate void OnCreateEntity(NNetworkEntity entity);

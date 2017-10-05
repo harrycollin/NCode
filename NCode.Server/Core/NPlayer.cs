@@ -8,7 +8,7 @@ using NCode.Core;
 using NCode.Core.Protocols;
 using NCode.Core.TypeLibrary;
 using NCode.Core.Utilities;
-using static NCode.Server.Core.NCoreEvents;
+using static NCode.Server.Core.NServerEvents;
 using Buffer = NCode.Core.Buffer;
 
 namespace NCode.Server.Core

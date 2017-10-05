@@ -5,7 +5,7 @@ namespace NCode.Client
     public class NAutoCreate : MonoBehaviour
     {
         public int ChannelId;
-        public int PrefabIndex;
+        public GameObject NetworkPrefab;
 
         void Awake()
         {
@@ -14,7 +14,7 @@ namespace NCode.Client
 
         void Instantiate()
         {
-            NetworkManager.CreateEntity(ChannelId, PrefabIndex, Vector3.zero, Quaternion.identity);
+            NetworkManager.CreateEntity(ChannelId, NetworkPrefab, Vector3.zero, Quaternion.identity);
         }
     }
 }

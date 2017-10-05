@@ -32,6 +32,6 @@ public class NCodeConsoleCommands : MonoBehaviour {
     [Command]
     static void SpawnEntity(int id)
     {
-        NetworkManager.CreateEntity(1, id, Vector3.zero, Quaternion.identity);
+        NetworkManager.CreateEntity(1, NetworkManager.GetPrefab(id), Vector3.zero, Quaternion.identity);
     }
 }

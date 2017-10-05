@@ -12,7 +12,7 @@ using NCode.Core.Entity;
 
 namespace NCode.Client
 {
-    public sealed class NMainClient : ClientEvents
+    public sealed class NMainClient : NClientEvents
     {
 
         #region Public Variables
@@ -210,15 +210,15 @@ namespace NCode.Client
                     }
                 case Packet.ResponseClientSetup:
                 {
-                    var responseID = reader.ReadInt32();
-                    if (responseID == -1)
+                    var responseId = reader.ReadInt32();
+                    if (responseId == -1)
                     {
                         _tcpClient.Disconnect();
                         Tools.Print("Server - Client version mismatch");
                     }
                     else
                     {
-                        ClientId = responseID;
+                        ClientId = responseId;
                         Tools.Print(ClientId);
                         var remoteIp = _tcpClient.Socket.RemoteEndPoint as IPEndPoint;
                         _serverUdpEndpoint = new IPEndPoint(remoteIp.Address, reader.ReadInt32());
@@ -260,10 +260,10 @@ namespace NCode.Client
                 case Packet.ForwardToChannels:
                 case Packet.ForwardToAll:
                     {
-                        Guid guid = (Guid)reader.ReadObject();
-                        int RFCID = reader.ReadInt32();
-                        object[] parameters = reader.ReadObjectArrayEx();
-                        onRFC(guid, RFCID, parameters);
+                        var guid = (Guid)reader.ReadObject();
+                        var rfcid = reader.ReadInt32();
+                        var parameters = reader.ReadObjectArrayEx();
+                        onRemoteFunctionCall(guid, rfcid, parameters);
                         break;
                     }
                 default:

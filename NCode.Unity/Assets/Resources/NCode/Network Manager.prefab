@@ -9,56 +9,47 @@ Prefab:
     m_Modifications: []
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 0}
-  m_RootGameObject: {fileID: 1000013759807284}
+  m_RootGameObject: {fileID: 1651313638461188}
   m_IsPrefabParent: 1
---- !u!1 &1000013759807284
+--- !u!1 &1651313638461188
 GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   serializedVersion: 5
   m_Component:
-  - component: {fileID: 4000010743745146}
-  - component: {fileID: 114000013296746534}
+  - component: {fileID: 4263561495334646}
+  - component: {fileID: 114047773255189578}
   m_Layer: 0
-  m_Name: GameManager
+  m_Name: Network Manager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &4000010743745146
+--- !u!4 &4263561495334646
 Transform:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1000013759807284}
+  m_GameObject: {fileID: 1651313638461188}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -33.628258, y: 10.921158, z: -7.238158}
+  m_LocalPosition: {x: 15.42749, y: -13.544775, z: -12.883318}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &114000013296746534
+--- !u!114 &114047773255189578
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1000013759807284}
+  m_GameObject: {fileID: 1651313638461188}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9cf797d4c9fb3744eb0600afb28596b3, type: 3}
+  m_Script: {fileID: 533084922, guid: 4f7efcd8dcb8a074785a5df2123e5bb5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerInfo:
-    ign: 
-    firstName: 
-    middleName: 
-    surname: 
-    steamid: 
-    position:
-      X: 0
-      Y: 0
-      Z: 0
-    rotation: 
+  NetworkPrefabs:
+  - {fileID: 1940814994426412, guid: 76598a622594ed847aec6943034892a1, type: 2}

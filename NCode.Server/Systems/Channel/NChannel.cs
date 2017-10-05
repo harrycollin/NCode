@@ -73,7 +73,7 @@ namespace NCode.Server.Systems.Channel
             {
                 Tools.Print("A new channel couldn't be created. Max channels reached", Tools.MessageType.Error);
             }          
-            NCoreEvents.playerDisconnected += LeaveChannel;
+            NServerEvents.playerDisconnected += LeaveChannel;
         }
      
         ~NChannel()

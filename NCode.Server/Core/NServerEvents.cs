@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NCode.Server.Core
 {
-    public static class NCoreEvents
+    public static class NServerEvents
     {
         public delegate void PlayerConnected(NPlayer player);
         public static PlayerConnected playerConnected;

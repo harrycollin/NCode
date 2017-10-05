@@ -6,22 +6,22 @@ namespace NCode.Client
     public class NAutoJoin : MonoBehaviour{
 
         public int SceneIndex;
-        public string ServerIPAddress;
+        public string ServerIpAddress;
         public int ServerPort;
-        public int ChannelID;
+        public int ChannelId;
 
 
         // Use this for initialization
         void Start ()
         {
             NetworkManager.OnConnect += JoinAndLoad;
-            NetworkManager.Connect(ServerIPAddress, ServerPort);
+            NetworkManager.Connect(ServerIpAddress, ServerPort);
         }
 
         void JoinAndLoad()
         {
-            NetworkManager.JoinChannel(ChannelID);
-            SceneManager.LoadSceneAsync(SceneIndex);
+            SceneManager.LoadScene(SceneIndex);
+            NetworkManager.JoinChannel(ChannelId);
         }
     }
 }

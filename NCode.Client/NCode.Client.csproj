@@ -50,11 +50,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ClientEvents.cs" />
+    <Compile Include="NClientEvents.cs" />
     <Compile Include="NAutoCreate.cs" />
     <Compile Include="NAutoJoin.cs" />
     <None Include="NetworkBehaviour.cs" />
-    <Compile Include="NClientServer.cs" />
+    <None Include="NClientServer.cs" />
     <Compile Include="NetworkManager.cs" />
     <Compile Include="NMainClient.cs" />
     <Compile Include="NEntityLink.cs" />
@@ -71,10 +71,6 @@
       <Project>{ede13e43-b243-460e-b048-1af55de1e3ad}</Project>
       <Name>NCode.Core</Name>
       <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\NCode.Server\NCode.Server.csproj">
-      <Project>{0744d549-a50f-448e-a8cd-a25b40b717f8}</Project>
-      <Name>NCode.Server</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
