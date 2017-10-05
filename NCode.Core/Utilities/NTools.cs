@@ -1225,10 +1225,15 @@ namespace NCode.Core.Utilities
             else
             {
 #endif
-                logBuilder.Append(message);
-#if !UNITY_STANDALONE
 
-            }
+#if UNITY_STANDALONE
+                logBuilder.Append("[ NCode ]:");
+#endif
+                logBuilder.Append(message);
+
+
+#if !UNITY_STANDALONE
+        }
 #endif
 
 
@@ -1241,7 +1246,7 @@ namespace NCode.Core.Utilities
             }
 
 
-#if UNITY_EDITOR || UNITY_STANDALONE
+#if UNITY_STANDALONE
             switch(type)
             {
                 case MessageType.Notification: { Debug.Log(logBuilder.ToString()); break; }
@@ -1266,13 +1271,12 @@ namespace NCode.Core.Utilities
             Console.ForegroundColor = ConsoleColor.White;
 #endif
 
-            //We aren't logging in Unity yet.
-//#if !UNITY_EDITOR && !UNITY_STANDALONE
-//            if (Log)
-//            {
-//                //NLogger.LogToFile(logBuilder.ToString());
-//            }
-//#endif
+#if !UNITY_STANDALONE
+            if (true)
+            {
+                NLogger.LogToFile(logBuilder.ToString());
+            }
+#endif
         }
     }
 }
