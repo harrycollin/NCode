@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using NCode.Core.Utilities;
+using static NCode.Core.Utilities.Tools;
 #if MySQL_Active
 using NCode.Server.Addons.MySQL;
 #endif
@@ -18,13 +19,10 @@ namespace NCode.Server
         /// <summary>
         /// Server Entry point.
         /// </summary>
-        /// <param name="args"></param>
         static void Main(string[] args)
         {
 
-            Tools.Print("Application launched...");
-
-            Tools.Print("STR_CHANNEL_PLAYERJOIN", null, 1, 299);
+            Tools.Print("Application launched...", MessageType.Info);
 
 
             //The server's system path.
@@ -46,10 +44,7 @@ namespace NCode.Server
             if (!DatabaseConnection.ConnectionTester()) { Tools.Print("Failed to establish a connection to the database. Please check settings in 'server.cfg' and make sure all ports are forwarded", Tools.MessageType.error); Console.ReadLine(); return; }
             else { Tools.Print("Database connection established! IP:" + info.databaseip + " Port:" + info.databaseport); }
 #endif
-            //Makes a new instance of the server. 
-//            NMainThreads app = new NMainThreads();
-//            app.Start(info.servername, info.tcpport, info.udpport, info.rconport, info.password, info.autostart);
-
+            
             NGameServer gameServer = new NGameServer(info.servername, info.tcpport, info.udpport, info.rconport,info.password, info.autostart);
             
         }

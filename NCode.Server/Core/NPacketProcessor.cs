@@ -69,7 +69,7 @@ namespace NCode.Server.Core
                         {
                             writer.Write(player.ClientId);
                             writer.Write(NGameServer.UdpListenPort);
-                            Tools.Print($"Player {player.ClientId} has connected.");
+                            Tools.Print($"Player {player.ClientId} has connected.", MessageType.Info);
                         }
                         else
                         {

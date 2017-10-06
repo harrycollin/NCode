@@ -48,7 +48,7 @@ namespace NCode.Server.Systems.Channel
                 {
                     ID = ChannelID;
                     Channels.Add(ID, this);
-                    Tools.Print($"Channel {ID} has been created.", Tools.MessageType.Notification);
+                    Tools.Print($"Channel {ID} has been created.", Tools.MessageType.Normal);
 
                 }
                 else
@@ -64,7 +64,7 @@ namespace NCode.Server.Systems.Channel
                     {
                         ID = i;
                         Channels.Add(i, this);
-                        Tools.Print($"Channel {ID} has been created.", Tools.MessageType.Notification);
+                        Tools.Print($"Channel {ID} has been created.", Tools.MessageType.Normal);
                         break;
                     }
                 }

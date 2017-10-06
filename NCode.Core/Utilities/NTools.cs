@@ -956,7 +956,7 @@ namespace NCode.Core.Utilities
 		UnityEngine.Debug.Log(msg);
 #else
             msg = "[" + System.DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") + "] " + msg;
-            Tools.Print(msg, MessageType.Notification, null, logInFile);
+            Tools.Print(msg, MessageType.Normal, null, logInFile);
 #if STANDALONE
 		if (logInFile) LogFile(msg);
 #endif
@@ -1153,7 +1153,8 @@ namespace NCode.Core.Utilities
 
         public enum MessageType
         {
-            Notification,
+            Normal,
+            Info,
             Warning,
             Error,
         }
@@ -1190,13 +1191,13 @@ namespace NCode.Core.Utilities
         /// </summary>
         public static void Print(object message, Exception exception = null, params object[] xmlMessageParameters)
         {
-            Print(message, MessageType.Notification, exception, xmlMessageParameters);
+            Print(message, MessageType.Normal, exception, xmlMessageParameters);
         }
 
         /// <summary>
         /// Used to print various types of messages. 
         /// </summary>
-        public static void Print(object message, MessageType type = MessageType.Notification, Exception exception = null, params object[] xmlMessageParameters)
+        public static void Print(object message, MessageType type = MessageType.Normal, Exception exception = null, params object[] xmlMessageParameters)
         {
             StringBuilder logBuilder = new StringBuilder();
 
@@ -1249,14 +1250,20 @@ namespace NCode.Core.Utilities
 #if UNITY_STANDALONE
             switch(type)
             {
-                case MessageType.Notification: { Debug.Log(logBuilder.ToString()); break; }
+                case MessageType.Normal: 
+                case MessageType.Info{ Debug.Log(logBuilder.ToString()); break; }
                 case MessageType.Warning: { Debug.LogWarning(logBuilder.ToString()); break; }
                 case MessageType.Error: { Debug.LogError(logBuilder.ToString()); break; }
             }
 #else
             switch (type)
             {
-                    case MessageType.Warning:
+                case MessageType.Info:
+                    {
+                        Console.ForegroundColor = ConsoleColor.Cyan;
+                        break;
+                    }
+                case MessageType.Warning:
                     {
                         Console.ForegroundColor = ConsoleColor.Yellow;
                         break;
