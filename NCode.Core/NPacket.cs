@@ -55,15 +55,31 @@
         /// </summary>
         ForwardToChannels,
 
+        /// <summary>
+        /// Request/Response packet for creating an entity
+        /// </summary>
         CreateEntity,
 
+        /// <summary>
+        /// Request/Response for updating an Entity
+        /// </summary>
         UpdateEntity,
 
+        /// <summary>
+        /// Request/Response for destroying an entity
+        /// </summary>
         DestroyEntity,
 
+        /// <summary>
+        /// Request/Response for Joining a channel
+        /// </summary>
         JoinChannel,
 
+        /// <summary>
+        /// Request/Response for Joining a channel
+        /// </summary>
         LeaveChannel,
+
            
     }
 }
