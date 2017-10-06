@@ -71,6 +71,11 @@
         DestroyEntity,
 
         /// <summary>
+        /// Request for transfering an Entity to another channel
+        /// </summary>
+        TransferEntity,
+
+        /// <summary>
         /// Request/Response for Joining a channel
         /// </summary>
         JoinChannel,

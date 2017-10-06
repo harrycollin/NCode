@@ -153,6 +153,28 @@ namespace NCode.Server.Core
 
                         break;
                     }
+                case Packet.TransferEntity:
+                    {
+                        Guid entity = Guid.Empty;
+                        int channelA = 0;
+                        int channelB = 0;
+
+                        try
+                        {
+                            entity = (Guid)reader.ReadObject();
+                            channelA = (int)reader.ReadInt32();
+                            channelB = (int)reader.ReadInt32();
+                        }
+                        catch (EndOfStreamException endOfStream)
+                        {
+                            Print($"Exception reading {packetType}.", MessageType.Error, endOfStream);
+                            break;
+                        }
+                        
+                        NChannel.TransferEntity(entity, NChannel.Channels[channelA], NChannel.Channels[channelB]);
+
+                        break;
+                    }
                 case Packet.ForwardToAll:                  
                 case Packet.ForwardToChannels:
                     {

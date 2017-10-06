@@ -173,6 +173,24 @@ namespace NCode.Server.Systems.Channel
             return false;
         }
 
+        public bool HasEntity(NNetworkEntity entity)
+        {
+            if (Entities.Contains(entity.Guid))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public bool HasEntity(Guid entity)
+        {
+            if (Entities.Contains(entity))
+            {
+                return true;
+            }
+            return false;
+        }
+
         public bool AddEntity(Guid entity)
         {
             if (!Entities.Contains(entity))
@@ -204,6 +222,36 @@ namespace NCode.Server.Systems.Channel
                     NPlayer.GetPlayer(player).EndSend();
                 }
                 return true;
+            }
+            return false;
+        }
+
+        public static bool TransferEntity(Guid entity, NChannel channelA, NChannel channelB)
+        {
+            if (entity != null && channelA != null && channelB != null)
+            {
+                if (channelA.HasEntity(entity))
+                {
+                    if (!channelB.HasEntity(entity))
+                    {
+                        channelA.RemoveEntity(entity);
+                        channelB.AddEntity(entity);
+                        Tools.Print($"Entity:{entity} has been transfered from Channel {channelA.ID} to Channel {channelB.ID}.");
+                        return true;
+                    }
+                    else
+                    {
+                        Tools.Print($"Can't transfer Entity:{entity} from Channel {channelA.ID} to Channel {channelB.ID}. Channel {channelB.ID} already contains Entity: {entity}.", Tools.MessageType.Error);
+                    }
+                }
+                else
+                {
+                    Tools.Print($"Can't transfer Entity:{entity} from Channel {channelA.ID} to Channel {channelB.ID}. Channel {channelA.ID} doesn't contain Entity: {entity}.", Tools.MessageType.Error);
+                }
+            }
+            else
+            {
+                Tools.Print($"Can't carry out Entity channel transfer. One of the parameters is null", Tools.MessageType.Error);
             }
             return false;
         }

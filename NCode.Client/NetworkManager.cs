@@ -337,6 +337,22 @@ namespace NCode.Client
 
         }
 
+        public static void TransferEntity(Guid entity, int ChannelA, int ChannelB)
+        {
+            if (Instance == null) return;
+
+            if (NetworkEntityDictionary.ContainsKey(entity))
+            {
+                var writer = BeginSend(Packet.TransferEntity);
+                writer.WriteObject(entity);
+                writer.Write(ChannelA);
+                writer.Write(ChannelB);
+                EndSend(true);
+            }
+
+        }
+
+
         public static GameObject GetPrefab(int index)
         {
             if (Instance.NetworkPrefabs[index] != null)
