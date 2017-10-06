@@ -52,7 +52,7 @@ public class NCodeConsoleCommands : MonoBehaviour {
 
         for(int i = 0; i < networkObjects.Count; i++)
         {
-            Console.print(string.Format("Index: {0}, Name: {1}", i, networkObjects[i].name));
+            Console.LogInfo(string.Format("Index: {0}, Name: {1}", i, networkObjects[i].name));
         }
     }
 
@@ -60,6 +60,7 @@ public class NCodeConsoleCommands : MonoBehaviour {
     static void SelectEntity(int index)
     {
         selectedEntity = NetworkManager.GetEntity(networkObjects[index].GetComponent<NEntityLink>().Guid);
+        Console.LogInfo(string.Format("Entity {0} has been selected!", index));
     }
 
     [Command]

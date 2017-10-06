@@ -226,27 +226,27 @@ namespace NCode.Server.Systems.Channel
             return false;
         }
 
-        public static bool TransferEntity(Guid entity, NChannel channelA, NChannel channelB)
+        public static bool TransferEntity(Guid entity, int a, int b)
         {
-            if (entity != null && channelA != null && channelB != null)
+            if (entity != null && Channels.ContainsKey(a) && Channels.ContainsKey(b))
             {
-                if (channelA.HasEntity(entity))
+                if (Channels[a].HasEntity(entity))
                 {
-                    if (!channelB.HasEntity(entity))
+                    if (!Channels[b].HasEntity(entity))
                     {
-                        channelA.RemoveEntity(entity);
-                        channelB.AddEntity(entity);
-                        Tools.Print($"Entity:{entity} has been transfered from Channel {channelA.ID} to Channel {channelB.ID}.");
+                        Channels[a].RemoveEntity(entity);
+                        Channels[b].AddEntity(entity);
+                        Tools.Print($"Entity:{entity} has been transfered from Channel {Channels[a].ID} to Channel {Channels[b].ID}.");
                         return true;
                     }
                     else
                     {
-                        Tools.Print($"Can't transfer Entity:{entity} from Channel {channelA.ID} to Channel {channelB.ID}. Channel {channelB.ID} already contains Entity: {entity}.", Tools.MessageType.Error);
+                        Tools.Print($"Can't transfer Entity:{entity} from Channel {Channels[a].ID} to Channel {Channels[b].ID}. Channel {Channels[b].ID} already contains Entity: {entity}.", Tools.MessageType.Error);
                     }
                 }
                 else
                 {
-                    Tools.Print($"Can't transfer Entity:{entity} from Channel {channelA.ID} to Channel {channelB.ID}. Channel {channelA.ID} doesn't contain Entity: {entity}.", Tools.MessageType.Error);
+                    Tools.Print($"Can't transfer Entity:{entity} from Channel {Channels[a].ID} to Channel {Channels[b].ID}. Channel {Channels[a].ID} doesn't contain Entity: {entity}.", Tools.MessageType.Error);
                 }
             }
             else

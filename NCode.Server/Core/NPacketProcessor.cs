@@ -48,7 +48,7 @@ namespace NCode.Server.Core
                 callback(packetType, reader);
                 return true;
             }
-            Tools.Print($"Packet {packetType.ToString()}");
+            //Tools.Print($"Packet {packetType.ToString()}");
             switch (packetType)
             {
 
@@ -171,7 +171,7 @@ namespace NCode.Server.Core
                             break;
                         }
                         
-                        NChannel.TransferEntity(entity, NChannel.Channels[channelA], NChannel.Channels[channelB]);
+                        NChannel.TransferEntity(entity, channelA, channelB);
 
                         break;
                     }
