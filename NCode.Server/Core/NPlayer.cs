@@ -26,11 +26,7 @@ namespace NCode.Server.Core
             _tcpProtocol.StartReceiving(tcpSocket);
         }
 
-        ~NPlayer()
-        {
-            _idIncrementor--;
-        }
-
+        
         #region public
 
         public IPEndPoint UdpEndpoint;
@@ -133,9 +129,11 @@ namespace NCode.Server.Core
             lock (PlayerDictionary)
             {
                 if (!PlayerDictionary.ContainsKey(playerId)) return false;
-                Tools.Print($"Player {playerId} has disconnected.");
                 playerDisconnected?.Invoke(PlayerDictionary[playerId]);
+                PlayerUdpEnpointDictionary.Remove(GetPlayer(playerId).UdpEndpoint);
                 PlayerDictionary.Remove(playerId);
+                Tools.Print($"Player {playerId} has disconnected.");
+                _idIncrementor--;
                 return true;
             }
         }
