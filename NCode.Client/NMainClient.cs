@@ -52,6 +52,11 @@ namespace NCode.Client
         /// </summary>
         public bool ContinueUpdateThread;
 
+        /// <summary>
+        /// The list of connected channels
+        /// </summary>
+        public System.Collections.Generic.List<int> ConnectedChannels = new System.Collections.Generic.List<int>();
+
         #endregion
 
         #region Private Vars
@@ -237,6 +242,44 @@ namespace NCode.Client
                             Tools.Print("UDP Setup!");
                             _tcpClient.stage = TNTcpProtocol.Stage.Connected;
                             onConnect?.Invoke();
+                        }
+                        break;
+                    }
+                case Packet.JoinChannel:
+                    {
+                        int channel = 0;
+
+                        try
+                        {
+                            channel = reader.ReadInt32();
+                            if (!ConnectedChannels.Contains(channel))
+                            {
+                                ConnectedChannels.Add(channel);
+                                Tools.Print($"Joined Channel {channel}.");
+                            }
+                        }
+                        catch (EndOfStreamException exception)
+                        {
+
+                        }
+                        break;
+                    }
+                case Packet.LeaveChannel:
+                    {
+                        int channel = 0;
+
+                        try
+                        {
+                            channel = reader.ReadInt32();
+                            if (ConnectedChannels.Contains(channel))
+                            {
+                                ConnectedChannels.Remove(channel);
+                                Tools.Print($"Left Channel {channel}.");
+                            }
+                        }
+                        catch (EndOfStreamException exception)
+                        {
+
                         }
                         break;
                     }

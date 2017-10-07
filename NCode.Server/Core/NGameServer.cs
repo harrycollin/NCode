@@ -9,6 +9,7 @@ using NCode.Core;
 using NCode.Core.Protocols;
 using NCode.Core.Utilities;
 using Buffer = NCode.Core.Buffer;
+using static NCode.Core.Utilities.Tools;
 
 namespace NCode.Server.Core
 {
@@ -115,19 +116,19 @@ namespace NCode.Server.Core
                 if (!CheckForPendingConnections())
                 {
                     _runThreads = false;
-                    Tools.Print("Error occured in Pending Connections");
+                    Print("Error occured in Pending Connections", MessageType.Error);
                 }
 
                 if (!UdpProcessor())
                 {
                     _runThreads = false;
-                    Tools.Print("Error occured in UDP Processing");
+                    Print("Error occured in UDP Processing", MessageType.Error);
                 }
 
                 if (!ProcessTcpPackets())
                 {
                     _runThreads = false;
-                    Tools.Print("Error occured in TCP Processing");
+                    Print("Error occured in TCP Processing", MessageType.Error);
                 }
 
                 //The tick time divided by 10000 as a counter (used to calculate ping, thread times, etc.)
@@ -196,7 +197,7 @@ namespace NCode.Server.Core
                 player = NPlayer.GetPlayer(reader.ReadInt32());
                 if (player != null)
                 {
-                    Tools.Print($"Player {player.ClientId} ({player.RemoteTcpEndPoint}) has setup UDP connectivity.");
+                    Tools.Print($"Player {player.ClientId} ({player.RemoteTcpEndPoint}) has setup UDP connectivity.", MessageType.Info);
 
                     //Add the player to the UdpEndpoint Dictionary
                     NPlayer.PlayerUdpEnpointDictionary.Add(udpEndpoint, player);
@@ -233,7 +234,7 @@ namespace NCode.Server.Core
                     {
                         //Close the socket if the ip is null.
                         socket.Close();
-                        Tools.Print("Remote client socket couldn't be accepted");
+                        Tools.Print("Remote client socket couldn't be accepted.", MessageType.Error);
                     }
                     else
                     {
@@ -243,7 +244,7 @@ namespace NCode.Server.Core
                 }
                 catch (Exception e)
                 {
-                    Tools.Print("@MainLoop - add game server pending connection", Tools.MessageType.Error, e);
+                    Tools.Print("@MainLoop - add game server pending connection", MessageType.Error, e);
                     return false;
                 }
             }

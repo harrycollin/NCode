@@ -42,6 +42,15 @@ public class NCodeConsoleCommands : MonoBehaviour {
     }
 
     [Command]
+    static void ListConnectedChannels()
+    {
+        foreach(var i in NetworkManager.GetConnectedChannels())
+        {
+            Console.LogInfo(string.Format("Channel ID: {0}", i));
+        }
+    }
+
+    [Command]
     static void ListEntities()
     {
         networkObjects.Clear();

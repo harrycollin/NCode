@@ -123,11 +123,13 @@ namespace NCode.Server.Systems.Channel
                 {
                     Players.Add(player.ClientId);
 
+                    player.BeginSend(Packet.JoinChannel).Write(ID);
+                    player.EndSend();
+
                     //Send each object in the channel to the newly joined player. 
                     foreach(var entity in Entities)
                     {
-                        BinaryWriter writer = player.BeginSend(Packet.CreateEntity);
-                        writer.WriteObject(NEntityCache.GetEntity(entity));
+                        player.BeginSend(Packet.CreateEntity).WriteObject(NEntityCache.GetEntity(entity));
                         player.EndSend();
                         Tools.Print($"Entity: {entity} has been sent to Player {player.ClientId}.", null);
                     }
@@ -148,6 +150,9 @@ namespace NCode.Server.Systems.Channel
                 if (Players.Contains(player.ClientId))
                 {
                     Players.Remove(player.ClientId);
+
+                    player.BeginSend(Packet.LeaveChannel).Write(ID);
+                    player.EndSend();
 
                     //Send each object in the channel to the newly joined player. 
                     foreach (var entity in Entities)

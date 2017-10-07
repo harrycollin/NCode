@@ -352,6 +352,11 @@ namespace NCode.Client
 
         }
 
+        public static System.Collections.Generic.List<int> GetConnectedChannels()
+        {
+            return Instance._client.ConnectedChannels;
+        }
+
 
         public static GameObject GetPrefab(int index)
         {

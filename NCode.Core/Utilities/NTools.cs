@@ -1250,8 +1250,8 @@ namespace NCode.Core.Utilities
 #if UNITY_STANDALONE
             switch(type)
             {
-                case MessageType.Normal: 
-                case MessageType.Info{ Debug.Log(logBuilder.ToString()); break; }
+                case MessageType.Normal:
+                case MessageType.Info: { Debug.Log(logBuilder.ToString()); break; }
                 case MessageType.Warning: { Debug.LogWarning(logBuilder.ToString()); break; }
                 case MessageType.Error: { Debug.LogError(logBuilder.ToString()); break; }
             }
