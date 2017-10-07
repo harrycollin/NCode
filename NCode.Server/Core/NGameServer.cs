@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -52,7 +50,7 @@ namespace NCode.Server.Core
             _runThreads = true;
             _coreThread = new Thread(CoreProcesses) {Priority = ThreadPriority.Highest};
             _coreThread.Start();
-            Tools.Print("Game Server started on port: " + TcpListenPort);
+            Tools.Print($"Game Server started on TCP port: {TcpListenPort}, UDP port: {UdpListenPort}", MessageType.Info);
         }
 
         //Starts listening for tcp connections on the specified port.
@@ -72,11 +70,10 @@ namespace NCode.Server.Core
                     //Start a new TcpListener on the specifed port with a max number of backlogged connections. 
                     _mainTcpListener = new TcpListener(IPAddress.Any, TcpListenPort);
                     _mainTcpListener.Start();
-                    Tools.Print("TCP Listening on port " + TcpListenPort);
                 }
                 catch (Exception e)
                 {
-                    Tools.Print("StartListening on TCP", Tools.MessageType.Error, e);
+                    Tools.Print($"Failed to start listening on TCP port {TcpListenPort}.", Tools.MessageType.Error, e);
                     return false;
                 }
             }
@@ -88,13 +85,12 @@ namespace NCode.Server.Core
                 {
                     _mainUdpProtocol = new TNUdpProtocol();
                     _mainUdpProtocol.Start(UdpListenPort);
-                    Tools.Print("UDP Listening on port " + UdpListenPort);
                     _packetProcessor.mainUdp = _mainUdpProtocol;
 
                 }
                 catch (Exception e)
                 {
-                    Tools.Print("StartListening on UDP", Tools.MessageType.Error, e);
+                    Tools.Print($"Failed to start listening on UDP port {UdpListenPort}.", Tools.MessageType.Error, e);
                     return false;
                 }
             }
