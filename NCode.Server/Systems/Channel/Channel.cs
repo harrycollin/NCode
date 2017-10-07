@@ -9,6 +9,7 @@ using NCode.Server.Core;
 
 namespace NCode.Server
 {
+    [Obsolete("Use NChannel instead")]
     public class Channel
     {
         public static Core.Utilities.List<Channel> Channels = new Core.Utilities.List<Channel>();

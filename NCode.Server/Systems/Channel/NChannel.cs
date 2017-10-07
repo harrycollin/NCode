@@ -133,7 +133,7 @@ namespace NCode.Server.Systems.Channel
                         player.EndSend();
                         Tools.Print($"Entity: {entity} has been sent to Player {player.ClientId}.", null);
                     }
-                    Tools.Print($"Player:{player.ClientId} has joined Channel {ID}.");
+                    Tools.Print($"Player {player.ClientId} has joined Channel {ID}.");
 
 
                     return true;
@@ -163,7 +163,7 @@ namespace NCode.Server.Systems.Channel
                         Tools.Print($"Entity: {entity} has been removed from Player {player.ClientId}.", null);
                     }
 
-                    Tools.Print($"Player:{player.ClientId} has left Channel {ID}.");
+                    Tools.Print($"Player {player.ClientId} has left Channel {ID}.");
 
                 }
             }

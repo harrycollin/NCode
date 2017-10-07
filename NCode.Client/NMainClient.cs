@@ -9,6 +9,7 @@ using UnityEngine;
 using Buffer = NCode.Core.Buffer;
 using Random = UnityEngine.Random;
 using NCode.Core.Entity;
+using static NCode.Core.Utilities.Tools;
 
 namespace NCode.Client
 {
@@ -219,7 +220,7 @@ namespace NCode.Client
                     if (responseId == -1)
                     {
                         _tcpClient.Disconnect();
-                        Tools.Print("Server - Client version mismatch");
+                        Tools.Print("Unable to connect to remote server. Server responsed with version mismatch.", MessageType.Error);
                     }
                     else
                     {
