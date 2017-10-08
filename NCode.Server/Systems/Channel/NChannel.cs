@@ -72,12 +72,16 @@ namespace NCode.Server.Systems.Channel
             else
             {
                 Tools.Print("A new channel couldn't be created. Max channels reached", Tools.MessageType.Error);
-            }          
+            }  
+           
             NServerEvents.playerDisconnected += LeaveChannel;
+            NServerEvents.entityUpdated += SendEntityUpdate;
         }
      
         ~NChannel()
         {
+            NServerEvents.playerDisconnected -= LeaveChannel;
+            NServerEvents.entityUpdated -= SendEntityUpdate;
             ChannelCount--;
         }
 
@@ -154,7 +158,7 @@ namespace NCode.Server.Systems.Channel
                     player.BeginSend(Packet.LeaveChannel).Write(ID);
                     player.EndSend();
 
-                    //Send each object in the channel to the newly joined player. 
+                    //First remove all entities in this channel from the player leaving. 
                     foreach (var entity in Entities)
                     {
                         BinaryWriter writer = player.BeginSend(Packet.DestroyEntity);
@@ -163,8 +167,17 @@ namespace NCode.Server.Systems.Channel
                         Tools.Print($"Entity: {entity} has been removed from Player {player.ClientId}.", null);
                     }
 
+                    //Next filter out the entities that belonged to this player and remove them from the other clients
+                    foreach (var entity in Entities.ToList())
+                    {
+                        if(NEntityCache.GetEntity(entity).Owner == player.ClientId)
+                        {                        
+                            RemoveEntity(entity);
+                            NEntityCache.Remove(entity);
+                        }
+                    }
+                
                     Tools.Print($"Player {player.ClientId} has left Channel {ID}.");
-
                 }
             }
         }
@@ -207,12 +220,27 @@ namespace NCode.Server.Systems.Channel
                     writer.WriteObject(NEntityCache.GetEntity(entity));
                     NPlayer.GetPlayer(player).EndSend();
                 }
-                Tools.Print($"Entity:{entity} has joined Channel {ID}.");
+                Tools.Print($"Entity: {entity} has joined Channel {ID}.");
 
                 return true;
             }
             Tools.Print($"Channel {ID} already contains Entity: {entity}.");
             return false;
+        }
+
+        /// <summary>
+        /// Sends an update to all clients in this channel with the updated entity
+        /// </summary>
+        public void SendEntityUpdate(NNetworkEntity entity)
+        {
+            if (Entities.Contains(entity.Guid))
+            {
+                foreach(var player in GetPlayers())
+                {
+                    player.BeginSend(Packet.UpdateEntity).WriteObject(entity);
+                    player.EndSend();
+                }
+            }
         }
 
         public bool RemoveEntity(Guid entity)

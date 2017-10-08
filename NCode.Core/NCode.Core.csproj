@@ -61,7 +61,6 @@
     </Compile>
     <Compile Include="TypeLibrary\NVector4.cs" />
     <Compile Include="TypeLibrary\NVector3.cs" />
-    <Compile Include="Entity\NEntityCache.cs" />
     <Compile Include="Entity\NNetworkEntity.cs" />
     <Compile Include="NBinaryEntensions.cs" />
     <None Include="NBuffer.cs" />

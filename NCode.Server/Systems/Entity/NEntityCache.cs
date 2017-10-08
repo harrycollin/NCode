@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NCode.Core.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,6 +29,7 @@ namespace NCode.Core.Entity
             {
                 if (!Dictionary.ContainsKey(nNetworkEntityGuid)) return;
                 Dictionary.Remove(nNetworkEntityGuid);
+                Tools.Print($"Entity: {nNetworkEntityGuid} has been destroyed.");
             }
         }
 
@@ -39,7 +41,7 @@ namespace NCode.Core.Entity
             }
         }
 
-        public static List<KeyValuePair<Guid, NNetworkEntity>> GetList()
+        public static System.Collections.Generic.List<KeyValuePair<Guid, NNetworkEntity>> GetList()
         {
             lock (Dictionary)
             {

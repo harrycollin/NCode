@@ -33,7 +33,7 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>Resources\ncodeicon_E9m_icon.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\ncode_server_icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -53,6 +53,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Systems\Entity\NEntityCache.cs" />
     <Compile Include="Systems\IPlayerManagementSystem.cs" />
     <None Include="Addons\MySQL\DatabaseRequest.cs" />
     <None Include="Systems\Channel\Channel.cs" />
@@ -82,8 +83,9 @@
       <Link>Resources\stringtable.xml</Link>
     </Content>
     <Content Include="ncodeicon_E9m_icon.ico" />
-    <Content Include="Resources\ncodeicon_E9m_icon.ico" />
+    <EmbeddedResource Include="Resources\ncode_server_icon.ico" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

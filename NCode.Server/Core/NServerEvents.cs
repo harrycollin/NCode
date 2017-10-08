@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NCode.Core.Entity;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,9 @@ namespace NCode.Server.Core
 
         public delegate void PlayerDisconnected(NPlayer player);
         public static PlayerDisconnected playerDisconnected;
+
+        public delegate void EntityUpdated(NNetworkEntity entity);
+        public static EntityUpdated entityUpdated;
 
 
     }

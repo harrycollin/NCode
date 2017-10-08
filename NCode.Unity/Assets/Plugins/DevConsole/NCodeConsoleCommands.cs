@@ -42,6 +42,13 @@ public class NCodeConsoleCommands : MonoBehaviour {
     }
 
     [Command]
+    static void SetEntityOwner(int newOwner)
+    {
+        selectedEntity.Owner = newOwner;
+        NetworkManager.UpdateEntity(selectedEntity);
+    }
+
+    [Command]
     static void ListConnectedChannels()
     {
         foreach(var i in NetworkManager.GetConnectedChannels())
