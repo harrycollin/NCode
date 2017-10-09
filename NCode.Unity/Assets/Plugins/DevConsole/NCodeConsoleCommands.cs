@@ -4,10 +4,12 @@ using DevConsole;
 using NCode.Client;
 using NCode.Core.Entity;
 using System.Collections.Generic;
+using System.Collections;
+using NCode.Core.Utilities;
 
 public class NCodeConsoleCommands : MonoBehaviour {
 
-    static List<GameObject> networkObjects = new List<GameObject>();
+    static System.Collections.Generic.List<GameObject> networkObjects = new System.Collections.Generic.List<GameObject>();
 
     static NNetworkEntity selectedEntity;
 
@@ -36,9 +38,9 @@ public class NCodeConsoleCommands : MonoBehaviour {
     }
 
     [Command]
-    static void SpawnEntity(int id)
+    static void SpawnEntity(int channel, int id)
     {
-        NetworkManager.CreateEntity(1, NetworkManager.GetPrefab(id), Vector3.zero, Quaternion.identity);
+        NetworkManager.CreateEntity(channel, NetworkManager.GetPrefab(id), Vector3.zero, Quaternion.identity);
     }
 
     [Command]
@@ -83,5 +85,36 @@ public class NCodeConsoleCommands : MonoBehaviour {
     static void TransferEntity(int channela, int channelb)
     {
         NetworkManager.TransferEntity(selectedEntity.Guid, channela, channelb);
+    }
+
+    [Command]
+    static void RunTests()
+    {
+
+        Console.LogInfo("Starting automated test...");
+
+        Console.Log("Joining channel 1.");
+        NetworkManager.JoinChannel(1);
+
+
+        Console.Log("Leaving channel 1.");
+        NetworkManager.LeaveChannel(1);
+
+
+        Console.Log("Joining channel 100.");
+        NetworkManager.JoinChannel(100);
+
+
+        Console.Log("Spawning Entity 0 in channel 100");
+        NetworkManager.CreateEntity(100, NetworkManager.GetPrefab(0), Vector3.zero, Quaternion.identity);
+
+
+        Console.Log("Leaving channel 100");
+        NetworkManager.LeaveChannel(100);
+
+
+        Console.Log("Joining channel 100.");
+        NetworkManager.JoinChannel(100);
+
     }
 }
