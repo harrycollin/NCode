@@ -303,7 +303,7 @@ namespace NCode.Server.Systems.Channel
                     lock (Channels)
                     {
                         Channels.Remove(channelId); 
-                        Tools.Print("STR_CHANNEL_CLOSED", Tools.MessageType.Warning, null, channelId);
+                        Tools.Print($"Channel {channelId} has been closed.", Tools.MessageType.Warning, null, channelId);
                         return true;
                     }
                 }
