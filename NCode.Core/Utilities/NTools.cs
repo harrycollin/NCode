@@ -1247,7 +1247,7 @@ namespace NCode.Core.Utilities
             }
 
 
-#if UNITY_STANDALONE
+#if UNITY_STANDALONE || UNITY_EDITOR
             switch(type)
             {
                 case MessageType.Normal:

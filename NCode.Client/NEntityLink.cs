@@ -25,16 +25,25 @@ namespace NCode.Client
         [SerializeField]
         public int Owner
         {
-            get { return NetworkManager.GetEntity(Guid).Owner; }
+            get
+            {
+                return NetworkManager.GetEntity(Guid).Owner;
+            }
             set
             {
-                NetworkManager.GetEntity(Guid).Owner = value;
-                
+                NetworkManager.GetEntity(Guid).Owner = value;           
             }
         }
-        
+
         [SerializeField]
-        public bool IsMine => Owner == NetworkManager.ClientId;
+        public bool IsMine
+        {
+            get
+            {
+                if (!NetworkManager.IsConnected) return true;            
+                return Owner == NetworkManager.ClientId;             
+            }
+        }
         public bool RebuildMethodList = true;
 
         //Global list of all NetworkObjects

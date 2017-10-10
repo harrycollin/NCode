@@ -24,6 +24,7 @@ namespace NCode.Server
 
             Tools.Print("Application launched...", MessageType.Info);
 
+            
 
             //The server's system path.
             string systemPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
