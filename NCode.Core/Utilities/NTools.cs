@@ -1178,6 +1178,23 @@ namespace NCode.Core.Utilities
             }
         }
 #endif
+
+        public static void PrintWarning(object message, Exception exception = null)
+        {
+            Print(message, MessageType.Warning, exception);
+        }
+
+        public static void PrintError(object message, Exception exception = null)
+        {
+            Print(message, MessageType.Error, exception);
+        }
+
+        public static void PrintInfo(object message, Exception exception = null)
+        {
+            Print(message, MessageType.Info, exception);
+        }
+
+
         /// <summary>
         /// Used to print various types of messages. 
         /// </summary>
