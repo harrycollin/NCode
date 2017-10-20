@@ -130,8 +130,11 @@ namespace NCode.Server.Core
             {
                 if (!PlayerDictionary.ContainsKey(playerId)) return false;
                 playerDisconnected?.Invoke(PlayerDictionary[playerId]);
-                PlayerUdpEnpointDictionary.Remove(GetPlayer(playerId).UdpEndpoint);
                 PlayerDictionary.Remove(playerId);
+                if (GetPlayer(playerId).IsPlayerUdpConnected)
+                {
+                    PlayerUdpEnpointDictionary.Remove(GetPlayer(playerId).UdpEndpoint);
+                }
                 Tools.Print($"Player {playerId} has disconnected.");
                 _idIncrementor--;
                 return true;
