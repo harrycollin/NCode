@@ -50,7 +50,7 @@ namespace NCode.Server.Core
             _runThreads = true;
             _coreThread = new Thread(CoreProcesses) {Priority = ThreadPriority.Highest};
             _coreThread.Start();
-            Tools.Print($"Game Server started on TCP port: {TcpListenPort}, UDP port: {UdpListenPort}", MessageType.Info);
+            PrintInfo($"Game Server started on TCP port: {TcpListenPort}, UDP port: {UdpListenPort}");
         }
 
         //Starts listening for tcp connections on the specified port.
@@ -73,7 +73,7 @@ namespace NCode.Server.Core
                 }
                 catch (Exception e)
                 {
-                    Tools.Print($"Failed to start listening on TCP port {TcpListenPort}.", Tools.MessageType.Error, e);
+                    PrintError($"Failed to start listening on TCP port {TcpListenPort}.", e);
                     return false;
                 }
             }
@@ -90,7 +90,7 @@ namespace NCode.Server.Core
                 }
                 catch (Exception e)
                 {
-                    Tools.Print($"Failed to start listening on UDP port {UdpListenPort}.", Tools.MessageType.Error, e);
+                    PrintError($"Failed to start listening on UDP port {UdpListenPort}.", e);
                     return false;
                 }
             }
@@ -112,19 +112,19 @@ namespace NCode.Server.Core
                 if (!CheckForPendingConnections())
                 {
                     _runThreads = false;
-                    Print("Error occured in Pending Connections", MessageType.Error);
+                    PrintError("Error occured in Pending Connections");
                 }
 
                 if (!UdpProcessor())
                 {
                     _runThreads = false;
-                    Print("Error occured in UDP Processing", MessageType.Error);
+                    PrintError("Error occured in UDP Processing");
                 }
 
                 if (!ProcessTcpPackets())
                 {
                     _runThreads = false;
-                    Print("Error occured in TCP Processing", MessageType.Error);
+                    PrintError("Error occured in TCP Processing");
                 }
 
                 //The tick time divided by 10000 as a counter (used to calculate ping, thread times, etc.)
@@ -193,7 +193,7 @@ namespace NCode.Server.Core
                 player = NPlayer.GetPlayer(reader.ReadInt32());
                 if (player != null)
                 {
-                    Tools.Print($"Player {player.ClientId} ({player.RemoteTcpEndPoint}) has setup UDP connectivity.", MessageType.Info);
+                    PrintInfo($"Player {player.ClientId} ({player.RemoteTcpEndPoint}) has setup UDP connectivity.");
 
                     //Add the player to the UdpEndpoint Dictionary
                     NPlayer.PlayerUdpEnpointDictionary.Add(udpEndpoint, player);
@@ -209,7 +209,7 @@ namespace NCode.Server.Core
                 }
                 else
                 {
-                    Tools.Print("Unable to find player. Udp setup failed.");
+                    Print("Unable to find player. Udp setup failed.");
                 }
             }
             return true;
@@ -230,7 +230,7 @@ namespace NCode.Server.Core
                     {
                         //Close the socket if the ip is null.
                         socket.Close();
-                        Tools.Print("Remote client socket couldn't be accepted.", MessageType.Error);
+                        PrintError("Remote client socket couldn't be accepted.");
                     }
                     else
                     {
@@ -240,7 +240,7 @@ namespace NCode.Server.Core
                 }
                 catch (Exception e)
                 {
-                    Tools.Print("@MainLoop - add game server pending connection", MessageType.Error, e);
+                    PrintError("@MainLoop - add game server pending connection", e);
                     return false;
                 }
             }

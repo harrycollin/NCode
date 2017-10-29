@@ -82,7 +82,6 @@
     <Content Include="..\NCode.Core\Resources\stringtable.xml">
       <Link>Resources\stringtable.xml</Link>
     </Content>
-    <Content Include="ncodeicon_E9m_icon.ico" />
     <EmbeddedResource Include="Resources\ncode_server_icon.ico" />
   </ItemGroup>
   <ItemGroup />

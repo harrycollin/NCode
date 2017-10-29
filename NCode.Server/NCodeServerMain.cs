@@ -21,10 +21,7 @@ namespace NCode.Server
         /// </summary>
         static void Main(string[] args)
         {
-
-            Tools.Print("Application launched...", MessageType.Info);
-
-            
+            Print("Application launched...");
 
             //The server's system path.
             string systemPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
@@ -34,7 +31,14 @@ namespace NCode.Server
 
             //Read the config file
             string[] lines = null;
-            try { lines = File.ReadAllLines(Path.Combine(systemPath, "Config/server.cfg")); } catch (Exception e) { Tools.Print("Unable to access the server.cfg", Tools.MessageType.Error, e); }
+            try
+            {
+                lines = File.ReadAllLines(Path.Combine(systemPath, "Config/server.cfg"));
+            }
+            catch (Exception e)
+            {
+                Tools.Print("Unable to access the server.cfg", MessageType.Error, e);
+            }
             ConfigInfo info = ConfigReader(lines);
 
 #if MySQL_Active
@@ -73,15 +77,15 @@ namespace NCode.Server
         {
             if (!Directory.Exists(Path.Combine(systemPath, "Config")))
             {
-                try { Directory.CreateDirectory(Path.Combine(systemPath, "Config")); } catch (Exception e) { Tools.Print("Error creating directory - /Config", Tools.MessageType.Error, e); return false; }
+                try { Directory.CreateDirectory(Path.Combine(systemPath, "Config")); } catch (Exception e) { PrintError("Error creating directory - /Config", e); return false; }
             }
             if (!Directory.Exists(Path.Combine(systemPath, "Logs")))
             {
-                try { Directory.CreateDirectory(Path.Combine(systemPath, "Logs")); } catch (Exception e) { Tools.Print("Error creating directory - /Logs", Tools.MessageType.Error, e); return false; }
+                try { Directory.CreateDirectory(Path.Combine(systemPath, "Logs")); } catch (Exception e) { PrintError("Error creating directory - /Logs", e); return false; }
             }
             if (!File.Exists(Path.Combine(systemPath, "Config/server.cfg")))
             {
-                try { File.WriteAllText(Path.Combine(systemPath, "Config/server.cfg"), ConfigWriter()); } catch (Exception e) { Tools.Print("Error writing - Config/server.cfg", Tools.MessageType.Error, e); return false; }
+                try { File.WriteAllText(Path.Combine(systemPath, "Config/server.cfg"), ConfigWriter()); } catch (Exception e) { PrintError("Error writing - Config/server.cfg", e); return false; }
             }
             return true;
         }
@@ -153,10 +157,8 @@ namespace NCode.Server
                             info.servername = "Kleos Server";
                             Tools.Print("Failed to read the 'server_name' parameter in 'server.cfg'. Defaulting server name to 'Kleos Server'.", Tools.MessageType.Error, e, true);
                         }
-
                     }
                     continue;
-
                 }
 
                 //Server password

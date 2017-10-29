@@ -1179,6 +1179,7 @@ namespace NCode.Core.Utilities
         }
 #endif
 
+
         public static void PrintWarning(object message, Exception exception = null)
         {
             Print(message, MessageType.Warning, exception);

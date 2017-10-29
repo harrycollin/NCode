@@ -48,7 +48,7 @@ namespace NCode.Server.Core
                 callback(packetType, reader);
                 return true;
             }
-            //Tools.Print($"Packet {packetType.ToString()}");
+
             switch (packetType)
             {
 
@@ -69,18 +69,18 @@ namespace NCode.Server.Core
                         {
                             writer.Write(player.ClientId);
                             writer.Write(NGameServer.UdpListenPort);
-                            Tools.Print($"Player {player.ClientId} has connected.", MessageType.Info);
+                            PrintInfo($"Player {player.ClientId} has connected.");
                         }
                         else
                         {
                             writer.Write(-1);
-                            Tools.Print($"Player {player.ClientId} has failed to connect.");
+                            Print($"Player {player.ClientId} has failed to connect.");
                         }
                         player.EndSend();
                     }
                     catch (Exception e)
                     {
-                        Tools.Print($"Cannot parse {packetType} packet to type 'int'. Client setup failed.", Tools.MessageType.Error, e);
+                        PrintError($"Cannot parse {packetType} packet to type 'int'. Client setup failed.", e);
                         throw;
                     }
                     break;
@@ -96,7 +96,7 @@ namespace NCode.Server.Core
                         }
                         catch (NullReferenceException e)
                         {
-                            Tools.Print("Null reference exception.", MessageType.Error);
+                            PrintError("Null reference exception.", e);
                         }
 
                         if (entity != null)
@@ -167,7 +167,7 @@ namespace NCode.Server.Core
                         }
                         catch (EndOfStreamException endOfStream)
                         {
-                            Print($"Exception reading {packetType}.", MessageType.Error, endOfStream);
+                            PrintError($"Exception reading {packetType}.", endOfStream);
                             break;
                         }
                         
@@ -193,7 +193,7 @@ namespace NCode.Server.Core
                     }
                 default:
                     {
-                        Tools.Print($"Packet with the ID:{packetType} has not been defined for processing.", Tools.MessageType.Error);
+                        PrintError($"Packet with the ID:{packetType} has not been defined for processing.");
                         return false;
                     }
             }

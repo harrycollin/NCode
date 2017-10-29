@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using static NCode.Core.Utilities.Tools;
 
 namespace NCode.Core.Entity
 {
@@ -29,7 +30,7 @@ namespace NCode.Core.Entity
             {
                 if (!Dictionary.ContainsKey(nNetworkEntityGuid)) return;
                 Dictionary.Remove(nNetworkEntityGuid);
-                Tools.Print($"Entity: {nNetworkEntityGuid} has been destroyed.");
+                Print($"Entity: {nNetworkEntityGuid} has been destroyed.");
             }
         }
 

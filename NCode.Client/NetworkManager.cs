@@ -8,6 +8,8 @@ using UnityEngine;
 using NCode.Core.Entity;
 using NCode.Core.Utilities;
 using static NCode.Client.NUnityTools;
+using static NCode.Core.Utilities.Tools;
+
 
 namespace NCode.Client
 {
@@ -307,13 +309,13 @@ namespace NCode.Client
 
             if (updatedEntity == null)
             {
-                Tools.Print("Can't update Entity! Provided Entity is null.", Tools.MessageType.Error);
+                PrintError("Can't update Entity! Provided Entity is null.");
                 return;
             }
 
             if (!NetworkEntityDictionary.ContainsKey(updatedEntity.Guid))
             {
-                Tools.Print("Can't update Entity! Provided Entity doesn't exist in Entity dictionary.", Tools.MessageType.Error);
+                PrintError("Can't update Entity! Provided Entity doesn't exist in Entity dictionary.");
                 return;
             }
 

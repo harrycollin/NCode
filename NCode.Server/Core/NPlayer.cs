@@ -7,6 +7,7 @@ using NCode.Core;
 using NCode.Core.Protocols;
 using NCode.Core.Utilities;
 using static NCode.Server.Core.NServerEvents;
+using static NCode.Core.Utilities.Tools;
 using Buffer = NCode.Core.Buffer;
 
 namespace NCode.Server.Core
@@ -118,7 +119,7 @@ namespace NCode.Server.Core
                 NPlayer newPlayer = new NPlayer(socket);
                 PlayerDictionary.Add(newPlayer.ClientId, newPlayer);
                 playerConnected?.Invoke(newPlayer);
-                Tools.Print(newPlayer.RemoteTcpEndPoint + " connecting...");
+                Print(newPlayer.RemoteTcpEndPoint + " connecting...");
             }
         }
 
@@ -133,7 +134,7 @@ namespace NCode.Server.Core
                 {
                     PlayerUdpEnpointDictionary.Remove(GetPlayer(playerId).UdpEndpoint);
                 }
-                Tools.Print($"Player {playerId} has disconnected.");
+                Print($"Player {playerId} has disconnected.");
                 _idIncrementor--;
                 return true;
             }
@@ -162,10 +163,6 @@ namespace NCode.Server.Core
 
         #endregion
 
-        #region private static
-
-
-        #endregion
     }
 
     public enum AuthorizationLevel

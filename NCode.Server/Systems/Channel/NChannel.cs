@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using NCode.Core.Entity;
 using System.IO;
 using NCode.Core;
+using static NCode.Core.Utilities.Tools;
 
 namespace NCode.Server.Systems.Channel
 {
@@ -48,12 +49,12 @@ namespace NCode.Server.Systems.Channel
                 {
                     ID = ChannelID;
                     Channels.Add(ID, this);
-                    Tools.Print($"Channel {ID} has been created.", Tools.MessageType.Normal);
+                    Print($"Channel {ID} has been created.");
 
                 }
                 else
                 {
-                    Tools.Print($"Couldn't create a channel with the ID {ChannelID} as it already exists.", Tools.MessageType.Error);
+                    PrintError($"Couldn't create a channel with the ID {ChannelID} as it already exists.");
                 }
             }
             else if (ChannelID == -1)
@@ -64,14 +65,14 @@ namespace NCode.Server.Systems.Channel
                     {
                         ID = i;
                         Channels.Add(i, this);
-                        Tools.Print($"Channel {ID} has been created.", Tools.MessageType.Normal);
+                        Print($"Channel {ID} has been created.");
                         break;
                     }
                 }
             }
             else
             {
-                Tools.Print("A new channel couldn't be created. Max channels reached", Tools.MessageType.Error);
+                PrintError("A new channel couldn't be created. Max channels reached");
             }  
            
             NServerEvents.playerDisconnected += LeaveChannel;
@@ -113,7 +114,7 @@ namespace NCode.Server.Systems.Channel
                 }
                 else
                 {
-                    Tools.Print("STR_CHANNEL_PLAYERLEAVENULLCHANNEL", null, player.ClientGuid, ChannelID);
+
                 }
             }
             return false;
@@ -135,14 +136,12 @@ namespace NCode.Server.Systems.Channel
                     {
                         player.BeginSend(Packet.CreateEntity).WriteObject(NEntityCache.GetEntity(entity));
                         player.EndSend();
-                        Tools.Print($"Entity: {entity} has been sent to Player {player.ClientId}.", null);
+                        Print($"Entity: {entity} has been sent to Player {player.ClientId}.", null);
                     }
-                    Tools.Print($"Player {player.ClientId} has joined Channel {ID}.");
-
-
+                    Print($"Player {player.ClientId} has joined Channel {ID}.");
                     return true;
                 }
-                Tools.Print("EC1003", Tools.MessageType.Error, null, player.ClientId, ID);
+                PrintError($"Player {player.ClientId} has requested to join Channel {ID}. They are already in this Channel");
                 return false;
             }
         }
@@ -164,7 +163,7 @@ namespace NCode.Server.Systems.Channel
                         BinaryWriter writer = player.BeginSend(Packet.DestroyEntity);
                         writer.WriteObject(entity);
                         player.EndSend();
-                        Tools.Print($"Entity: {entity} has been removed from Player {player.ClientId}.", null);
+                        Print($"Entity: {entity} has been removed from Player {player.ClientId}.");
                     }
 
                     //Next filter out the entities that belonged to this player and remove them from the other clients
@@ -177,7 +176,7 @@ namespace NCode.Server.Systems.Channel
                         }
                     }
                 
-                    Tools.Print($"Player {player.ClientId} has left Channel {ID}.");
+                    Print($"Player {player.ClientId} has left Channel {ID}.");
                 }
             }
         }
@@ -220,11 +219,11 @@ namespace NCode.Server.Systems.Channel
                     writer.WriteObject(NEntityCache.GetEntity(entity));
                     NPlayer.GetPlayer(player).EndSend();
                 }
-                Tools.Print($"Entity: {entity} has joined Channel {ID}.");
+                Print($"Entity: {entity} has joined Channel {ID}.");
 
                 return true;
             }
-            Tools.Print($"Channel {ID} already contains Entity: {entity}.");
+            Print($"Channel {ID} already contains Entity: {entity}.");
             return false;
         }
 
@@ -269,22 +268,22 @@ namespace NCode.Server.Systems.Channel
                     {
                         Channels[a].RemoveEntity(entity);
                         Channels[b].AddEntity(entity);
-                        Tools.Print($"Entity:{entity} has been transfered from Channel {Channels[a].ID} to Channel {Channels[b].ID}.");
+                        Print($"Entity:{entity} has been transfered from Channel {Channels[a].ID} to Channel {Channels[b].ID}.");
                         return true;
                     }
                     else
                     {
-                        Tools.Print($"Can't transfer Entity:{entity} from Channel {Channels[a].ID} to Channel {Channels[b].ID}. Channel {Channels[b].ID} already contains Entity: {entity}.", Tools.MessageType.Error);
+                        PrintError($"Can't transfer Entity:{entity} from Channel {Channels[a].ID} to Channel {Channels[b].ID}. Channel {Channels[b].ID} already contains Entity: {entity}.");
                     }
                 }
                 else
                 {
-                    Tools.Print($"Can't transfer Entity:{entity} from Channel {Channels[a].ID} to Channel {Channels[b].ID}. Channel {Channels[a].ID} doesn't contain Entity: {entity}.", Tools.MessageType.Error);
+                    PrintError($"Can't transfer Entity:{entity} from Channel {Channels[a].ID} to Channel {Channels[b].ID}. Channel {Channels[a].ID} doesn't contain Entity: {entity}.");
                 }
             }
             else
             {
-                Tools.Print($"Can't carry out Entity channel transfer. One of the parameters is null", Tools.MessageType.Error);
+                PrintError($"Can't carry out Entity channel transfer. One of the parameters is null");
             }
             return false;
         }
@@ -303,11 +302,10 @@ namespace NCode.Server.Systems.Channel
                     lock (Channels)
                     {
                         Channels.Remove(channelId); 
-                        Tools.Print($"Channel {channelId} has been closed.", Tools.MessageType.Warning, null, channelId);
+                        PrintWarning($"Channel {channelId} has been closed.");
                         return true;
                     }
                 }
-
             }
             return false;
         }

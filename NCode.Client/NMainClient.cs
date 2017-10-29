@@ -1,11 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Net;
-using System.Threading;
 using NCode.Core;
 using NCode.Core.Protocols;
 using NCode.Core.Utilities;
-using UnityEngine;
 using Buffer = NCode.Core.Buffer;
 using Random = UnityEngine.Random;
 using NCode.Core.Entity;
@@ -100,7 +98,7 @@ namespace NCode.Client
             IPEndPoint ipEndPoint = new IPEndPoint(ipAddress, port);
             _tcpClient.Connect(ipEndPoint);
             _udpClient.Start(Random.Range(30000,50000));
-            Tools.Print("Trying to connect to:" + ipEndPoint);
+            Print("Trying to connect to:" + ipEndPoint);
         }
 
         /// <summary>
@@ -192,7 +190,6 @@ namespace NCode.Client
         private bool ProcessPacket(Buffer packet, IPEndPoint source)
         {
 
-            
             BinaryReader reader = packet.BeginReading();
             int packetId = reader.ReadByte();
             Packet response = (Packet)packetId;
@@ -205,7 +202,7 @@ namespace NCode.Client
                 callback(response, reader);
                 return true;
             }
-            Tools.Print(response.ToString());
+            Print(response.ToString());
             switch (response)
             {
                            
@@ -220,15 +217,15 @@ namespace NCode.Client
                     if (responseId == -1)
                     {
                         _tcpClient.Disconnect();
-                        Tools.Print("Unable to connect to remote server. Server responsed with version mismatch.", MessageType.Error);
+                        PrintError("Unable to connect to remote server. Server responsed with version mismatch.");
                     }
                     else
                     {
                         ClientId = responseId;
-                        Tools.Print(ClientId);
+                        Print(ClientId);
                         var remoteIp = _tcpClient.Socket.RemoteEndPoint as IPEndPoint;
                         _serverUdpEndpoint = new IPEndPoint(remoteIp.Address, reader.ReadInt32());
-                        Tools.Print(_serverUdpEndpoint);
+                        Print(_serverUdpEndpoint);
                         var writer = BeginSend(Packet.RequestSetupUdp);
                         writer.Write(ClientId);
                         EndSend(false);
@@ -256,7 +253,7 @@ namespace NCode.Client
                             if (!ConnectedChannels.Contains(channel))
                             {
                                 ConnectedChannels.Add(channel);
-                                Tools.Print($"Joined Channel {channel}.");
+                                Print($"Joined Channel {channel}.");
                             }
                         }
                         catch (EndOfStreamException exception)
@@ -275,7 +272,7 @@ namespace NCode.Client
                             if (ConnectedChannels.Contains(channel))
                             {
                                 ConnectedChannels.Remove(channel);
-                                Tools.Print($"Left Channel {channel}.");
+                                Print($"Left Channel {channel}.");
                             }
                         }
                         catch (EndOfStreamException exception)
@@ -312,7 +309,7 @@ namespace NCode.Client
                     }
                 default:
                     {
-                        Tools.Print($"Packet with the ID:{response} has not been defined for processing.", Tools.MessageType.Error);
+                        PrintError($"Packet with the ID:{response} has not been defined for processing.");
                         break;
                     }
             }
