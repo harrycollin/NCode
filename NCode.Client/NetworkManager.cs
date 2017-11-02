@@ -151,6 +151,7 @@ namespace NCode.Client
 
         void Update()
         {
+
             if (!Application.isPlaying)
             {
                 Disconnect();

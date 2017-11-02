@@ -128,12 +128,14 @@ namespace NCode.Server.Core
             lock (PlayerDictionary)
             {
                 if (!PlayerDictionary.ContainsKey(playerId)) return false;
+
                 playerDisconnected?.Invoke(PlayerDictionary[playerId]);
-                PlayerDictionary.Remove(playerId);
                 if (GetPlayer(playerId).IsPlayerUdpConnected)
                 {
                     PlayerUdpEnpointDictionary.Remove(GetPlayer(playerId).UdpEndpoint);
                 }
+                PlayerDictionary.Remove(playerId);
+              
                 Print($"Player {playerId} has disconnected.");
                 _idIncrementor--;
                 return true;

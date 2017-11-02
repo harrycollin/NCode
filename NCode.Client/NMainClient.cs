@@ -1,12 +1,17 @@
-﻿using System;
+﻿#define SINGLE_THREAD
+
+using System;
 using System.IO;
 using System.Net;
+using System.Threading;
 using NCode.Core;
 using NCode.Core.Protocols;
 using NCode.Core.Utilities;
 using Buffer = NCode.Core.Buffer;
 using Random = UnityEngine.Random;
+
 using NCode.Core.Entity;
+using UnityEngine;
 using static NCode.Core.Utilities.Tools;
 
 namespace NCode.Client
@@ -46,6 +51,8 @@ namespace NCode.Client
         /// </summary>
         public bool IsUdpSetup => _udpClient.isActive;
 
+        public bool MultiThreaded;
+
         /// <summary>
         /// Stops the UpdateThread if set to false
         /// </summary>
@@ -60,6 +67,7 @@ namespace NCode.Client
 
         #region Private Vars
 
+        private Thread _updateThread;
 
         /// <summary>
         /// A temporary buffer to write to.
@@ -93,9 +101,21 @@ namespace NCode.Client
 
         #endregion
 
+        public NMainClient()
+        {
+
+#if !SINGLE_THREAD
+            _updateThread = new Thread(ClientUpdate);
+            _updateThread.Start();
+            MultiThreaded = true;
+            ContinueUpdateThread = true;
+            PrintInfo("Started Update Thread.");
+#endif
+        }
+
         public void Connect(IPAddress ipAddress, int port)
         {
-            IPEndPoint ipEndPoint = new IPEndPoint(ipAddress, port);
+            var ipEndPoint = new IPEndPoint(ipAddress, port);
             _tcpClient.Connect(ipEndPoint);
             _udpClient.Start(Random.Range(30000,50000));
             Print("Trying to connect to:" + ipEndPoint);
@@ -145,41 +165,43 @@ namespace NCode.Client
         /// </summary>
         public void ClientUpdate()
         {
-            if (!_tcpClient.IsSocketConnected && !_tcpClient.isTryingToConnect)
-            {
-                //onDisconnect();
-                return;
-            }
 
-            //Set the client time
-            _clientTime = DateTime.UtcNow.Ticks / 10000;
+                if (!_tcpClient.IsSocketConnected && !_tcpClient.isTryingToConnect)
+                {
+                    //onDisconnect();
+                    return;
+                }
 
-            //Temporary variables for packets
-            Buffer tempBuffer;
-            IPEndPoint tempIp;
+                //Set the client time
+                _clientTime = DateTime.UtcNow.Ticks / 10000;
 
-            var keepProcessing = true;
+                //Temporary variables for packets
+                Buffer tempBuffer;
+                IPEndPoint tempIp;
 
-            //Process all Udp packets first.
-            while (keepProcessing && _udpClient.ReceivePacket(out tempBuffer, out tempIp))
-            {
-                keepProcessing = ProcessPacket(tempBuffer, tempIp);
-                tempBuffer.Recycle();
-            }
+                var keepProcessing = true;
 
-            //Process Tcp packets
-            while (keepProcessing && _tcpClient.ReceivePacket(out tempBuffer))
-            {
-                ProcessPacket(tempBuffer, null);
-                tempBuffer.Recycle();
-            }
+                //Process all Udp packets first.
+                while (keepProcessing && _udpClient.ReceivePacket(out tempBuffer, out tempIp))
+                {
+                    keepProcessing = ProcessPacket(tempBuffer, tempIp);
+                    tempBuffer.Recycle();
+                }
 
-            //Check if we need to ping (failing to ping regularly will result in the server disconnecting this player).
-            if (_lastPingTime + 3000 >= _clientTime || _tcpClient.stage != TNTcpProtocol.Stage.Connected) return;
+                //Process Tcp packets
+                while (keepProcessing && _tcpClient.ReceivePacket(out tempBuffer))
+                {
+                    ProcessPacket(tempBuffer, null);
+                    tempBuffer.Recycle();
+                }
 
-            _lastPingTime = _clientTime;
-            _tcpClient.BeginSend(Packet.Ping);
-            _tcpClient.EndSend();
+                //Check if we need to ping (failing to ping regularly will result in the server disconnecting this player).
+                if (_lastPingTime + 3000 >= _clientTime || _tcpClient.stage != TNTcpProtocol.Stage.Connected) return;
+
+                _lastPingTime = _clientTime;
+                _tcpClient.BeginSend(Packet.Ping);
+                _tcpClient.EndSend();
+
         }
 
         #region Packet Processor
@@ -190,19 +212,19 @@ namespace NCode.Client
         private bool ProcessPacket(Buffer packet, IPEndPoint source)
         {
 
-            BinaryReader reader = packet.BeginReading();
+            var reader = packet.BeginReading();
             int packetId = reader.ReadByte();
-            Packet response = (Packet)packetId;
-            
-            //Filters out any packets that have custom handlers. 
-            OnPacket callback;
+            var response = (Packet)packetId;
 
-            if (packetHandlers.TryGetValue(response, out callback) && callback != null)
+            //Filters out any packets that have custom handlers. 
+
+            if (packetHandlers.TryGetValue(response, out OnPacket callback) && callback != null)
             {
                 callback(response, reader);
                 return true;
             }
-            Print(response.ToString());
+            Print(response);
+                
             switch (response)
             {
                            
@@ -305,6 +327,7 @@ namespace NCode.Client
                         var rfcid = reader.ReadInt32();
                         var parameters = reader.ReadObjectArrayEx();
                         onRemoteFunctionCall(guid, rfcid, parameters);
+                        Print(Time.time);
                         break;
                     }
                 default:

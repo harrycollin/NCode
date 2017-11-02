@@ -130,8 +130,9 @@ namespace NCode.Server.Core
                 //The tick time divided by 10000 as a counter (used to calculate ping, thread times, etc.)
                 TickTime = DateTime.UtcNow.Ticks / 10000;
 
-                //Implement shutdown action
+                Thread.Sleep(1);
 
+                //Implement shutdown action
                 if (!_runThreads) break;
             }
 
