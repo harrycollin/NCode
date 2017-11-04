@@ -143,6 +143,7 @@ namespace NCode.Client
         /// </summary>                     
         void Start()
         {
+            // ERRM START FUCNTION
             OnRemoteFunctionCall += FindAndExecute;
             OnCreateEntity += EventCreateEntity;
             OnEntityUpdate += EventUpdateEntity;
