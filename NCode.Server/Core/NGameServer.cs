@@ -5,9 +5,8 @@ using System.Net.Sockets;
 using System.Threading;
 using NCode.Core;
 using NCode.Core.Protocols;
-using NCode.Core.Utilities;
-using Buffer = NCode.Core.Buffer;
 using static NCode.Core.Utilities.Tools;
+using Buffer = NCode.Core.Buffer;
 
 namespace NCode.Server.Core
 {
@@ -16,10 +15,12 @@ namespace NCode.Server.Core
         public static int ServerProtocolVersion => TNTcpProtocol.ProtocolVersion;
 
         /// <summary>
-        /// Time in ticks
+        ///     Time in ticks
         /// </summary>
-        public long TickTime = 0;
+        public long TickTime;
 
+        public static int TcpListenPort;
+        public static int UdpListenPort;
         private bool _runThreads;
 
         private TcpListener _mainTcpListener;
@@ -29,8 +30,6 @@ namespace NCode.Server.Core
 
         private Thread _coreThread;
 
-        public static int TcpListenPort = 0;
-        public static int UdpListenPort = 0;
 
         public NGameServer(string name, int tcpport, int udpport, int rconport, string password, bool autoStart)
         {
@@ -41,7 +40,7 @@ namespace NCode.Server.Core
         }
 
         /// <summary>
-        /// Starts the main processes
+        ///     Starts the main processes
         /// </summary>
         public void Start()
         {
@@ -56,7 +55,6 @@ namespace NCode.Server.Core
         //Starts listening for tcp connections on the specified port.
         public bool StartListeningGameServer()
         {
-
             //Stops the Main TcpProtocol if its already running.
             if (_mainTcpListener != null)
             {
@@ -64,7 +62,6 @@ namespace NCode.Server.Core
                 _mainTcpListener = null;
             }
             if (TcpListenPort != -1)
-            {
                 try
                 {
                     //Start a new TcpListener on the specifed port with a max number of backlogged connections. 
@@ -76,25 +73,21 @@ namespace NCode.Server.Core
                     PrintError($"Failed to start listening on TCP port {TcpListenPort}.", e);
                     return false;
                 }
-            }
-            else { return false; }
+            else return false;
 
             if (UdpListenPort != -1)
-            {
                 try
                 {
                     _mainUdpProtocol = new TNUdpProtocol();
                     _mainUdpProtocol.Start(UdpListenPort);
-                    _packetProcessor.mainUdp = _mainUdpProtocol;
-
+                    _packetProcessor.MainUdp = _mainUdpProtocol;
                 }
                 catch (Exception e)
                 {
                     PrintError($"Failed to start listening on UDP port {UdpListenPort}.", e);
                     return false;
                 }
-            }
-            else { return false; }
+            else return false;
 
             return true;
         }
@@ -107,7 +100,7 @@ namespace NCode.Server.Core
         private void CoreProcesses()
         {
             //Loop forever until server is stopped.
-            for (; ;)
+            for (;;)
             {
                 if (!CheckForPendingConnections())
                 {
@@ -135,9 +128,7 @@ namespace NCode.Server.Core
                 //Implement shutdown action
                 if (!_runThreads) break;
             }
-
         }
-
 
 
         private bool ProcessTcpPackets()
@@ -160,10 +151,8 @@ namespace NCode.Server.Core
                     continue;
                 }
 
-                Buffer packet;
-
                 // Process up to 100 packets from this player's InQueue at a time. (This is processed after checking for disconnected sockets. 
-                for (var e = 0; e < 100 && player.NextPacket(out packet); e++)
+                for (var e = 0; e < 100 && player.NextPacket(out Buffer packet); e++)
                     _packetProcessor.ProcessPacket(player, packet, true);
             }
 
@@ -174,13 +163,11 @@ namespace NCode.Server.Core
         {
             if (!_mainUdpProtocol.isActive) return false;
 
-            Buffer buffer;
-
-            //Process up to 1000 udp packets each time (Tweak for performance if needed. Will be added to cfg if needed).
-            IPEndPoint udpEndpoint;
-            for (var e = 0; e < 200 && _mainUdpProtocol.ReceivePacket(out buffer, out udpEndpoint); e++)
+            //Process up to 200 udp packets each time (Tweak for performance if needed. Will be added to cfg if needed).
+            for (var i = 0;
+                i < 200 && _mainUdpProtocol.ReceivePacket(out Buffer buffer, out IPEndPoint udpEndpoint);
+                i++)
             {
-                
                 var player = NPlayer.GetPlayer(udpEndpoint);
                 if (player != null)
                 {
@@ -190,7 +177,7 @@ namespace NCode.Server.Core
 
                 var reader = buffer.BeginReading();
 
-                if ((Packet)reader.ReadByte() != Packet.RequestSetupUdp) continue;
+                if ((Packet) reader.ReadByte() != Packet.RequestSetupUdp) continue;
                 player = NPlayer.GetPlayer(reader.ReadInt32());
                 if (player != null)
                 {
@@ -207,6 +194,8 @@ namespace NCode.Server.Core
                     var writer = player.BeginSend(Packet.ResponseSetupUdp);
                     writer.Write(true);
                     player.EndSend();
+
+                    NServerEvents.playerConnected?.Invoke(player);
                 }
                 else
                 {
@@ -214,19 +203,19 @@ namespace NCode.Server.Core
                 }
             }
             return true;
-
         }
+
         public bool CheckForPendingConnections()
         {
             //Add any game server pending connections (Pending connections on the Game server's tcp listener).
             while (_mainTcpListener != null && _mainTcpListener.Pending())
             {
                 //Accept a new connection and assign it a socket.
-                Socket socket = _mainTcpListener.AcceptSocket();
+                var socket = _mainTcpListener.AcceptSocket();
                 try
                 {
                     //The clients ip address.
-                    IPEndPoint remoteClient = (IPEndPoint)socket.RemoteEndPoint;
+                    var remoteClient = (IPEndPoint) socket.RemoteEndPoint;
                     if (remoteClient == null)
                     {
                         //Close the socket if the ip is null.

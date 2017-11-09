@@ -46,6 +46,21 @@
         ResponseSetupUdp,
 
         /// <summary>
+        /// Adds a player to the client list.
+        /// </summary>
+        PlayerConnected,
+
+        /// <summary>
+        /// Updates a player on the client list.
+        /// </summary>
+        UpdatePlayerInfo,
+
+        /// <summary>
+        /// Removes a player from the client list.
+        /// </summary>
+        PlayerDisconnected,
+
+        /// <summary>
         /// Data to be forwarded to everyone. This is usually going to be an RFC.
         /// </summary>
         ForwardToAll,

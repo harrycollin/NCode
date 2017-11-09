@@ -1,128 +1,111 @@
 ﻿#define SINGLE_THREAD
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Threading;
 using NCode.Core;
-using NCode.Core.Protocols;
-using NCode.Core.Utilities;
-using Buffer = NCode.Core.Buffer;
-using Random = UnityEngine.Random;
-
 using NCode.Core.Entity;
+using NCode.Core.Protocols;
 using UnityEngine;
 using static NCode.Core.Utilities.Tools;
+using Buffer = NCode.Core.Buffer;
+using Random = UnityEngine.Random;
 
 namespace NCode.Client
 {
     public sealed class NMainClient : NClientEvents
     {
-
         #region Public Variables
 
         /// <summary>
-        /// The client's ID. Assigned by the server.
+        ///     The client's ID. Assigned by the server.
         /// </summary>
         public int ClientId { get; private set; }
 
         /// <summary>
-        /// The server's remote endpoint.
+        ///     The server's remote endpoint.
         /// </summary>
         public EndPoint RemoteEndPoint => _tcpClient.Socket.RemoteEndPoint;
 
         /// <summary>
-        /// Whether the player is trying to connect to a server
+        ///     Whether the player is trying to connect to a server
         /// </summary>
         public bool IsTryingToConnect => _tcpClient.isTryingToConnect;
 
         /// <summary>
-        /// Whether the player is connected to a server (verified aswell)
+        ///     Whether the player is connected to a server (verified aswell)
         /// </summary>
         public bool IsConnected => _tcpClient.IsConnected;
 
         /// <summary>
-        /// Whether the player's socket is connected to the server.
+        ///     Whether the player's socket is connected to the server.
         /// </summary>
         public bool IsSocketConnected => _tcpClient.IsSocketConnected;
 
         /// <summary>
-        /// Whether the Udp Client is setup
+        ///     Whether the Udp Client is setup
         /// </summary>
         public bool IsUdpSetup => _udpClient.isActive;
 
         public bool MultiThreaded;
 
         /// <summary>
-        /// Stops the UpdateThread if set to false
+        ///     Stops the UpdateThread if set to false
         /// </summary>
         public bool ContinueUpdateThread;
 
         /// <summary>
-        /// The list of connected channels
+        ///     The list of connected channels
         /// </summary>
-        public System.Collections.Generic.List<int> ConnectedChannels = new System.Collections.Generic.List<int>();
+        public List<int> ConnectedChannels = new List<int>();
 
         #endregion
 
         #region Private Vars
 
-        private Thread _updateThread;
-
         /// <summary>
-        /// A temporary buffer to write to.
+        ///     A temporary buffer to write to.
         /// </summary>
         private Buffer _tempBuffer;
 
         /// <summary>
-        /// The Tcp protocol for this player.
+        ///     The Tcp protocol for this player.
         /// </summary>
         private readonly TNTcpProtocol _tcpClient = new TNTcpProtocol();
 
         /// <summary>
-        /// The Udp protocol for this player.
+        ///     The Udp protocol for this player.
         /// </summary>
         private readonly TNUdpProtocol _udpClient = new TNUdpProtocol();
 
         /// <summary>
-        /// The current tick time of this client.
+        ///     The current tick time of this client.
         /// </summary>
-        private long _clientTime = 0;
+        private long _clientTime;
 
         /// <summary>
-        /// The endpoint for udp traffic on the server.
+        ///     The endpoint for udp traffic on the server.
         /// </summary>
         private IPEndPoint _serverUdpEndpoint;
 
         /// <summary>
-        /// The last time this client sent a ping.
+        ///     The last time this client sent a ping.
         /// </summary>
-        private long _lastPingTime = 0;
+        private long _lastPingTime;
 
         #endregion
-
-        public NMainClient()
-        {
-
-#if !SINGLE_THREAD
-            _updateThread = new Thread(ClientUpdate);
-            _updateThread.Start();
-            MultiThreaded = true;
-            ContinueUpdateThread = true;
-            PrintInfo("Started Update Thread.");
-#endif
-        }
 
         public void Connect(IPAddress ipAddress, int port)
         {
             var ipEndPoint = new IPEndPoint(ipAddress, port);
             _tcpClient.Connect(ipEndPoint);
-            _udpClient.Start(Random.Range(30000,50000));
+            _udpClient.Start(Random.Range(30000, 50000));
             Print("Trying to connect to:" + ipEndPoint);
         }
 
         /// <summary>
-        /// Disconnects from the remote server.
+        ///     Disconnects from the remote server.
         /// </summary>
         public bool Disconnect()
         {
@@ -133,7 +116,7 @@ namespace NCode.Client
         }
 
         /// <summary>
-        /// Begins the sending process
+        ///     Begins the sending process
         /// </summary>
         public BinaryWriter BeginSend(Packet packet)
         {
@@ -142,7 +125,7 @@ namespace NCode.Client
         }
 
         /// <summary>
-        /// Ends the sending process
+        ///     Ends the sending process
         /// </summary>
         public void EndSend(bool reliable)
         {
@@ -158,63 +141,56 @@ namespace NCode.Client
             }
         }
 
-        
 
         /// <summary>
-        /// Checks for queued packet and carries out routine functions. 
+        ///     Checks for queued packet and carries out routine functions.
         /// </summary>
         public void ClientUpdate()
         {
+            if (!_tcpClient.IsSocketConnected && !_tcpClient.isTryingToConnect)
+                return;
 
-                if (!_tcpClient.IsSocketConnected && !_tcpClient.isTryingToConnect)
-                {
-                    //onDisconnect();
-                    return;
-                }
+            //Set the client time
+            _clientTime = DateTime.UtcNow.Ticks / 10000;
 
-                //Set the client time
-                _clientTime = DateTime.UtcNow.Ticks / 10000;
+            //Temporary variables for packets
+            Buffer tempBuffer;
+            IPEndPoint tempIp;
 
-                //Temporary variables for packets
-                Buffer tempBuffer;
-                IPEndPoint tempIp;
+            var keepProcessing = true;
 
-                var keepProcessing = true;
+            //Process all Udp packets first.
+            while (keepProcessing && _udpClient.ReceivePacket(out tempBuffer, out tempIp))
+            {
+                keepProcessing = ProcessPacket(tempBuffer, tempIp);
+                tempBuffer.Recycle();
+            }
 
-                //Process all Udp packets first.
-                while (keepProcessing && _udpClient.ReceivePacket(out tempBuffer, out tempIp))
-                {
-                    keepProcessing = ProcessPacket(tempBuffer, tempIp);
-                    tempBuffer.Recycle();
-                }
+            //Process Tcp packets
+            while (keepProcessing && _tcpClient.ReceivePacket(out tempBuffer))
+            {
+                ProcessPacket(tempBuffer, null);
+                tempBuffer.Recycle();
+            }
 
-                //Process Tcp packets
-                while (keepProcessing && _tcpClient.ReceivePacket(out tempBuffer))
-                {
-                    ProcessPacket(tempBuffer, null);
-                    tempBuffer.Recycle();
-                }
+            //Check if we need to ping (failing to ping regularly will result in the server disconnecting this player).
+            if (_lastPingTime + 3000 >= _clientTime || _tcpClient.stage != TNTcpProtocol.Stage.Connected) return;
 
-                //Check if we need to ping (failing to ping regularly will result in the server disconnecting this player).
-                if (_lastPingTime + 3000 >= _clientTime || _tcpClient.stage != TNTcpProtocol.Stage.Connected) return;
-
-                _lastPingTime = _clientTime;
-                _tcpClient.BeginSend(Packet.Ping);
-                _tcpClient.EndSend();
-
+            _lastPingTime = _clientTime;
+            _tcpClient.BeginSend(Packet.Ping);
+            _tcpClient.EndSend();
         }
 
         #region Packet Processor
 
         /// <summary>
-        /// Processes queued packets. 
+        ///     Processes queued packets.
         /// </summary>
         private bool ProcessPacket(Buffer packet, IPEndPoint source)
         {
-
             var reader = packet.BeginReading();
             int packetId = reader.ReadByte();
-            var response = (Packet)packetId;
+            var response = (Packet) packetId;
 
             //Filters out any packets that have custom handlers. 
 
@@ -224,15 +200,14 @@ namespace NCode.Client
                 return true;
             }
             Print(response);
-                
+
             switch (response)
             {
-                           
                 case Packet.Ping:
-                    {
-                        _tcpClient.lastReceivedTime = _clientTime;
-                        break;
-                    }
+                {
+                    _tcpClient.lastReceivedTime = _clientTime;
+                    break;
+                }
                 case Packet.ResponseClientSetup:
                 {
                     var responseId = reader.ReadInt32();
@@ -253,93 +228,86 @@ namespace NCode.Client
                         EndSend(false);
                     }
                     break;
-                }                                       
-                
+                }
+
                 case Packet.ResponseSetupUdp:
+                {
+                    if (reader.ReadBoolean())
                     {
-                        if (reader.ReadBoolean())
-                        {
-                            Tools.Print("UDP Setup!");
-                            _tcpClient.stage = TNTcpProtocol.Stage.Connected;
-                            onConnect?.Invoke();
-                        }
-                        break;
+                        Print("UDP Setup!");
+                        _tcpClient.stage = TNTcpProtocol.Stage.Connected;
+                        onConnect?.Invoke();
                     }
+                    break;
+                }
                 case Packet.JoinChannel:
+                {
+                    try
                     {
-                        int channel = 0;
-
-                        try
+                        var channel = reader.ReadInt32();
+                        if (!ConnectedChannels.Contains(channel))
                         {
-                            channel = reader.ReadInt32();
-                            if (!ConnectedChannels.Contains(channel))
-                            {
-                                ConnectedChannels.Add(channel);
-                                Print($"Joined Channel {channel}.");
-                            }
+                            ConnectedChannels.Add(channel);
+                            Print($"Joined Channel {channel}.");
                         }
-                        catch (EndOfStreamException exception)
-                        {
-
-                        }
-                        break;
                     }
+                    catch (EndOfStreamException exception)
+                    {
+                    }
+                    break;
+                }
                 case Packet.LeaveChannel:
+                {
+                    try
                     {
-                        int channel = 0;
-
-                        try
+                        var channel = reader.ReadInt32();
+                        if (ConnectedChannels.Contains(channel))
                         {
-                            channel = reader.ReadInt32();
-                            if (ConnectedChannels.Contains(channel))
-                            {
-                                ConnectedChannels.Remove(channel);
-                                Print($"Left Channel {channel}.");
-                            }
+                            ConnectedChannels.Remove(channel);
+                            Print($"Left Channel {channel}.");
                         }
-                        catch (EndOfStreamException exception)
-                        {
-
-                        }
-                        break;
                     }
+                    catch (EndOfStreamException exception)
+                    {
+                    }
+                    break;
+                }
 
                 case Packet.CreateEntity:
-                    {
-                        onCreateEntity((NNetworkEntity)reader.ReadObject());
-                        break;
-                    }
+                {
+                    onCreateEntity((NNetworkEntity) reader.ReadObject());
+                    break;
+                }
                 case Packet.UpdateEntity:
-                    {
-                        onEntityUpdate((NNetworkEntity)reader.ReadObject());
-                        break;
-                    }
+                {
+                    onEntityUpdate((NNetworkEntity) reader.ReadObject());
+                    break;
+                }
                 case Packet.DestroyEntity:
-                    {
-                        onDestroyEntity((Guid)reader.ReadObject());
-                        break;
-                    }
+                {
+                    onDestroyEntity((Guid) reader.ReadObject());
+                    break;
+                }
 
                 case Packet.ForwardToChannels:
                 case Packet.ForwardToAll:
-                    {
-                        var guid = (Guid)reader.ReadObject();
-                        var rfcid = reader.ReadInt32();
-                        var parameters = reader.ReadObjectArrayEx();
-                        onRemoteFunctionCall(guid, rfcid, parameters);
-                        Print(Time.time);
-                        break;
-                    }
+                {
+                    var guid = (Guid) reader.ReadObject();
+                    var rfcid = reader.ReadInt32();
+                    var parameters = reader.ReadObjectArrayEx();
+                    onRemoteFunctionCall(guid, rfcid, parameters);
+                    Print(Time.time);
+                    break;
+                }
                 default:
-                    {
-                        PrintError($"Packet with the ID:{response} has not been defined for processing.");
-                        break;
-                    }
+                {
+                    PrintError($"Packet with the ID:{response} has not been defined for processing.");
+                    break;
+                }
             }
             return false;
         }
 
         #endregion
-
     }
 }

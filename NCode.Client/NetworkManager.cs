@@ -110,12 +110,6 @@ namespace NCode.Client
             set { _instance = value; }
         }
 
-        //public static void StartClientServer()
-        //{
-        //    Instance._clientServer = new NClientServer();
-        //    Instance._clientServer.Start("Test", 5127, 5128, 5129, "");
-        //}
-
         private static NetworkManager CreateInstance()
         {
             var newInstance = new GameObject("Network Manager");

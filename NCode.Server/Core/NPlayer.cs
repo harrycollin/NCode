@@ -22,15 +22,28 @@ namespace NCode.Server.Core
             _idIncrementor++;
             ClientId = _idIncrementor;
             ClientGuid = Guid.NewGuid();
+            PlayerInfo = new NPlayerInfo(ClientId, ClientGuid);
             _tcpProtocol.StartReceiving(tcpSocket);
         }
 
         
         #region public
 
+        /// <summary>
+        /// This player's information.
+        /// </summary>
+        public NPlayerInfo PlayerInfo { get; private set; }
+
+        /// <summary>
+        /// This player's UDP IPEndPoint
+        /// </summary>
         public IPEndPoint UdpEndpoint;
 
-
+        /// <summary>
+        /// Begin sending a packet. 
+        /// </summary>
+        /// <param name="type">The packet type.</param>
+        /// <returns>Returns a binary writer. Write any data to be sent with this. </returns>
         public BinaryWriter BeginSend(Packet type)
         {
             lock (_lock)
@@ -49,7 +62,10 @@ namespace NCode.Server.Core
 
         public void SendTcpPacket(Buffer buffer)
         {
-            _tcpProtocol.SendTcpPacket(buffer);
+            lock (_lock)
+            {
+                _tcpProtocol.SendTcpPacket(buffer);
+            }
         }
 
         public bool IsPlayerSocketConnected => _tcpProtocol.IsSocketConnected;
@@ -90,6 +106,8 @@ namespace NCode.Server.Core
             return false;
         }
 
+        
+
         #endregion
 
         #region private     
@@ -116,7 +134,7 @@ namespace NCode.Server.Core
         {
             lock (PlayerDictionary)
             {
-                NPlayer newPlayer = new NPlayer(socket);
+                var newPlayer = new NPlayer(socket);
                 PlayerDictionary.Add(newPlayer.ClientId, newPlayer);
                 playerConnected?.Invoke(newPlayer);
                 Print(newPlayer.RemoteTcpEndPoint + " connecting...");
