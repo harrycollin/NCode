@@ -18,7 +18,17 @@ namespace NCode.Client
         /// When the player disconnects from the server.
         /// </summary>
         public OnDisconnect onDisconnect;
-        public delegate void OnDisconnect();      
+        public delegate void OnDisconnect();
+
+        public OnPlayerConnect onPlayerConnect;
+        public delegate void OnPlayerConnect(NPlayerInfo player);
+
+        public OnUpdatePlayerInfo onUpdatePlayerInfo;
+        public delegate void OnUpdatePlayerInfo(NPlayerInfo player);
+
+
+        public OnPlayerDisconnect onPlayerDisconnect;
+        public delegate void OnPlayerDisconnect(NPlayerInfo player);
 
         /// <summary>
         /// A dictionary of custom packet listeners. The key is the packet. 

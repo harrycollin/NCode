@@ -20,9 +20,9 @@ namespace NCode.Server.Core
         public NPlayer(Socket tcpSocket)
         {
             _idIncrementor++;
-            ClientId = _idIncrementor;
+            PlayerID = _idIncrementor;
             ClientGuid = Guid.NewGuid();
-            PlayerInfo = new NPlayerInfo(ClientId, ClientGuid);
+            PlayerInfo = new NPlayerInfo(PlayerID, ClientGuid);
             _tcpProtocol.StartReceiving(tcpSocket);
         }
 
@@ -81,7 +81,7 @@ namespace NCode.Server.Core
         /// <summary>
         /// This player's id. Generated in constructor.
         /// </summary>
-        public readonly int ClientId;
+        public readonly int PlayerID;
 
         /// <summary>
         /// This player's guid.
@@ -135,8 +135,7 @@ namespace NCode.Server.Core
             lock (PlayerDictionary)
             {
                 var newPlayer = new NPlayer(socket);
-                PlayerDictionary.Add(newPlayer.ClientId, newPlayer);
-                playerConnected?.Invoke(newPlayer);
+                PlayerDictionary.Add(newPlayer.PlayerID, newPlayer);
                 Print(newPlayer.RemoteTcpEndPoint + " connecting...");
             }
         }
@@ -167,8 +166,6 @@ namespace NCode.Server.Core
                 return PlayerDictionary.ContainsKey(playerId) ? PlayerDictionary[playerId] : null;
             }
         }
-
-       
 
         public static NPlayer GetPlayer(IPEndPoint playerUdpEndPoint)
         {

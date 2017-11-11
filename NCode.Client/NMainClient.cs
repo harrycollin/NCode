@@ -18,15 +18,28 @@ namespace NCode.Client
     {
         #region Public Variables
 
+
+        public NPlayerInfo PlayerInformation;
+
         /// <summary>
         ///     The client's ID. Assigned by the server.
         /// </summary>
-        public int ClientId { get; private set; }
+        public int ClientId
+        {
+            get
+            {
+                return PlayerInformation.PlayerID;
+            }
+        }
 
-        /// <summary>
-        ///     The server's remote endpoint.
-        /// </summary>
-        public EndPoint RemoteEndPoint => _tcpClient.Socket.RemoteEndPoint;
+        public List<int> ConnectedChannels
+        {
+            get
+            {
+                return PlayerInformation.ConnectedChannels;
+            }
+
+        }
 
         /// <summary>
         ///     Whether the player is trying to connect to a server
@@ -48,6 +61,12 @@ namespace NCode.Client
         /// </summary>
         public bool IsUdpSetup => _udpClient.isActive;
 
+        /// <summary>
+        ///     The server's remote endpoint.
+        /// </summary>
+        public EndPoint RemoteEndPoint => _tcpClient.Socket.RemoteEndPoint;
+
+
         public bool MultiThreaded;
 
         /// <summary>
@@ -56,9 +75,9 @@ namespace NCode.Client
         public bool ContinueUpdateThread;
 
         /// <summary>
-        ///     The list of connected channels
+        /// The list of connected players. 
         /// </summary>
-        public List<int> ConnectedChannels = new List<int>();
+        public readonly List<NPlayerInfo> ConnectedPlayers = new List<NPlayerInfo>();
 
         #endregion
 
@@ -93,6 +112,8 @@ namespace NCode.Client
         ///     The last time this client sent a ping.
         /// </summary>
         private long _lastPingTime;
+
+
 
         #endregion
 
@@ -190,7 +211,7 @@ namespace NCode.Client
         {
             var reader = packet.BeginReading();
             int packetId = reader.ReadByte();
-            var response = (Packet) packetId;
+            var response = (Packet)packetId;
 
             //Filters out any packets that have custom handlers. 
 
@@ -203,107 +224,165 @@ namespace NCode.Client
 
             switch (response)
             {
-                case Packet.Ping:
-                {
-                    _tcpClient.lastReceivedTime = _clientTime;
-                    break;
-                }
-                case Packet.ResponseClientSetup:
-                {
-                    var responseId = reader.ReadInt32();
-                    if (responseId == -1)
+                case Packet.Error:
                     {
-                        _tcpClient.Disconnect();
-                        PrintError("Unable to connect to remote server. Server responsed with version mismatch.");
+                        try
+                        {
+                            var message = reader.ReadString();
+                            bool disconnect = reader.ReadBoolean();
+                            PrintError(message);
+                            if (disconnect)
+                            {
+                                Disconnect();
+                            }
+                        }
+                        catch (EndOfStreamException)
+                        {
+
+                        }
+                        break;
                     }
-                    else
+                case Packet.Ping:
                     {
-                        ClientId = responseId;
-                        Print(ClientId);
+                        _tcpClient.lastReceivedTime = _clientTime;
+                        break;
+                    }
+                case Packet.ResponseClientSetup:
+                    {
+
+                        PlayerInformation = (NPlayerInfo)reader.ReadObject();
                         var remoteIp = _tcpClient.Socket.RemoteEndPoint as IPEndPoint;
                         _serverUdpEndpoint = new IPEndPoint(remoteIp.Address, reader.ReadInt32());
-                        Print(_serverUdpEndpoint);
+
                         var writer = BeginSend(Packet.RequestSetupUdp);
                         writer.Write(ClientId);
                         EndSend(false);
+                        
+                        break;
                     }
-                    break;
-                }
 
                 case Packet.ResponseSetupUdp:
-                {
-                    if (reader.ReadBoolean())
                     {
-                        Print("UDP Setup!");
-                        _tcpClient.stage = TNTcpProtocol.Stage.Connected;
-                        onConnect?.Invoke();
+                        if (reader.ReadBoolean())
+                        {
+                            Print("UDP Setup!");
+                            _tcpClient.stage = TNTcpProtocol.Stage.Connected;
+                            onConnect?.Invoke();
+                        }
+                        break;
                     }
-                    break;
-                }
+                case Packet.PlayerConnected:
+                    {
+                        var otherPlayer = (NPlayerInfo)reader.ReadObject();
+                        if (otherPlayer.PlayerID == ClientId) break;
+                        if (!ConnectedPlayers.Contains(otherPlayer))
+                        {
+                            ConnectedPlayers.Add(otherPlayer);
+                            onPlayerConnect?.Invoke(otherPlayer);
+                            Print("Player Connected");
+                        }
+                        break;
+                    }
+                case Packet.UpdatePlayerInfo:
+                    {
+                        var playerInfo = (NPlayerInfo)reader.ReadObject();
+                        if (playerInfo == null) break;
+                        if (playerInfo.PlayerID == ClientId)
+                        {
+                            PlayerInformation = playerInfo;
+                            break;
+                        }
+                        else
+                        { 
+                            int index = -1;
+                            foreach (var otherPlayer in ConnectedPlayers)
+                            {
+                                if (otherPlayer.PlayerID == playerInfo.PlayerID)
+                                {
+                                    index = ConnectedPlayers.IndexOf(otherPlayer);
+                                    break;
+                                }
+                            }
+                            if (index != -1) ConnectedPlayers[index] = playerInfo;
+                        }
+                        onUpdatePlayerInfo?.Invoke(playerInfo);
+                        break;
+                    }
+                case Packet.PlayerDisconnected:
+                    {
+                        var playerInfo = (NPlayerInfo)reader.ReadObject();
+                        if (playerInfo == null) break;
+                        if (ConnectedPlayers.Contains(playerInfo))
+                        {
+                            ConnectedPlayers.Remove(playerInfo);
+                            onPlayerDisconnect?.Invoke(playerInfo);
+                        }
+                        break;
+                    }
                 case Packet.JoinChannel:
-                {
-                    try
                     {
-                        var channel = reader.ReadInt32();
-                        if (!ConnectedChannels.Contains(channel))
+                        try
                         {
-                            ConnectedChannels.Add(channel);
-                            Print($"Joined Channel {channel}.");
+                            var channel = reader.ReadInt32();
+                            if (!PlayerInformation.ConnectedChannels.Contains(channel))
+                            {
+                                PlayerInformation.ConnectedChannels.Add(channel);
+                                Print($"Joined Channel {channel}.");
+                            }
                         }
+                        catch (EndOfStreamException exception)
+                        {
+                        }
+                        break;
                     }
-                    catch (EndOfStreamException exception)
-                    {
-                    }
-                    break;
-                }
                 case Packet.LeaveChannel:
-                {
-                    try
                     {
-                        var channel = reader.ReadInt32();
-                        if (ConnectedChannels.Contains(channel))
+                        try
                         {
-                            ConnectedChannels.Remove(channel);
-                            Print($"Left Channel {channel}.");
+                            var channel = reader.ReadInt32();
+                            if (PlayerInformation.ConnectedChannels.Contains(channel))
+                            {
+                                PlayerInformation.ConnectedChannels.Remove(channel);
+                                Print($"Left Channel {channel}.");
+                            }
                         }
+                        catch (EndOfStreamException exception)
+                        {
+                        }
+                        break;
                     }
-                    catch (EndOfStreamException exception)
-                    {
-                    }
-                    break;
-                }
 
                 case Packet.CreateEntity:
-                {
-                    onCreateEntity((NNetworkEntity) reader.ReadObject());
-                    break;
-                }
+                    {
+                        onCreateEntity((NNetworkEntity)reader.ReadObject());
+                        break;
+                    }
                 case Packet.UpdateEntity:
-                {
-                    onEntityUpdate((NNetworkEntity) reader.ReadObject());
-                    break;
-                }
+                    {
+                        onEntityUpdate((NNetworkEntity)reader.ReadObject());
+                        break;
+                    }
                 case Packet.DestroyEntity:
-                {
-                    onDestroyEntity((Guid) reader.ReadObject());
-                    break;
-                }
+                    {
+                        onDestroyEntity((Guid)reader.ReadObject());
+                        break;
+                    }
 
                 case Packet.ForwardToChannels:
                 case Packet.ForwardToAll:
-                {
-                    var guid = (Guid) reader.ReadObject();
-                    var rfcid = reader.ReadInt32();
-                    var parameters = reader.ReadObjectArrayEx();
-                    onRemoteFunctionCall(guid, rfcid, parameters);
-                    Print(Time.time);
-                    break;
-                }
+                    {
+                        var guid = (Guid)reader.ReadObject();
+                        var rfcid = reader.ReadInt32();
+                        var parameters = reader.ReadObjectArrayEx();
+                        onRemoteFunctionCall(guid, rfcid, parameters);
+                        Print(Time.time);
+                        break;
+                    }
                 default:
-                {
-                    PrintError($"Packet with the ID:{response} has not been defined for processing.");
-                    break;
-                }
+                    {
+                        PrintError($"Packet with the ID:{response} has not been defined for processing.");
+                        break;
+                    }
             }
             return false;
         }

@@ -107,7 +107,7 @@ namespace NCode.Server.Systems.Channel
         {
             if (Channels.ContainsKey(ChannelID))
             {
-                if (Channels[ChannelID].Players.Contains(player.ClientId))
+                if (Channels[ChannelID].Players.Contains(player.PlayerID))
                 {
                     Channels[ChannelID].LeaveChannel(player);
                     return true;
@@ -124,9 +124,9 @@ namespace NCode.Server.Systems.Channel
         {
             lock (Players)
             {
-                if (!Players.Contains(player.ClientId))
+                if (!Players.Contains(player.PlayerID))
                 {
-                    Players.Add(player.ClientId);
+                    Players.Add(player.PlayerID);
 
                     player.BeginSend(Packet.JoinChannel).Write(ID);
                     player.EndSend();
@@ -136,12 +136,12 @@ namespace NCode.Server.Systems.Channel
                     {
                         player.BeginSend(Packet.CreateEntity).WriteObject(NEntityCache.GetEntity(entity));
                         player.EndSend();
-                        Print($"Entity: {entity} has been sent to Player {player.ClientId}.", null);
+                        Print($"Entity: {entity} has been sent to Player {player.PlayerID}.", null);
                     }
-                    Print($"Player {player.ClientId} has joined Channel {ID}.");
+                    Print($"Player {player.PlayerID} has joined Channel {ID}.");
                     return true;
                 }
-                PrintError($"Player {player.ClientId} has requested to join Channel {ID}. They are already in this Channel");
+                PrintError($"Player {player.PlayerID} has requested to join Channel {ID}. They are already in this Channel");
                 return false;
             }
         }
@@ -150,9 +150,9 @@ namespace NCode.Server.Systems.Channel
         {
             lock (Players)
             {
-                if (Players.Contains(player.ClientId))
+                if (Players.Contains(player.PlayerID))
                 {
-                    Players.Remove(player.ClientId);
+                    Players.Remove(player.PlayerID);
 
                     player.BeginSend(Packet.LeaveChannel).Write(ID);
                     player.EndSend();
@@ -163,27 +163,27 @@ namespace NCode.Server.Systems.Channel
                         BinaryWriter writer = player.BeginSend(Packet.DestroyEntity);
                         writer.WriteObject(entity);
                         player.EndSend();
-                        Print($"Entity: {entity} has been removed from Player {player.ClientId}.");
+                        Print($"Entity: {entity} has been removed from Player {player.PlayerID}.");
                     }
 
                     //Next filter out the entities that belonged to this player and remove them from the other clients
                     foreach (var entity in Entities.ToList())
                     {
-                        if(NEntityCache.GetEntity(entity).Owner == player.ClientId)
+                        if(NEntityCache.GetEntity(entity).Owner == player.PlayerID)
                         {                        
                             RemoveEntity(entity);
                             NEntityCache.Remove(entity);
                         }
                     }
                 
-                    Print($"Player {player.ClientId} has left Channel {ID}.");
+                    Print($"Player {player.PlayerID} has left Channel {ID}.");
                 }
             }
         }
 
         public bool HasPlayer(NPlayer player)
         {
-            if (Players.Contains(player.ClientId))
+            if (Players.Contains(player.PlayerID))
             {
                 return true;
             }

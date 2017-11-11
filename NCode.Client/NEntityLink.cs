@@ -67,7 +67,6 @@ namespace NCode.Client
         {
             if (NetworkObjects.ContainsKey(guid))
             {
-                Tools.Print("Object FOund");
                 return NetworkObjects[guid];
             }
             return null;

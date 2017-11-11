@@ -46,7 +46,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\NServerEvents.cs" />
-    <Compile Include="Core\NPacketProcessor.cs" />
     <Compile Include="Core\NPlayer.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>

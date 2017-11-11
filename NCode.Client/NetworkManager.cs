@@ -70,32 +70,47 @@ namespace NCode.Client
         /// <summary>
         /// Event triggered when the client setup is complete.
         /// </summary>
-        public static NClientEvents.OnConnect OnConnect { get { return Instance != null ? Instance._client.onConnect : null; } set { if (Instance != null && Application.isPlaying) Instance._client.onConnect = value; } }
+        public static NClientEvents.OnConnect OnConnect { get => Instance?._client.onConnect; set { if (Instance != null && Application.isPlaying) Instance._client.onConnect = value; } }
 
         /// <summary>
         /// Event triggered when the client has disconnected from the server. 
         /// </summary>
-        public static NClientEvents.OnDisconnect OnDisconnect { get { return Instance != null ? Instance._client.onDisconnect : null; } set { if (Instance != null && Application.isPlaying) Instance._client.onDisconnect = value; } }
+        public static NClientEvents.OnDisconnect OnDisconnect { get => Instance?._client.onDisconnect; set { if (Instance != null && Application.isPlaying) Instance._client.onDisconnect = value; } }
+
+        /// <summary>
+        /// Event triggered when a player joins the server
+        /// </summary>
+        public static NClientEvents.OnPlayerConnect OnPlayerConnect { get => Instance?._client.onPlayerConnect; set { if (Instance != null && Application.isPlaying) Instance._client.onPlayerConnect = value; } }
+
+        /// <summary>
+        /// Event triggered when a player's information get's updated
+        /// </summary>
+        public static NClientEvents.OnUpdatePlayerInfo OnUpdatePlayerInfo { get => Instance?._client.onUpdatePlayerInfo; set { if (Instance != null && Application.isPlaying) Instance._client.onUpdatePlayerInfo = value; } }
+
+        /// <summary>
+        /// Event triggered when a player disconnects from the server
+        /// </summary>
+        public static NClientEvents.OnPlayerDisconnect OnPlayerDisconnect { get => Instance?._client.onPlayerDisconnect; set { if (Instance != null && Application.isPlaying) Instance._client.onPlayerDisconnect = value; } }
 
         /// <summary>
         /// Event triggered upon receiving an Network Object update.
         /// </summary>
-        public static NClientEvents.OnCreateEntity OnCreateEntity { get { return Instance != null ? Instance._client.onCreateEntity : null; } set { if (Instance != null && Application.isPlaying) Instance._client.onCreateEntity = value; } }
+        public static NClientEvents.OnCreateEntity OnCreateEntity { get => Instance?._client.onCreateEntity; set { if (Instance != null && Application.isPlaying) Instance._client.onCreateEntity = value; } }
 
         /// <summary>
         /// Event triggered upon receiving an Network Object update.
         /// </summary>
-        public static NClientEvents.OnEntityUpdate OnEntityUpdate { get { return Instance != null ? Instance._client.onEntityUpdate : null; } set { if (Instance != null && Application.isPlaying) Instance._client.onEntityUpdate = value; } }
+        public static NClientEvents.OnEntityUpdate OnEntityUpdate { get => Instance?._client.onEntityUpdate; set { if (Instance != null && Application.isPlaying) Instance._client.onEntityUpdate = value; } }
 
         /// <summary>
         /// Event triggered upon receiving an destroy command from the server.
         /// </summary>
-        public static NClientEvents.OnDestroyEntity OnDestroyEntity { get { return Instance?._client.onDestroyEntity; } set { if (Instance != null && Application.isPlaying) Instance._client.onDestroyEntity = value; } }
+        public static NClientEvents.OnDestroyEntity OnDestroyEntity { get => Instance?._client.onDestroyEntity; set { if (Instance != null && Application.isPlaying) { Instance._client.onDestroyEntity = value; } } }
 
         /// <summary>
         /// Event triggered upon receiving an Remote Function call.
         /// </summary>
-        public static NClientEvents.OnRemoteFunctionCall OnRemoteFunctionCall { get { return Instance != null ? Instance._client.onRemoteFunctionCall : null; } set { if (Instance != null && Application.isPlaying) Instance._client.onRemoteFunctionCall = value; } }
+        public static NClientEvents.OnRemoteFunctionCall OnRemoteFunctionCall { get => Instance?._client.onRemoteFunctionCall; set { if (Instance != null && Application.isPlaying) Instance._client.onRemoteFunctionCall = value; } }
 
         #endregion
 
@@ -137,7 +152,6 @@ namespace NCode.Client
         /// </summary>                     
         void Start()
         {
-            // ERRM START FUCNTION
             OnRemoteFunctionCall += FindAndExecute;
             OnCreateEntity += EventCreateEntity;
             OnEntityUpdate += EventUpdateEntity;

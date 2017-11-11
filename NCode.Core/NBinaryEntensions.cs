@@ -105,6 +105,8 @@ namespace NCode.Core
 #endif
                 case 50: writer.Write((NVector3)obj); break;
                 case 51: writer.Write((NNetworkEntity)obj); break;
+                case 52: writer.Write((NPlayerInfo)obj); break;
+
             }
         }
 
@@ -127,6 +129,8 @@ namespace NCode.Core
 #endif
                 case 50: return reader.ReadV3();
                 case 51: return reader.ReadNetworkEntity();
+                case 52: return reader.ReadPlayerInfo();
+
             }
             return null;
         }
@@ -146,6 +150,8 @@ namespace NCode.Core
 #endif
             if (type == typeof(NVector3)) return 50;
             if (type == typeof(NNetworkEntity)) return 51;
+            if (type == typeof(NPlayerInfo)) return 52;
+
             return 0;
         }
 
@@ -165,6 +171,8 @@ namespace NCode.Core
 #endif
                 case 50: return typeof(NVector3);
                 case 51: return typeof(NNetworkEntity);
+                case 52: return typeof(NPlayerInfo);
+
             }
             return null;
         }
@@ -244,7 +252,15 @@ namespace NCode.Core
                 writer.WriteByteArray(NConverters.ConvertObjectToByteArray(entity));
             }
         }
-        
+
+        public static void Write(this BinaryWriter writer, NPlayerInfo playerInfo)
+        {
+            if (playerInfo != null)
+            {
+                writer.WriteByteArray(NConverters.ConvertObjectToByteArray(playerInfo));
+            }
+        }
+
 
         //--------------------------- Read extensions ---------------------------// 
 
@@ -310,6 +326,13 @@ namespace NCode.Core
             NVector3 nVector3 = new NVector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
             if (nVector3 != null) return nVector3;
             return NVector3.Zero();
+        }
+
+        public static NPlayerInfo ReadPlayerInfo(this BinaryReader reader)
+        {
+            NPlayerInfo playerInfo = (NPlayerInfo)NConverters.ConvertByteArrayToObject(reader.ReadByteArray());
+            if (playerInfo != null) return playerInfo;
+            return null;
         }
 
         public static NNetworkEntity ReadNetworkEntity(this BinaryReader reader)
