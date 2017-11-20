@@ -11,7 +11,7 @@ namespace NCode.Core
         public readonly int PlayerID;
         public readonly Guid PlayerGuid;
         public string PlayerAliase;
-        public List<int> ConnectedChannels = new List<int>();
+        public readonly List<int> ConnectedChannels = new List<int>();
         public bool SessionLeader;
 
         public NPlayerInfo(int playerID, Guid playerGuid)

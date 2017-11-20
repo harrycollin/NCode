@@ -279,7 +279,7 @@ namespace NCode.Client
                         {
                             ConnectedPlayers.Add(otherPlayer);
                             onPlayerConnect?.Invoke(otherPlayer);
-                            Print("Player Connected");
+                            Print("Player Connected: " + otherPlayer.PlayerID);
                         }
                         break;
                     }

@@ -140,6 +140,27 @@ namespace NCode.Server.Core
             }
         }
 
+        public static void InitializePlayer(NPlayer newPlayer)
+        {
+            //Send all other players to this player
+            foreach (var player in NPlayer.PlayerDictionary.Values)
+            {
+                var writer = newPlayer.BeginSend(Packet.PlayerConnected);
+                writer.WriteObject(player.PlayerInfo);
+                newPlayer.EndSend();
+            }
+
+            //Send this player to all other players
+            foreach (var player in NPlayer.PlayerDictionary.Values)
+            {
+                var writer = player.BeginSend(Packet.PlayerConnected);
+                writer.WriteObject(newPlayer.PlayerInfo);
+                player.EndSend();
+            }
+
+            //Add more here if needed
+        }
+
         public static bool RemovePlayer(int playerId)
         {
             lock (PlayerDictionary)

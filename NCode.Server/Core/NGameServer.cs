@@ -196,7 +196,7 @@ namespace NCode.Server.Core
                     player.IsPlayerUdpConnected = true;
 
                     NServerEvents.playerConnected?.Invoke(player);
-                    InitializePlayer(player);
+                    NPlayer.InitializePlayer(player);
                     //Send the response packet to the player
                     var writer = player.BeginSend(Packet.ResponseSetupUdp);
                     writer.Write(true);
@@ -464,28 +464,6 @@ namespace NCode.Server.Core
             }
         }
 
-        private void InitializePlayer(NPlayer newPlayer)
-        {
-            PrintInfo("hjhdhjsdbfwhjdnfwhnf");
-            //Send all other players to this player
-            foreach (var player in NPlayer.PlayerDictionary.Values)
-            {
-                var writer = newPlayer.BeginSend(Packet.PlayerConnected);
-                writer.WriteObject(player.PlayerInfo);
-                newPlayer.EndSend();
-            }
-
-            //Send this player to all other players
-            foreach(var player in NPlayer.PlayerDictionary.Values)
-            {
-                var writer = player.BeginSend(Packet.PlayerConnected);
-                writer.WriteObject(newPlayer.PlayerInfo);
-                player.EndSend();
-            }
-
-            //Add more here if needed
-
-        }
     }
 }
 
